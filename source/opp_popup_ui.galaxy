@@ -1,0 +1,184 @@
+// Observer routing follows the verified GameHeart DefaultObservedPlayerId contract.
+const int OPP_UI_ROWS = 3;
+const int OPP_UI_CAPACITY = 128;
+bool OPP_UI_Ready = false;
+playergroup OPP_UI_Viewers;
+int OPP_UI_ViewerId;
+int[3] OPP_UI_Panel;
+int[3] OPP_UI_Background;
+int[3] OPP_UI_Icon;
+int[3] OPP_UI_Owner;
+int[3] OPP_UI_Name;
+int[3] OPP_UI_Status;
+timer[3] OPP_UI_Timer;
+bool[3] OPP_UI_Busy;
+int[128] OPP_UI_QueueOwner;
+text[128] OPP_UI_QueueName;
+string[128] OPP_UI_QueueIcon;
+int OPP_UI_Head = 0;
+int OPP_UI_Count = 0;
+int[17][3] OPP_UI_Overflow;
+const int OPP_KIND_BUILDING = 0;
+const int OPP_KIND_RESEARCH = 1;
+const int OPP_KIND_UNIT = 2;
+int[3] OPP_UI_RowOwner;
+int[3] OPP_UI_RowKind;
+string[3] OPP_UI_RowKey;
+int[3] OPP_UI_RowCount;
+string[128] OPP_UI_QueueKey;
+int[128] OPP_UI_QueueKind;
+
+void OPP_UI_Show (int row, int owner, text objectName, string icon, int kind, string objectKey) {
+    libNtve_gf_SetDialogItemColor(OPP_UI_Background[row], libNtve_gf_ConvertPlayerColorToColor(PlayerGetColorIndex(owner, false)), OPP_UI_Viewers);
+    DialogControlSetVisible(OPP_UI_Background[row], OPP_UI_Viewers, true);
+    libNtve_gf_SetDialogItemText(OPP_UI_Owner[row], PlayerName(owner), OPP_UI_Viewers);
+    libNtve_gf_SetDialogItemColor(OPP_UI_Owner[row], libNtve_gf_ConvertPlayerColorToColor(PlayerGetColorIndex(owner, false)), OPP_UI_Viewers);
+    libNtve_gf_SetDialogItemText(OPP_UI_Name[row], objectName, OPP_UI_Viewers);
+    libNtve_gf_SetDialogItemImage(OPP_UI_Icon[row], icon, OPP_UI_Viewers);
+    libNtve_gf_SetDialogItemText(OPP_UI_Status[row], StringExternal("OPP/Cancelled"), OPP_UI_Viewers);
+    DialogControlSetVisible(OPP_UI_Icon[row], OPP_UI_Viewers, true);
+    DialogControlSetVisible(OPP_UI_Owner[row], OPP_UI_Viewers, true);
+    DialogControlSetVisible(OPP_UI_Name[row], OPP_UI_Viewers, true);
+    DialogControlSetVisible(OPP_UI_Status[row], OPP_UI_Viewers, true);
+    DialogControlSetVisible(OPP_UI_Panel[row], OPP_UI_Viewers, true);
+    OPP_UI_RowOwner[row] = owner;
+    OPP_UI_RowKind[row] = kind;
+    OPP_UI_RowKey[row] = objectKey;
+    OPP_UI_RowCount[row] = 1;
+    OPP_UI_Busy[row] = true;
+    TimerStart(OPP_UI_Timer[row], 5.0, false, c_timeGame);
+    DataTableSetInt(true, "OPPCancelPopups/Displayed", DataTableGetInt(true, "OPPCancelPopups/Displayed") + 1);
+}
+
+void OPP_UI_Drain () {
+    int row;
+    int owner;
+    int kind;
+    int count;
+    text summary;
+    for (row = 0; row < OPP_UI_ROWS; row += 1) {
+        if (!OPP_UI_Busy[row]) {
+            if (OPP_UI_Count > 0) {
+                OPP_UI_Show(row, OPP_UI_QueueOwner[OPP_UI_Head], OPP_UI_QueueName[OPP_UI_Head], OPP_UI_QueueIcon[OPP_UI_Head], OPP_UI_QueueKind[OPP_UI_Head], OPP_UI_QueueKey[OPP_UI_Head]);
+                OPP_UI_QueueName[OPP_UI_Head] = null;
+                OPP_UI_QueueIcon[OPP_UI_Head] = "";
+                OPP_UI_Head = (OPP_UI_Head + 1) % OPP_UI_CAPACITY;
+                OPP_UI_Count -= 1;
+            }
+            else {
+                for (owner = 1; owner < c_playerAny; owner += 1) {
+                    for (kind = 0; kind < 3; kind += 1) {
+                        count = OPP_UI_Overflow[owner][kind];
+                        if (!OPP_UI_Busy[row] && count > 0) {
+                            summary = IntToText(count) + StringExternal("OPP/MoreBuildings");
+                            if (kind == 1) {
+                                summary = IntToText(count) + StringExternal("OPP/MoreUpgrades");
+                            }
+                            if (kind == OPP_KIND_UNIT) {
+                                summary = IntToText(count) + StringExternal("OPP/MoreUnits");
+                            }
+                            OPP_UI_Overflow[owner][kind] = 0;
+                            OPP_UI_Show(row, owner, summary, "Assets\\Textures\\btn-command-cancel.dds", kind, "");
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void OPP_UI_PushTyped (int owner, text objectName, string icon, int kind, string objectKey) {
+    int tail;
+    int row;
+    if (!OPP_UI_Ready || owner < 1 || owner >= c_playerAny) { return; }
+    // Only currently active popups merge across buildings, units and upgrades. Use catalog IDs, never
+    // localized display text; different owners always retain separate counts.
+    if (objectKey != "") {
+        for (row = 0; row < OPP_UI_ROWS; row += 1) {
+            if (OPP_UI_Busy[row] && TimerGetRemaining(OPP_UI_Timer[row]) > 0.0 && OPP_UI_RowOwner[row] == owner && OPP_UI_RowKind[row] == kind && OPP_UI_RowKey[row] == objectKey) {
+                OPP_UI_RowCount[row] += 1;
+                libNtve_gf_SetDialogItemText(OPP_UI_Status[row], StringExternal("OPP/Cancelled") + StringToText(" ×") + IntToText(OPP_UI_RowCount[row]), OPP_UI_Viewers);
+                TimerStart(OPP_UI_Timer[row], 5.0, false, c_timeGame);
+                return;
+            }
+        }
+    }
+    OPP_UI_Drain();
+    if (OPP_UI_Count == OPP_UI_CAPACITY) {
+        OPP_UI_Overflow[owner][kind] += 1;
+        return;
+    }
+    tail = (OPP_UI_Head + OPP_UI_Count) % OPP_UI_CAPACITY;
+    OPP_UI_QueueOwner[tail] = owner;
+    OPP_UI_QueueName[tail] = objectName;
+    OPP_UI_QueueIcon[tail] = icon;
+    OPP_UI_QueueKind[tail] = kind;
+    OPP_UI_QueueKey[tail] = objectKey;
+    OPP_UI_Count += 1;
+    OPP_UI_Drain();
+}
+
+// Preserve the unkeyed fixture entry point; production events use typed catalog IDs.
+void OPP_UI_Push (int owner, text objectName, string icon, bool research) {
+    int kind;
+    kind = OPP_KIND_BUILDING;
+    if (research) { kind = OPP_KIND_RESEARCH; }
+    OPP_UI_PushTyped(owner, objectName, icon, kind, "");
+}
+
+bool OPP_UI_Expire (bool testConds, bool runActions) {
+    int row;
+    if (!runActions) { return true; }
+    for (row = 0; row < OPP_UI_ROWS; row += 1) {
+        if (EventTimer() == OPP_UI_Timer[row] && TimerGetRemaining(OPP_UI_Timer[row]) <= 0.0) {
+            DialogControlSetVisible(OPP_UI_Panel[row], OPP_UI_Viewers, false);
+            OPP_UI_Busy[row] = false;
+        }
+    }
+    OPP_UI_Drain();
+    return true;
+}
+
+int OPP_UI_Hook (int kind, string path) {
+    int control;
+    control = DialogControlHookupStandard(kind, path);
+    if (control != c_invalidDialogControlId) {
+        DialogControlSetObservedType(control, c_triggerObservedTypeDefaultObservedPlayerId);
+    }
+    return control;
+}
+
+void OPP_UI_Init () {
+    int row;
+    string path;
+    trigger expiry;
+    OPP_UI_ViewerId = CatalogFieldValueGetAsInt(c_gameCatalogGameUI, "Dflt", "DefaultObservedPlayerId", c_playerAny);
+    DataTableSetInt(true, "OPPCancelPopups/ObserverId", OPP_UI_ViewerId);
+    if (OPP_UI_ViewerId < 1 || OPP_UI_ViewerId >= c_maxPlayers || PlayerGroupHasPlayer(PlayerGroupActive(), OPP_UI_ViewerId)) { return; }
+    OPP_UI_Viewers = PlayerGroupSingle(OPP_UI_ViewerId);
+    expiry = TriggerCreate("OPP_UI_Expire");
+    for (row = 0; row < OPP_UI_ROWS; row += 1) {
+        path = "UIContainer/FullscreenUpperContainer/TimerNotificationPanel/ToggledContent/OPPCancelRow" + IntToString(row);
+        OPP_UI_Panel[row] = OPP_UI_Hook(c_triggerControlTypePanel, path);
+        // Record an explicit initial visibility value. Replay seeks can reuse
+        // the loaded layout, so XML defaults alone leave stale rows on screen.
+        if (OPP_UI_Panel[row] != c_invalidDialogControlId) {
+            DialogControlSetVisible(OPP_UI_Panel[row], PlayerGroupAll(), false);
+        }
+        OPP_UI_Icon[row] = OPP_UI_Hook(c_triggerControlTypeImage, path + "/Icon");
+        OPP_UI_Background[row] = OPP_UI_Hook(c_triggerControlTypeImage, path + "/Background");
+        OPP_UI_Owner[row] = OPP_UI_Hook(c_triggerControlTypeLabel, path + "/Owner");
+        OPP_UI_Name[row] = OPP_UI_Hook(c_triggerControlTypeLabel, path + "/ObjectName");
+        OPP_UI_Status[row] = OPP_UI_Hook(c_triggerControlTypeLabel, path + "/Status");
+        if (OPP_UI_Panel[row] == 0 || OPP_UI_Background[row] == 0 || OPP_UI_Icon[row] == 0 || OPP_UI_Owner[row] == 0 || OPP_UI_Name[row] == 0 || OPP_UI_Status[row] == 0) { return; }
+        // Read-only fixture probes query the actual control values/visibility.
+        DataTableSetInt(true, "OPPCancelPopups/Panel" + IntToString(row), OPP_UI_Panel[row]);
+        DataTableSetInt(true, "OPPCancelPopups/Name" + IntToString(row), OPP_UI_Name[row]);
+        DataTableSetInt(true, "OPPCancelPopups/Owner" + IntToString(row), OPP_UI_Owner[row]);
+        DataTableSetInt(true, "OPPCancelPopups/Status" + IntToString(row), OPP_UI_Status[row]);
+        OPP_UI_Timer[row] = TimerCreate();
+        TriggerAddEventTimer(expiry, OPP_UI_Timer[row]);
+    }
+    OPP_UI_Ready = true;
+    DataTableSetBool(true, "OPPCancelPopups/UIReady", true);
+}

@@ -1,0 +1,90 @@
+// Require both a production Cancel event and an explicit queue/warp Cancel
+// order in the same synchronous game tick. A dead Zerg egg is legitimate:
+// LarvaTrain has KillOnCancel. Death alone must not generate a cancellation.
+int[128] OPP_UnitOrderTag;
+int[128] OPP_UnitOrderTick;
+int OPP_UnitOrderNext = 0;
+int[256] OPP_UnitPendingTag;
+int[256] OPP_UnitPendingTick;
+int[256] OPP_UnitPendingOwner;
+string[256] OPP_UnitPendingType;
+bool[256] OPP_UnitPendingSent;
+int OPP_UnitPendingNext = 0;
+
+void OPP_UnitPublish (int slot) {
+    string objectType;
+    int owner;
+    if (OPP_UnitPendingSent[slot]) { return; }
+    OPP_UnitPendingSent[slot] = true;
+    objectType = OPP_UnitPendingType[slot];
+    owner = OPP_UnitPendingOwner[slot];
+    OPP_UI_PushTyped(owner, UnitTypeGetName(objectType), CatalogFieldValueGet(c_gameCatalogActor, objectType, "UnitIcon", owner), OPP_KIND_UNIT, objectType);
+    DataTableSetInt(true, "OPPCancelPopups/UnitCancels", DataTableGetInt(true, "OPPCancelPopups/UnitCancels") + 1);
+}
+
+bool OPP_UnitProductionCancelled (bool testConds, bool runActions) {
+    unit facility;
+    string objectType;
+    int owner;
+    int tag;
+    int tick;
+    int slot;
+    int i;
+    if (!runActions) { return true; }
+    facility = EventUnit();
+    objectType = EventUnitProgressObjectType();
+    if (facility == null || objectType == "") { return true; }
+    owner = UnitGetOwner(facility);
+    tag = UnitGetTag(facility);
+    if (tag <= 0 || owner < 1 || owner >= c_playerAny) { return true; }
+    tick = CurrentSynchronousGameTimeGet();
+    slot = OPP_UnitPendingNext;
+    OPP_UnitPendingNext = (slot + 1) % 256;
+    OPP_UnitPendingTag[slot] = tag;
+    OPP_UnitPendingTick[slot] = tick;
+    OPP_UnitPendingOwner[slot] = owner;
+    OPP_UnitPendingType[slot] = objectType;
+    OPP_UnitPendingSent[slot] = false;
+    for (i = 0; i < 128; i += 1) {
+        if (OPP_UnitOrderTag[i] == tag && OPP_UnitOrderTick[i] == tick) {
+            OPP_UnitPublish(slot);
+            return true;
+        }
+    }
+    return true;
+}
+
+bool OPP_UnitProductionCancelOrder (bool testConds, bool runActions) {
+    abilcmd command;
+    int abilityClass;
+    int index;
+    int tag;
+    int tick;
+    int i;
+    if (!runActions || EventUnit() == null) { return true; }
+    command = OrderGetAbilityCommand(EventUnitOrder());
+    abilityClass = AbilityClass(AbilityCommandGetAbility(command));
+    index = AbilityCommandGetCommand(command);
+    if (!((abilityClass == c_classIdCAbilQueue && (index == c_abilQueueCmdCancelLast || index == c_abilQueueCmdCancelSlot)) || (abilityClass == c_classIdCAbilWarpable && index == c_abilWarpableCmdCancel))) { return true; }
+    tag = UnitGetTag(EventUnit());
+    tick = CurrentSynchronousGameTimeGet();
+    OPP_UnitOrderTag[OPP_UnitOrderNext] = tag;
+    OPP_UnitOrderTick[OPP_UnitOrderNext] = tick;
+    OPP_UnitOrderNext = (OPP_UnitOrderNext + 1) % 128;
+    for (i = 0; i < 256; i += 1) {
+        if (OPP_UnitPendingTag[i] == tag && OPP_UnitPendingTick[i] == tick) {
+            OPP_UnitPublish(i);
+        }
+    }
+    return true;
+}
+
+void OPP_Units_Init () {
+    trigger progress;
+    trigger cancelOrder;
+    progress = TriggerCreate("OPP_UnitProductionCancelled");
+    TriggerAddEventUnitTrainProgress(progress, null, c_unitProgressStageCancel);
+    TriggerAddEventUnitArmMagazineProgress(progress, null, c_unitProgressStageCancel);
+    cancelOrder = TriggerCreate("OPP_UnitProductionCancelOrder");
+    TriggerAddEventUnitOrder(cancelOrder, null, null);
+}

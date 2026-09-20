@@ -1,0 +1,67 @@
+// Contract verified against WCS GameHeart EU 1.24. No dependency assets copied.
+include "LibGHLo_h"
+
+int OPP_ResearchSlot (unit facility) {
+    int slot;
+    int last;
+    last = libGHLo_gv_upgradeNotifications.lv_slotLastUsed;
+    if (last > 100) { last = 100; }
+    for (slot = 0; slot <= last; slot += 1) {
+        if (libGHLo_gv_upgradeNotifications.lv_slotFacility[slot] == facility) {
+            // Only UI slots have a status array entry; queued slots are hidden.
+            if (slot > libGHLo_gv_upgradeNotificationsMaxUISlots) { return slot; }
+            if (libGHLo_gv_upgradeNotifications.lv_slotStatus[slot] == libGHLo_ge_UpgradeNotificationsSlotStatus_HiddenOccupiedwithrunningUpgrade || libGHLo_gv_upgradeNotifications.lv_slotStatus[slot] == libGHLo_ge_UpgradeNotificationsSlotStatus_VisibleOccupiedwithrunningUpgrade) { return slot; }
+        }
+    }
+    return -1;
+}
+
+bool OPP_ResearchCancelled (bool testConds, bool runActions) {
+    unit facility;
+    int owner;
+    int slot;
+    bool visible;
+    string upgrade;
+    string icon;
+    text name;
+    if (!runActions) { return true; }
+    facility = EventUnit();
+    if (facility == null) { return true; }
+    owner = UnitGetOwner(facility);
+    upgrade = libNtve_gf_TriggeringProgressUpgrade();
+    slot = -1;
+    visible = false;
+    if (libGHLo_gv_upgradeNotifications.lv_active) {
+        slot = OPP_ResearchSlot(facility);
+        if (slot >= 0 && slot <= libGHLo_gv_upgradeNotificationsMaxUISlots) {
+            visible = DialogControlIsVisible(libGHLo_gv_upgradeNotifications.lv_itemPanel[slot], libGHLo_gv_upgradeNotificationsObsID);
+        }
+    }
+    if (!UnitIsAlive(facility) && visible) {
+        libGHLo_gv_upgradeNotifications.lv_slotStatus[slot] = libGHLo_ge_UpgradeNotificationsSlotStatus_OccupiedwithdestroyedcompletedUpgrade;
+        TimerStart(libGHLo_gv_upgradeNotifications.lv_timerDestruction[slot], 5.0, false, c_timeGame);
+        libGHLo_gf_UpgradeNotificationsSetStatusLabel(slot, StringExternal("Param/Value/lib_GHLo_9266D633"));
+        DataTableSetInt(true, "OPPCancelPopups/ResearchPreserved", DataTableGetInt(true, "OPPCancelPopups/ResearchPreserved") + 1);
+        return true;
+    }
+    // Retire the running GameHeart entry before enqueuing our cancellation.
+    // This gives both early and late cancellations one consistent notification,
+    // without depending on a logical Visible flag that may still render clipped.
+    if (slot >= 0) { libGHLo_gf_UpgradeNotificationsRemoveRunningUpgrade(slot); }
+    if (!UnitIsAlive(facility) || owner < 1 || owner >= c_playerAny || upgrade == "") { return true; }
+    icon = CatalogFieldValueGet(c_gameCatalogUpgrade, upgrade, "Icon", owner);
+    name = StringExternal(CatalogFieldValueGet(c_gameCatalogUpgrade, upgrade, "Name", owner));
+    OPP_UI_PushTyped(owner, name, icon, OPP_KIND_RESEARCH, upgrade);
+    DataTableSetInt(true, "OPPCancelPopups/ResearchOwn", DataTableGetInt(true, "OPPCancelPopups/ResearchOwn") + 1);
+    return true;
+}
+
+void OPP_Research_Init () {
+    trigger researchCancel;
+    // Preserve GameHeart unchanged if our observer UI cannot initialize.
+    if (!OPP_UI_Ready || libGHLo_gt_UpgradeNotificationsResearchCancelled == null) { return; }
+    TriggerEnable(libGHLo_gt_UpgradeNotificationsResearchCancelled, false);
+    researchCancel = TriggerCreate("OPP_ResearchCancelled");
+    TriggerAddEventUnitResearchProgress(researchCancel, null, c_unitProgressStageCancel);
+    DataTableSetBool(true, "OPPCancelPopups/ResearchAdapter", true);
+}

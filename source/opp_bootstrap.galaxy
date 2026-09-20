@@ -1,0 +1,14 @@
+// Canonical bootstrap source. tools/generate_mod.py embeds this in Triggers.
+void OPP_Init () {
+    DataTableSetInt(true, "OPPCancelPopups/InitializationAttempts", DataTableGetInt(true, "OPPCancelPopups/InitializationAttempts") + 1);
+    if (DataTableGetBool(true, "OPPCancelPopups/Initialized")) {
+        return;
+    }
+    DataTableSetBool(true, "OPPCancelPopups/Initialized", true);
+    DataTableSetInt(true, "OPPCancelPopups/InitializationCount", DataTableGetInt(true, "OPPCancelPopups/InitializationCount") + 1);
+    DataTableSetBool(true, "OPPCancelPopups/Debug", false);
+    OPP_UI_Init();
+    OPP_Events_Init();
+    OPP_Units_Init();
+    OPP_Research_Init();
+}

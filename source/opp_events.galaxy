@@ -1,0 +1,63 @@
+// Runtime probe: BuildInProgress cancel has no ability-stage event. Construction
+// cancel supplies EventUnitProgressUnit; the order callback can follow removal.
+// Require BOTH progress cancellation and the explicit Cancel command. Pairing is
+// independent of callback order; death/completion/rejected orders cannot notify.
+int[128] OPP_BuildTags;
+bool[128] OPP_BuildProgress;
+bool[128] OPP_BuildOrder;
+bool[128] OPP_BuildNotified;
+int OPP_BuildNext = 0;
+
+void OPP_BuildSignal (unit building, bool progress) {
+    int owner;
+    int tag;
+    int i;
+    int slot;
+    string objectType;
+    string icon;
+    if (building == null) { return; }
+    owner = UnitGetOwner(building);
+    tag = UnitGetTag(building);
+    objectType = UnitGetType(building);
+    if (tag <= 0 || objectType == "" || owner < 1 || owner >= c_playerAny) { return; }
+    slot = -1;
+    for (i = 0; i < 128; i += 1) {
+        if (OPP_BuildTags[i] == tag) { slot = i; }
+    }
+    if (slot < 0) {
+        slot = OPP_BuildNext;
+        OPP_BuildNext = (OPP_BuildNext + 1) % 128;
+        OPP_BuildTags[slot] = tag;
+        OPP_BuildProgress[slot] = false;
+        OPP_BuildOrder[slot] = false;
+        OPP_BuildNotified[slot] = false;
+    }
+    if (progress) { OPP_BuildProgress[slot] = true; }
+    else { OPP_BuildOrder[slot] = true; }
+    if (!OPP_BuildProgress[slot] || !OPP_BuildOrder[slot] || OPP_BuildNotified[slot]) { return; }
+    OPP_BuildNotified[slot] = true;
+    icon = CatalogFieldValueGet(c_gameCatalogActor, objectType, "UnitIcon", owner);
+    DataTableSetInt(true, "OPPCancelPopups/BuildingCancels", DataTableGetInt(true, "OPPCancelPopups/BuildingCancels") + 1);
+    OPP_UI_PushTyped(owner, UnitTypeGetName(objectType), icon, OPP_KIND_BUILDING, objectType);
+}
+
+bool OPP_BuildCancelled (bool testConds, bool runActions) {
+    if (!runActions) { return true; }
+    OPP_BuildSignal(EventUnitProgressUnit(), true);
+    return true;
+}
+
+bool OPP_BuildCancelOrder (bool testConds, bool runActions) {
+    if (!runActions) { return true; }
+    OPP_BuildSignal(EventUnit(), false);
+    return true;
+}
+
+void OPP_Events_Init () {
+    trigger buildingCancel;
+    trigger cancelOrder;
+    buildingCancel = TriggerCreate("OPP_BuildCancelled");
+    TriggerAddEventUnitConstructProgress(buildingCancel, null, c_unitProgressStageCancel);
+    cancelOrder = TriggerCreate("OPP_BuildCancelOrder");
+    TriggerAddEventUnitOrder(cancelOrder, null, AbilityCommand("BuildInProgress", c_abilBuildableCmdCancel));
+}

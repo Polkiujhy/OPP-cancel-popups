@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<StyleFile>
+    <Style name="OPPCancelOwner" font="UI\Fonts\MetronicBlizzardBold.otf" height="20" vjustify="Middle" hjustify="Left" textcolor="255,255,255,255"/>
+    <Style name="OPPCancelName" font="UI\Fonts\MetronicBlizzard.otf" height="18" vjustify="Middle" hjustify="Left" textcolor="255,255,255,255"/>
+</StyleFile>

@@ -1,0 +1,4 @@
+OPP/Cancelled=Cancelled
+OPP/MoreBuildings= additional building cancellations
+OPP/MoreUpgrades= additional upgrade cancellations
+OPP/MoreUnits= more unit cancellations

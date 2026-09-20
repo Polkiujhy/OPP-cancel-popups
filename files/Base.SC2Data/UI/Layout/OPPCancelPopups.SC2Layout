@@ -1,0 +1,182 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Desc>
+    <Frame type="Frame" name="GameUI/UIContainer/FullscreenUpperContainer/TimerNotificationPanel/ToggledContent" file="GameUI">
+        <Frame type="Frame" name="OPPCancelRow0">
+            <Anchor side="Top" relative="$parent" pos="Min" offset="0" />
+            <Anchor side="Right" relative="$parent" pos="Min" offset="-12" />
+            <Width val="420" />
+            <Height val="104" />
+            <Unclipped val="true" />
+            <RenderPriority val="500" />
+            <Visible val="false" />
+            <AcceptsMouse val="false" />
+            <Frame type="Image" name="Background">
+                <Anchor relative="$parent" />
+                <Texture val="MIT/ghbackground.dds" />
+                <Alpha val="220" />
+                <RenderPriority val="500" />
+                <Unclipped val="true" />
+                <TextureType val="Normal" />
+            </Frame>
+            <Frame type="Image" name="Icon">
+                <Anchor side="Left" relative="$parent" pos="Min" offset="8" />
+                <Anchor side="Top" relative="$parent" pos="Min" offset="20" />
+                <Width val="64" />
+                <Height val="64" />
+                <Visible val="false" />
+                <Texture val="Assets/Textures/White32.dds" />
+                <TextureType val="Normal" />
+                <RenderPriority val="501" />
+                <Unclipped val="true" />
+            </Frame>
+            <Frame type="Label" name="Owner">
+                <Anchor side="Left" relative="$parent" pos="Min" offset="82" />
+                <Anchor side="Top" relative="$parent" pos="Min" offset="2" />
+                <Width val="330" />
+                <Height val="32" />
+                <Visible val="false" />
+                <Style val="OPPCancelOwner" />
+                <RenderPriority val="501" />
+                <Unclipped val="true" />
+            </Frame>
+            <Frame type="Label" name="ObjectName">
+                <Anchor side="Left" relative="$parent" pos="Min" offset="82" />
+                <Anchor side="Top" relative="$parent" pos="Min" offset="34" />
+                <Width val="330" />
+                <Height val="32" />
+                <Visible val="false" />
+                <Style val="OPPCancelName" />
+                <RenderPriority val="501" />
+                <Unclipped val="true" />
+            </Frame>
+            <Frame type="Label" name="Status">
+                <Anchor side="Left" relative="$parent" pos="Min" offset="82" />
+                <Anchor side="Top" relative="$parent" pos="Min" offset="66" />
+                <Width val="330" />
+                <Height val="32" />
+                <Visible val="false" />
+                <Style val="OPPCancelName" />
+                <RenderPriority val="501" />
+                <Unclipped val="true" />
+            </Frame>
+        </Frame>
+        <Frame type="Frame" name="OPPCancelRow1">
+            <Anchor side="Top" relative="$parent" pos="Min" offset="112" />
+            <Anchor side="Right" relative="$parent" pos="Min" offset="-12" />
+            <Width val="420" />
+            <Height val="104" />
+            <Unclipped val="true" />
+            <RenderPriority val="500" />
+            <Visible val="false" />
+            <AcceptsMouse val="false" />
+            <Frame type="Image" name="Background">
+                <Anchor relative="$parent" />
+                <Texture val="MIT/ghbackground.dds" />
+                <Alpha val="220" />
+                <RenderPriority val="500" />
+                <Unclipped val="true" />
+                <TextureType val="Normal" />
+            </Frame>
+            <Frame type="Image" name="Icon">
+                <Anchor side="Left" relative="$parent" pos="Min" offset="8" />
+                <Anchor side="Top" relative="$parent" pos="Min" offset="20" />
+                <Width val="64" />
+                <Height val="64" />
+                <Visible val="false" />
+                <Texture val="Assets/Textures/White32.dds" />
+                <TextureType val="Normal" />
+                <RenderPriority val="501" />
+                <Unclipped val="true" />
+            </Frame>
+            <Frame type="Label" name="Owner">
+                <Anchor side="Left" relative="$parent" pos="Min" offset="82" />
+                <Anchor side="Top" relative="$parent" pos="Min" offset="2" />
+                <Width val="330" />
+                <Height val="32" />
+                <Visible val="false" />
+                <Style val="OPPCancelOwner" />
+                <RenderPriority val="501" />
+                <Unclipped val="true" />
+            </Frame>
+            <Frame type="Label" name="ObjectName">
+                <Anchor side="Left" relative="$parent" pos="Min" offset="82" />
+                <Anchor side="Top" relative="$parent" pos="Min" offset="34" />
+                <Width val="330" />
+                <Height val="32" />
+                <Visible val="false" />
+                <Style val="OPPCancelName" />
+                <RenderPriority val="501" />
+                <Unclipped val="true" />
+            </Frame>
+            <Frame type="Label" name="Status">
+                <Anchor side="Left" relative="$parent" pos="Min" offset="82" />
+                <Anchor side="Top" relative="$parent" pos="Min" offset="66" />
+                <Width val="330" />
+                <Height val="32" />
+                <Visible val="false" />
+                <Style val="OPPCancelName" />
+                <RenderPriority val="501" />
+                <Unclipped val="true" />
+            </Frame>
+        </Frame>
+        <Frame type="Frame" name="OPPCancelRow2">
+            <Anchor side="Top" relative="$parent" pos="Min" offset="224" />
+            <Anchor side="Right" relative="$parent" pos="Min" offset="-12" />
+            <Width val="420" />
+            <Height val="104" />
+            <Unclipped val="true" />
+            <RenderPriority val="500" />
+            <Visible val="false" />
+            <AcceptsMouse val="false" />
+            <Frame type="Image" name="Background">
+                <Anchor relative="$parent" />
+                <Texture val="MIT/ghbackground.dds" />
+                <Alpha val="220" />
+                <RenderPriority val="500" />
+                <Unclipped val="true" />
+                <TextureType val="Normal" />
+            </Frame>
+            <Frame type="Image" name="Icon">
+                <Anchor side="Left" relative="$parent" pos="Min" offset="8" />
+                <Anchor side="Top" relative="$parent" pos="Min" offset="20" />
+                <Width val="64" />
+                <Height val="64" />
+                <Visible val="false" />
+                <Texture val="Assets/Textures/White32.dds" />
+                <TextureType val="Normal" />
+                <RenderPriority val="501" />
+                <Unclipped val="true" />
+            </Frame>
+            <Frame type="Label" name="Owner">
+                <Anchor side="Left" relative="$parent" pos="Min" offset="82" />
+                <Anchor side="Top" relative="$parent" pos="Min" offset="2" />
+                <Width val="330" />
+                <Height val="32" />
+                <Visible val="false" />
+                <Style val="OPPCancelOwner" />
+                <RenderPriority val="501" />
+                <Unclipped val="true" />
+            </Frame>
+            <Frame type="Label" name="ObjectName">
+                <Anchor side="Left" relative="$parent" pos="Min" offset="82" />
+                <Anchor side="Top" relative="$parent" pos="Min" offset="34" />
+                <Width val="330" />
+                <Height val="32" />
+                <Visible val="false" />
+                <Style val="OPPCancelName" />
+                <RenderPriority val="501" />
+                <Unclipped val="true" />
+            </Frame>
+            <Frame type="Label" name="Status">
+                <Anchor side="Left" relative="$parent" pos="Min" offset="82" />
+                <Anchor side="Top" relative="$parent" pos="Min" offset="66" />
+                <Width val="330" />
+                <Height val="32" />
+                <Visible val="false" />
+                <Style val="OPPCancelName" />
+                <RenderPriority val="501" />
+                <Unclipped val="true" />
+            </Frame>
+        </Frame>
+    </Frame>
+</Desc>
