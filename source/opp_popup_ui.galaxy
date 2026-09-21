@@ -1,3 +1,5 @@
+// Rows inherit the GameHeart notification template and collapse into its visual stack.
+// Queue ownership stays separate from GameHeart research-facility slots.
 // Observer routing follows the verified GameHeart DefaultObservedPlayerId contract.
 const int OPP_UI_ROWS = 3;
 const int OPP_UI_CAPACITY = 128;
@@ -165,11 +167,11 @@ void OPP_UI_Init () {
         if (OPP_UI_Panel[row] != c_invalidDialogControlId) {
             DialogControlSetVisible(OPP_UI_Panel[row], PlayerGroupAll(), false);
         }
-        OPP_UI_Icon[row] = OPP_UI_Hook(c_triggerControlTypeImage, path + "/Icon");
-        OPP_UI_Background[row] = OPP_UI_Hook(c_triggerControlTypeImage, path + "/Background");
-        OPP_UI_Owner[row] = OPP_UI_Hook(c_triggerControlTypeLabel, path + "/Owner");
-        OPP_UI_Name[row] = OPP_UI_Hook(c_triggerControlTypeLabel, path + "/ObjectName");
-        OPP_UI_Status[row] = OPP_UI_Hook(c_triggerControlTypeLabel, path + "/Status");
+        OPP_UI_Icon[row] = OPP_UI_Hook(c_triggerControlTypeImage, path + "/TimerWindow/TimerIcon");
+        OPP_UI_Background[row] = OPP_UI_Hook(c_triggerControlTypeImage, path + "/TimerWindow");
+        OPP_UI_Owner[row] = OPP_UI_Hook(c_triggerControlTypeLabel, path + "/TimerWindow/Owner");
+        OPP_UI_Name[row] = OPP_UI_Hook(c_triggerControlTypeLabel, path + "/TimerWindow/TimerType");
+        OPP_UI_Status[row] = OPP_UI_Hook(c_triggerControlTypeLabel, path + "/TimerWindow/TimerStatus");
         if (OPP_UI_Panel[row] == 0 || OPP_UI_Background[row] == 0 || OPP_UI_Icon[row] == 0 || OPP_UI_Owner[row] == 0 || OPP_UI_Name[row] == 0 || OPP_UI_Status[row] == 0) { return; }
         // Read-only fixture probes query the actual control values/visibility.
         DataTableSetInt(true, "OPPCancelPopups/Panel" + IntToString(row), OPP_UI_Panel[row]);

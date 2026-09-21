@@ -1,4 +1,4 @@
-# OPP Cancel Popups — integracja 1.2
+# OPP Cancel Popups — wydanie 1.1
 
 Pakiet dla autora docelowego moda. Dodaje popupy anulowania budynków, produkcji
 jednostek i badań ulepszeń wyłącznie obserwatorom/sędziom. Aktywny popup tego
@@ -38,7 +38,9 @@ triggera `libGHLo_gt_UpgradeNotificationsResearchCancelled` i funkcji
 Dokładne używane symbole są w `source/opp_research.galaxy`.
 Layout korzysta z istniejącego panelu
 `GameUI/UIContainer/FullscreenUpperContainer/TimerNotificationPanel/ToggledContent`
-i tekstury `MIT/ghbackground.dds` dostarczanej przez zależności.
+oraz szablonu `UpgradeNotifications/TimerFrameTemplate` i stylów `TimerType` /
+`TimerStatus` dostarczanych przez GameHeart. Wiersze tworzą wspólny stos
+ze standardowymi powiadomieniami; kolejka anulowań pozostaje osobna.
 Routing wymaga `GameUI/Dflt/DefaultObservedPlayerId` zgodnego z GameHeart.
 Dla innego UI lub zmodyfikowanego GameHeart potrzebna jest adaptacja tych miejsc.
 
@@ -63,7 +65,7 @@ Dla innego UI lub zmodyfikowanego GameHeart potrzebna jest adaptacja tych miejsc
 5. Do istniejącego `Base.SC2Data/UI/Layout/DescIndex.SC2Layout` dodaj pojedyncze
    `<Include path="UI/Layout/OPPCancelPopups.SC2Layout"/>` pod `<Desc>`.
    Zachowaj pozostałe Include i inne wpisy.
-6. Do istniejącego `Base.SC2Data/UI/FontStyles.SC2Style` dodaj oba elementy Style
+6. Do istniejącego `Base.SC2Data/UI/FontStyles.SC2Style` dodaj elementy Style
    z pliku paczki pod `<StyleFile>`. Nie usuwaj stylów docelowego moda.
 7. Dopisz cztery klucze `OPP/*` z
    `files/enUS.SC2Data/LocalizedData/GameStrings.txt`. To wyłącznie teksty modułu;
@@ -120,8 +122,14 @@ python3 tools/generate_mod.py --check
 Generator aktualizuje wyłącznie pliki w paczce. Po zmianach ponownie scal
 bibliotekę z docelowym Triggers. XML i pakowanie nie są kompilatorem Galaxy.
 
-Pakiet odpowiada źródłom prywatnej publikacji testowej EU 1.2.
-Po publikacji użytkownik zgłosił, że wszystko działa poprawnie; nie jest to
-potwierdzenie działania w nieznanym docelowym modzie ani pełnej listy testów
-powyżej. Historyczne szczegółowe testy runtime poprzedzały rozszerzenie
-agregacji na jednostki i ulepszenia. Wdrożenie docelowe wymaga własnego odbioru.
+Wydanie 1.1 korzysta z oryginalnego szablonu powiadomień GameHeart.
+Test Document v34 w SC2 5.0.16.97563 oraz testy grupowania budynków i jednostek,
+timerów i widoczności kontrolek zakończyły się powodzeniem. Wygląd został
+zaakceptowany przez użytkownika. Panel sterowania lokalnego Rewind edytora
+może zasłaniać dolne wiersze. Nie przeprowadzono ponownego testu wielu klientów
+dla tej zmiany wizualnej; docelowa integracja wymaga własnego odbioru.
+
+Publiczny mod w EU: **OPP Cancel Popups**, autor **Auddi**, Public / Unlocked.
+W grze: Custom → Melee → wybierz mapę → Create with Mod → wyszukaj nazwę.
+Numer 1.1 dotyczy publicznej linii wydań; wcześniejsza paczka 1.2 odpowiadała
+osobnej, prywatnej publikacji testowej.
