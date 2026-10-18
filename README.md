@@ -1,10 +1,17 @@
-# OPP Cancel Popups — wydanie 1.2
+# OPP Cancel Popups — wydanie 1.3
 
 Pakiet dla autora docelowego moda. Dodaje popupy anulowania budynków, produkcji
 jednostek i badań ulepszeń wyłącznie obserwatorom/sędziom. Aktywny popup tego
 samego właściciela, kategorii i ID katalogowego zwiększa licznik ×2, ×3 itd.
 i odnawia 5 sekund czasu gry. Po wygaśnięciu licznik zaczyna od nowa.
 Maksymalnie trzy aktywne wiersze; dalsze wpisy trafiają do kolejki.
+
+Wygląd 1.3: kwadrat w kolorze właściciela z ikoną pośrodku, mały odstęp,
+nazwa anulowanego elementu u góry i duże „CANCELLED” poniżej. Proporcje
+odpowiadają powiadomieniu ukończonego ulepszenia w Pro 2020 / GameHeart.
+Grupowanie jednostek, budynków i ulepszeń pozostaje bez zmian.
+Popup obejmuje również oczekujące jednostki i ulepszenia usunięte z kolejki,
+nie tylko aktualnie produkowaną/badaną pozycję. Aktywna pozycja jest liczona raz.
 
 ## Co zawiera paczka
 
@@ -19,8 +26,8 @@ cache, binarek diagnostycznych ani cudzych modów i tekstur.
 
 ## Wymagane środowisko
 
-Integracja była rozwijana dla SC2 5.0.16.97563, a wydanie 1.2 opublikowano
-z edytora 5.0.17.98310 po akceptacji testu użytkownika. Zależności:
+Integracja była rozwijana dla SC2 5.0.16.97563, a wygląd 1.3 sprawdzono
+w edytorze i Test Document 5.0.17.98310. Zależności:
 Observer PlusPlus EU 1.1 oraz WCS GameHeart EU 1.24, z Void Multi.
 W dokumencie zależności to:
 
@@ -46,7 +53,11 @@ kontenerze `OPPCancelStack`, po lewej pod produkcją. Kotwice wskazują stały
 `FullscreenUpperContainer` (Left=0, Top=245), bez zależności od alertów robotnic.
 Kontener ma Width=400 i Height=288, a wiersze Width=0 przy obu kotwicach
 poziomych. Wiersze nadal korzystają ze wspólnego przełącznika panelu;
-kolejka anulowań pozostaje osobna.
+kolejka anulowań pozostaje osobna. Wiersz ma wysokość 92, kwadrat 92×92,
+ikonę 76×76 i odstęp 8 jednostek UI przed tekstem. Własne style nazwy i statusu
+to `OPPCancelName` (22) i `OPPCancelStatus` (28, Bold/Uppercase).
+Kolor właściciela jest ustawiany na `TimerWindow/ColorAccent`; kontrolka
+`Owner` pozostaje ukryta i służy wyłącznie odczytom diagnostycznym.
 Routing wymaga `GameUI/Dflt/DefaultObservedPlayerId` zgodnego z GameHeart.
 Dla innego UI lub zmodyfikowanego GameHeart potrzebna jest adaptacja tych miejsc.
 
@@ -128,18 +139,28 @@ python3 tools/generate_mod.py --check
 Generator aktualizuje wyłącznie pliki w paczce. Po zmianach ponownie scal
 bibliotekę z docelowym Triggers. XML i pakowanie nie są kompilatorem Galaxy.
 
-Wydanie 1.2 zachowuje szablon GameHeart i przenosi wyłącznie własne anulowania.
-Test Document v52/v53 w SC2 5.0.16.97563 potwierdził trzy wiersze, kolejkę
-czwartego wpisu, grupowanie, timery i brak widoczności kontrolek aktywnych graczy.
-Sprawdzono wygasanie i naprzemienne odświeżanie alertów robotnic i anulowań.
-Następnie przygotowano lobby 1v1 + obserwator na trzech kontach w EU,
-SC2 5.0.17.98310, z prywatną wersją testową 1.4. Użytkownik potwierdził poprawne
-działanie i polecił publikację publiczną. To akceptacja użytkownika;
-docelowa integracja do innego moda wymaga własnego odbioru.
+Wydanie 1.3 zmienia prezentację własnych anulowań, zachowując stałą pozycję
+z wersji 1.2. Test Document v54 w SC2 5.0.17.98310 oraz walidator banku
+potwierdziły trzy wiersze, kolejkę czwartego wpisu, grupowanie ×3, timery,
+naprzemienne odświeżanie alertów i brak widoczności kontrolek aktywnych graczy.
+Rewind potwierdził pełne własne ikony, długą nazwę, duży status oraz kolor
+czerwonego i niebieskiego właściciela. Podgląd używał Pro 2020 jako lokalnej
+zależności; inne alerty GameHeart miały znane przycięcia, a Rewind zgłaszał
+powtórnie dodawane layouty. Nie jest to pełny test całego UI w normalnym kliencie.
+Nie powtarzano meczu trzech kont dla zmiany wyglądu. Poprzednia wersja 1.2
+miała ręczną akceptację użytkownika; użytkownik zatwierdził również wydanie
+wyglądu 1.3. Docelowa integracja do innego moda wymaga własnego odbioru.
+
+Po wstrzymaniu publikacji dodano poprawkę kolejki. Test Document v56 potwierdził
+pięć SCV → ×5, trzy różne ulepszenia, brak podwójnego liczenia aktywnej pozycji
+i brak własnych anulowań po śmierci producenta lub ukończeniu. V57 potwierdził
+regresję trzech Drone, grupowanie i rozdzielenie właścicieli. V60 używał prawdziwych
+kliknięć panelu produkcji: oczekujące ulepszenie i SCV dały właściwe anulowania,
+a aktualne badanie GameHeart pozostało zachowane. Są to lokalne testy SC2,
+bez nowego meczu trzech klientów. Powtórny test v61 potwierdził te same wyniki;
+użytkownik obejrzał Rewind i zaakceptował wydanie całej poprawki.
 
 Publiczny mod w EU: **OPP Cancel Popups**, autor **Auddi**, Public / Unlocked.
 W grze: Custom → Melee → wybierz mapę → Create with Mod → wyszukaj nazwę.
-Numer 1.2 dotyczy publicznej linii wydań. Ta paczka ma dodatkowy sufiks
-20261018, aby odróżnić ją od starszej paczki oznaczonej 1.2, która odpowiadała
-wcześniejszej prywatnej publikacji testowej. Osobny mod testowy pozostaje
-Private / Locked w wersji 1.4.
+Numer 1.3 dotyczy publicznej linii wydań. Osobny mod testowy pozostaje
+Private / Locked w wersji 1.4 i zawiera wcześniejszy wygląd.

@@ -1,8 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <Desc>
     <Frame type="Frame" name="GameUI/UIContainer/FullscreenUpperContainer/TimerNotificationPanel/ToggledContent" file="GameUI">
         <Frame type="Frame" name="OPPCancelStack">
-            <!-- Fixed space below production; worker visibility must not move our stack. -->
             <Anchor side="Left" relative="$parent/$parent/$parent" pos="Min" offset="0" />
             <Anchor side="Top" relative="$parent/$parent/$parent" pos="Min" offset="245" />
             <Width val="400" />
@@ -10,7 +9,6 @@
             <Unclipped val="true" />
             <AcceptsMouse val="false" />
             <Frame type="Frame" name="OPPCancelRow0" template="UpgradeNotifications/TimerFrameTemplate">
-                <!-- Width adds to the left/right anchor span: zero keeps the row inside the stack. -->
                 <Width val="0" />
                 <Anchor side="Bottom" relative="$parent" pos="Max" offset="0" />
                 <AcceptsMouse val="false" />
@@ -30,22 +28,70 @@
                         <IgnoreParentColor val="true" />
                         <RenderPriority val="501" />
                         <AcceptsMouse val="false" />
+                        <Visible val="false" />
                     </Frame>
                     <Unclipped val="true" />
                     <Frame type="Image" name="TimerIcon">
                         <Unclipped val="true" />
+                        <Anchor side="Top" relative="$parent/ColorAccent" pos="Mid" offset="0" />
+                        <Anchor side="Bottom" relative="$parent/ColorAccent" pos="Mid" offset="0" />
+                        <Anchor side="Left" relative="$parent/ColorAccent" pos="Mid" offset="0" />
+                        <Anchor side="Right" relative="$parent/ColorAccent" pos="Mid" offset="0" />
+                        <Height val="76" />
+                        <Width val="76" />
+                        <TextureType val="Normal" />
+                        <Color val="255,255,255" />
+                        <IgnoreParentColor val="true" />
+                        <RenderPriority val="513" />
                     </Frame>
                     <Frame type="Label" name="TimerType">
                         <Height val="30" />
                         <Unclipped val="true" />
+                        <Anchor side="Top" relative="$parent" pos="Min" offset="6" />
+                        <Anchor side="Left" relative="$parent/ColorAccent" pos="Max" offset="8" />
+                        <Anchor side="Right" relative="$parent" pos="Max" offset="-8" />
+                        <Style val="OPPCancelName" />
+                        <IgnoreParentColor val="true" />
+                        <Options val="NoWrapping|ScaleToPreventTruncation" />
                     </Frame>
                     <Frame type="Label" name="TimerStatus">
                         <Height val="40" />
                         <Unclipped val="true" />
+                        <Anchor side="Bottom" relative="$parent" pos="Max" offset="-10" />
+                        <Anchor side="Left" relative="$parent/TimerType" pos="Min" offset="0" />
+                        <Anchor side="Right" relative="$parent" pos="Max" offset="-10" />
+                        <Style val="OPPCancelStatus" />
+                        <IgnoreParentColor val="true" />
+                        <Options val="NoWrapping|ScaleToPreventTruncation" />
+                    </Frame>
+                    <Texture val="Assets/Textures/White32.dds" />
+                    <TextureType val="Normal" />
+                    <Color val="49,53,74" />
+                    <IgnoreParentColor val="true" />
+                    <Alpha val="255" />
+                    <Frame type="Image" name="ColorAccent">
+                        <Anchor side="Top" relative="$parent" pos="Min" offset="0" />
+                        <Anchor side="Bottom" relative="$parent" pos="Max" offset="0" />
+                        <Anchor side="Left" relative="$parent" pos="Min" offset="0" />
+                        <Texture val="Assets/Textures/White32.dds" />
+                        <TextureType val="Normal" />
+                        <Width val="92" />
+                        <IgnoreParentColor val="true" />
+                        <RenderPriority val="512" />
+                        <Alpha val="255" />
+                    </Frame>
+                    <Frame type="Image" name="TimerIconBG">
+                        <Anchor relative="$parent/TimerIcon" />
+                        <Texture val="Assets/Textures/White32.dds" />
+                        <TextureType val="Normal" />
+                        <Color val="34,37,49" />
+                        <IgnoreParentColor val="true" />
+                        <RenderPriority val="512" />
                     </Frame>
                 </Frame>
                 <Unclipped val="true" />
                 <RenderPriority val="500" />
+                <Height val="92" />
             </Frame>
             <Frame type="Frame" name="OPPCancelRow1" template="UpgradeNotifications/TimerFrameTemplate">
                 <Width val="0" />
@@ -67,22 +113,70 @@
                         <IgnoreParentColor val="true" />
                         <RenderPriority val="501" />
                         <AcceptsMouse val="false" />
+                        <Visible val="false" />
                     </Frame>
                     <Unclipped val="true" />
                     <Frame type="Image" name="TimerIcon">
                         <Unclipped val="true" />
+                        <Anchor side="Top" relative="$parent/ColorAccent" pos="Mid" offset="0" />
+                        <Anchor side="Bottom" relative="$parent/ColorAccent" pos="Mid" offset="0" />
+                        <Anchor side="Left" relative="$parent/ColorAccent" pos="Mid" offset="0" />
+                        <Anchor side="Right" relative="$parent/ColorAccent" pos="Mid" offset="0" />
+                        <Height val="76" />
+                        <Width val="76" />
+                        <TextureType val="Normal" />
+                        <Color val="255,255,255" />
+                        <IgnoreParentColor val="true" />
+                        <RenderPriority val="513" />
                     </Frame>
                     <Frame type="Label" name="TimerType">
                         <Height val="30" />
                         <Unclipped val="true" />
+                        <Anchor side="Top" relative="$parent" pos="Min" offset="6" />
+                        <Anchor side="Left" relative="$parent/ColorAccent" pos="Max" offset="8" />
+                        <Anchor side="Right" relative="$parent" pos="Max" offset="-8" />
+                        <Style val="OPPCancelName" />
+                        <IgnoreParentColor val="true" />
+                        <Options val="NoWrapping|ScaleToPreventTruncation" />
                     </Frame>
                     <Frame type="Label" name="TimerStatus">
                         <Height val="40" />
                         <Unclipped val="true" />
+                        <Anchor side="Bottom" relative="$parent" pos="Max" offset="-10" />
+                        <Anchor side="Left" relative="$parent/TimerType" pos="Min" offset="0" />
+                        <Anchor side="Right" relative="$parent" pos="Max" offset="-10" />
+                        <Style val="OPPCancelStatus" />
+                        <IgnoreParentColor val="true" />
+                        <Options val="NoWrapping|ScaleToPreventTruncation" />
+                    </Frame>
+                    <Texture val="Assets/Textures/White32.dds" />
+                    <TextureType val="Normal" />
+                    <Color val="49,53,74" />
+                    <IgnoreParentColor val="true" />
+                    <Alpha val="255" />
+                    <Frame type="Image" name="ColorAccent">
+                        <Anchor side="Top" relative="$parent" pos="Min" offset="0" />
+                        <Anchor side="Bottom" relative="$parent" pos="Max" offset="0" />
+                        <Anchor side="Left" relative="$parent" pos="Min" offset="0" />
+                        <Texture val="Assets/Textures/White32.dds" />
+                        <TextureType val="Normal" />
+                        <Width val="92" />
+                        <IgnoreParentColor val="true" />
+                        <RenderPriority val="512" />
+                        <Alpha val="255" />
+                    </Frame>
+                    <Frame type="Image" name="TimerIconBG">
+                        <Anchor relative="$parent/TimerIcon" />
+                        <Texture val="Assets/Textures/White32.dds" />
+                        <TextureType val="Normal" />
+                        <Color val="34,37,49" />
+                        <IgnoreParentColor val="true" />
+                        <RenderPriority val="512" />
                     </Frame>
                 </Frame>
                 <Unclipped val="true" />
                 <RenderPriority val="500" />
+                <Height val="92" />
             </Frame>
             <Frame type="Frame" name="OPPCancelRow2" template="UpgradeNotifications/TimerFrameTemplate">
                 <Width val="0" />
@@ -104,22 +198,70 @@
                         <IgnoreParentColor val="true" />
                         <RenderPriority val="501" />
                         <AcceptsMouse val="false" />
+                        <Visible val="false" />
                     </Frame>
                     <Unclipped val="true" />
                     <Frame type="Image" name="TimerIcon">
                         <Unclipped val="true" />
+                        <Anchor side="Top" relative="$parent/ColorAccent" pos="Mid" offset="0" />
+                        <Anchor side="Bottom" relative="$parent/ColorAccent" pos="Mid" offset="0" />
+                        <Anchor side="Left" relative="$parent/ColorAccent" pos="Mid" offset="0" />
+                        <Anchor side="Right" relative="$parent/ColorAccent" pos="Mid" offset="0" />
+                        <Height val="76" />
+                        <Width val="76" />
+                        <TextureType val="Normal" />
+                        <Color val="255,255,255" />
+                        <IgnoreParentColor val="true" />
+                        <RenderPriority val="513" />
                     </Frame>
                     <Frame type="Label" name="TimerType">
                         <Height val="30" />
                         <Unclipped val="true" />
+                        <Anchor side="Top" relative="$parent" pos="Min" offset="6" />
+                        <Anchor side="Left" relative="$parent/ColorAccent" pos="Max" offset="8" />
+                        <Anchor side="Right" relative="$parent" pos="Max" offset="-8" />
+                        <Style val="OPPCancelName" />
+                        <IgnoreParentColor val="true" />
+                        <Options val="NoWrapping|ScaleToPreventTruncation" />
                     </Frame>
                     <Frame type="Label" name="TimerStatus">
                         <Height val="40" />
                         <Unclipped val="true" />
+                        <Anchor side="Bottom" relative="$parent" pos="Max" offset="-10" />
+                        <Anchor side="Left" relative="$parent/TimerType" pos="Min" offset="0" />
+                        <Anchor side="Right" relative="$parent" pos="Max" offset="-10" />
+                        <Style val="OPPCancelStatus" />
+                        <IgnoreParentColor val="true" />
+                        <Options val="NoWrapping|ScaleToPreventTruncation" />
+                    </Frame>
+                    <Texture val="Assets/Textures/White32.dds" />
+                    <TextureType val="Normal" />
+                    <Color val="49,53,74" />
+                    <IgnoreParentColor val="true" />
+                    <Alpha val="255" />
+                    <Frame type="Image" name="ColorAccent">
+                        <Anchor side="Top" relative="$parent" pos="Min" offset="0" />
+                        <Anchor side="Bottom" relative="$parent" pos="Max" offset="0" />
+                        <Anchor side="Left" relative="$parent" pos="Min" offset="0" />
+                        <Texture val="Assets/Textures/White32.dds" />
+                        <TextureType val="Normal" />
+                        <Width val="92" />
+                        <IgnoreParentColor val="true" />
+                        <RenderPriority val="512" />
+                        <Alpha val="255" />
+                    </Frame>
+                    <Frame type="Image" name="TimerIconBG">
+                        <Anchor relative="$parent/TimerIcon" />
+                        <Texture val="Assets/Textures/White32.dds" />
+                        <TextureType val="Normal" />
+                        <Color val="34,37,49" />
+                        <IgnoreParentColor val="true" />
+                        <RenderPriority val="512" />
                     </Frame>
                 </Frame>
                 <Unclipped val="true" />
                 <RenderPriority val="500" />
+                <Height val="92" />
             </Frame>
         </Frame>
     </Frame>

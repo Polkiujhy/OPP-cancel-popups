@@ -1,4 +1,4 @@
-// Rows retain the GameHeart template in our separate left-column stack.
+// Rows use the completed-upgrade proportions in our separate left-column stack.
 // Queue ownership stays separate from GameHeart research-facility slots.
 // Observer routing follows the verified GameHeart DefaultObservedPlayerId contract.
 const int OPP_UI_ROWS = 3;
@@ -39,7 +39,8 @@ void OPP_UI_Show (int row, int owner, text objectName, string icon, int kind, st
     libNtve_gf_SetDialogItemImage(OPP_UI_Icon[row], icon, OPP_UI_Viewers);
     libNtve_gf_SetDialogItemText(OPP_UI_Status[row], StringExternal("OPP/Cancelled"), OPP_UI_Viewers);
     DialogControlSetVisible(OPP_UI_Icon[row], OPP_UI_Viewers, true);
-    DialogControlSetVisible(OPP_UI_Owner[row], OPP_UI_Viewers, true);
+    // The player-colored icon square identifies the owner; keep its label for probes only.
+    DialogControlSetVisible(OPP_UI_Owner[row], OPP_UI_Viewers, false);
     DialogControlSetVisible(OPP_UI_Name[row], OPP_UI_Viewers, true);
     DialogControlSetVisible(OPP_UI_Status[row], OPP_UI_Viewers, true);
     DialogControlSetVisible(OPP_UI_Panel[row], OPP_UI_Viewers, true);
@@ -168,7 +169,7 @@ void OPP_UI_Init () {
             DialogControlSetVisible(OPP_UI_Panel[row], PlayerGroupAll(), false);
         }
         OPP_UI_Icon[row] = OPP_UI_Hook(c_triggerControlTypeImage, path + "/TimerWindow/TimerIcon");
-        OPP_UI_Background[row] = OPP_UI_Hook(c_triggerControlTypeImage, path + "/TimerWindow");
+        OPP_UI_Background[row] = OPP_UI_Hook(c_triggerControlTypeImage, path + "/TimerWindow/ColorAccent");
         OPP_UI_Owner[row] = OPP_UI_Hook(c_triggerControlTypeLabel, path + "/TimerWindow/Owner");
         OPP_UI_Name[row] = OPP_UI_Hook(c_triggerControlTypeLabel, path + "/TimerWindow/TimerType");
         OPP_UI_Status[row] = OPP_UI_Hook(c_triggerControlTypeLabel, path + "/TimerWindow/TimerStatus");

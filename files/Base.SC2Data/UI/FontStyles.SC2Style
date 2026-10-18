@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <StyleFile>
     <Style name="OPPCancelOwner" template="TimerType" height="16" vjustify="Bottom" hjustify="Left"/>
+    <Style name="OPPCancelName" template="TimerType" height="22" vJustify="Middle" hJustify="Left" styleflags="!Shadow" fontflags="!Bold"/>
+    <Style name="OPPCancelStatus" template="TimerStatus" height="28" vJustify="Bottom" hJustify="Left" styleflags="!Shadow|Uppercase" fontflags="Bold"/>
 </StyleFile>

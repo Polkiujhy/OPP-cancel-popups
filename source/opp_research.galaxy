@@ -22,8 +22,6 @@ bool OPP_ResearchCancelled (bool testConds, bool runActions) {
     int slot;
     bool visible;
     string upgrade;
-    string icon;
-    text name;
     if (!runActions) { return true; }
     facility = EventUnit();
     if (facility == null) { return true; }
@@ -49,10 +47,10 @@ bool OPP_ResearchCancelled (bool testConds, bool runActions) {
     // without depending on a logical Visible flag that may still render clipped.
     if (slot >= 0) { libGHLo_gf_UpgradeNotificationsRemoveRunningUpgrade(slot); }
     if (!UnitIsAlive(facility) || owner < 1 || owner >= c_playerAny || upgrade == "") { return true; }
-    icon = CatalogFieldValueGet(c_gameCatalogUpgrade, upgrade, "Icon", owner);
-    name = StringExternal(CatalogFieldValueGet(c_gameCatalogUpgrade, upgrade, "Name", owner));
-    OPP_UI_PushTyped(owner, name, icon, OPP_KIND_RESEARCH, upgrade);
-    DataTableSetInt(true, "OPPCancelPopups/ResearchOwn", DataTableGetInt(true, "OPPCancelPopups/ResearchOwn") + 1);
+    // Only the running item has this progress event. Its Ability Cancel event
+    // also fires; the shared source counts prevent notifying it twice.
+    // Waiting upgrades are handled by Ability Cancel without retiring this slot.
+    OPP_UnitSignal(facility, upgrade, OPP_KIND_RESEARCH, true);
     return true;
 }
 

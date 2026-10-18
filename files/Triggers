@@ -8,7 +8,7 @@
         <Element Type="CustomScript" Id="00000001">
             <Name>OPP Cancel Popups - generated canonical source</Name>
             <ScriptCode>
-                // Rows retain the GameHeart template in our separate left-column stack.
+                // Rows use the completed-upgrade proportions in our separate left-column stack.
                 // Queue ownership stays separate from GameHeart research-facility slots.
                 // Observer routing follows the verified GameHeart DefaultObservedPlayerId contract.
                 const int OPP_UI_ROWS = 3;
@@ -49,7 +49,8 @@
                     libNtve_gf_SetDialogItemImage(OPP_UI_Icon[row], icon, OPP_UI_Viewers);
                     libNtve_gf_SetDialogItemText(OPP_UI_Status[row], StringExternal("OPP/Cancelled"), OPP_UI_Viewers);
                     DialogControlSetVisible(OPP_UI_Icon[row], OPP_UI_Viewers, true);
-                    DialogControlSetVisible(OPP_UI_Owner[row], OPP_UI_Viewers, true);
+                    // The player-colored icon square identifies the owner; keep its label for probes only.
+                    DialogControlSetVisible(OPP_UI_Owner[row], OPP_UI_Viewers, false);
                     DialogControlSetVisible(OPP_UI_Name[row], OPP_UI_Viewers, true);
                     DialogControlSetVisible(OPP_UI_Status[row], OPP_UI_Viewers, true);
                     DialogControlSetVisible(OPP_UI_Panel[row], OPP_UI_Viewers, true);
@@ -178,7 +179,7 @@
                             DialogControlSetVisible(OPP_UI_Panel[row], PlayerGroupAll(), false);
                         }
                         OPP_UI_Icon[row] = OPP_UI_Hook(c_triggerControlTypeImage, path + "/TimerWindow/TimerIcon");
-                        OPP_UI_Background[row] = OPP_UI_Hook(c_triggerControlTypeImage, path + "/TimerWindow");
+                        OPP_UI_Background[row] = OPP_UI_Hook(c_triggerControlTypeImage, path + "/TimerWindow/ColorAccent");
                         OPP_UI_Owner[row] = OPP_UI_Hook(c_triggerControlTypeLabel, path + "/TimerWindow/Owner");
                         OPP_UI_Name[row] = OPP_UI_Hook(c_triggerControlTypeLabel, path + "/TimerWindow/TimerType");
                         OPP_UI_Status[row] = OPP_UI_Hook(c_triggerControlTypeLabel, path + "/TimerWindow/TimerStatus");
@@ -257,9 +258,10 @@
                     cancelOrder = TriggerCreate("OPP_BuildCancelOrder");
                     TriggerAddEventUnitOrder(cancelOrder, null, AbilityCommand("BuildInProgress", c_abilBuildableCmdCancel));
                 }
-                // Require both a production Cancel event and an explicit queue/warp Cancel
-                // order in the same synchronous game tick. A dead Zerg egg is legitimate:
-                // LarvaTrain has KillOnCancel. Death alone must not generate a cancellation.
+                // Ability Cancel also fires for waiting queue entries; progress Cancel only
+                // fires for the running entry (SC2 runtime probe v55). Pair either source with
+                // an explicit queue/warp Cancel order in the same synchronous game tick.
+                // The two source counts overlap: publish their maximum, never their sum.
                 int[128] OPP_UnitOrderTag;
                 int[128] OPP_UnitOrderTick;
                 int OPP_UnitOrderNext = 0;
@@ -267,47 +269,120 @@
                 int[256] OPP_UnitPendingTick;
                 int[256] OPP_UnitPendingOwner;
                 string[256] OPP_UnitPendingType;
-                bool[256] OPP_UnitPendingSent;
+                int[256] OPP_UnitPendingKind;
+                int[256] OPP_UnitPendingProgress;
+                int[256] OPP_UnitPendingAbility;
+                int[256] OPP_UnitPendingSent;
                 int OPP_UnitPendingNext = 0;
                 
                 void OPP_UnitPublish (int slot) {
                     string objectType;
                     int owner;
-                    if (OPP_UnitPendingSent[slot]) { return; }
-                    OPP_UnitPendingSent[slot] = true;
+                    int count;
+                    text name;
+                    string icon;
+                    count = OPP_UnitPendingAbility[slot];
+                    if (OPP_UnitPendingProgress[slot] &gt; count) { count = OPP_UnitPendingProgress[slot]; }
                     objectType = OPP_UnitPendingType[slot];
                     owner = OPP_UnitPendingOwner[slot];
-                    OPP_UI_PushTyped(owner, UnitTypeGetName(objectType), CatalogFieldValueGet(c_gameCatalogActor, objectType, "UnitIcon", owner), OPP_KIND_UNIT, objectType);
-                    DataTableSetInt(true, "OPPCancelPopups/UnitCancels", DataTableGetInt(true, "OPPCancelPopups/UnitCancels") + 1);
+                    if (OPP_UnitPendingKind[slot] == OPP_KIND_RESEARCH) {
+                        name = StringExternal(CatalogFieldValueGet(c_gameCatalogUpgrade, objectType, "Name", owner));
+                        icon = CatalogFieldValueGet(c_gameCatalogUpgrade, objectType, "Icon", owner);
+                    }
+                    else {
+                        name = UnitTypeGetName(objectType);
+                        icon = CatalogFieldValueGet(c_gameCatalogActor, objectType, "UnitIcon", owner);
+                    }
+                    while (OPP_UnitPendingSent[slot] &lt; count) {
+                        OPP_UnitPendingSent[slot] += 1;
+                        OPP_UI_PushTyped(owner, name, icon, OPP_UnitPendingKind[slot], objectType);
+                        if (OPP_UnitPendingKind[slot] == OPP_KIND_RESEARCH) {
+                            DataTableSetInt(true, "OPPCancelPopups/ResearchOwn", DataTableGetInt(true, "OPPCancelPopups/ResearchOwn") + 1);
+                        }
+                        else {
+                            DataTableSetInt(true, "OPPCancelPopups/UnitCancels", DataTableGetInt(true, "OPPCancelPopups/UnitCancels") + 1);
+                        }
+                    }
                 }
                 
-                bool OPP_UnitProductionCancelled (bool testConds, bool runActions) {
-                    unit facility;
-                    string objectType;
+                void OPP_UnitSignal (unit facility, string objectType, int kind, bool progress) {
                     int owner;
                     int tag;
                     int tick;
                     int slot;
                     int i;
-                    if (!runActions) { return true; }
-                    facility = EventUnit();
-                    objectType = EventUnitProgressObjectType();
-                    if (facility == null || objectType == "") { return true; }
+                    if (facility == null || objectType == "") { return; }
                     owner = UnitGetOwner(facility);
                     tag = UnitGetTag(facility);
-                    if (tag &lt;= 0 || owner &lt; 1 || owner &gt;= c_playerAny) { return true; }
+                    if (tag &lt;= 0 || owner &lt; 1 || owner &gt;= c_playerAny) { return; }
                     tick = CurrentSynchronousGameTimeGet();
-                    slot = OPP_UnitPendingNext;
-                    OPP_UnitPendingNext = (slot + 1) % 256;
-                    OPP_UnitPendingTag[slot] = tag;
-                    OPP_UnitPendingTick[slot] = tick;
-                    OPP_UnitPendingOwner[slot] = owner;
-                    OPP_UnitPendingType[slot] = objectType;
-                    OPP_UnitPendingSent[slot] = false;
+                    slot = -1;
+                    for (i = 0; i &lt; 256; i += 1) {
+                        if (OPP_UnitPendingTag[i] == tag &amp;&amp; OPP_UnitPendingTick[i] == tick &amp;&amp; OPP_UnitPendingOwner[i] == owner &amp;&amp; OPP_UnitPendingKind[i] == kind &amp;&amp; OPP_UnitPendingType[i] == objectType) { slot = i; }
+                    }
+                    if (slot &lt; 0) {
+                        slot = OPP_UnitPendingNext;
+                        OPP_UnitPendingNext = (slot + 1) % 256;
+                        OPP_UnitPendingTag[slot] = tag;
+                        OPP_UnitPendingTick[slot] = tick;
+                        OPP_UnitPendingOwner[slot] = owner;
+                        OPP_UnitPendingType[slot] = objectType;
+                        OPP_UnitPendingKind[slot] = kind;
+                        OPP_UnitPendingAbility[slot] = 0;
+                        OPP_UnitPendingProgress[slot] = 0;
+                        OPP_UnitPendingSent[slot] = 0;
+                    }
+                    if (progress) { OPP_UnitPendingProgress[slot] += 1; }
+                    else { OPP_UnitPendingAbility[slot] += 1; }
                     for (i = 0; i &lt; 128; i += 1) {
                         if (OPP_UnitOrderTag[i] == tag &amp;&amp; OPP_UnitOrderTick[i] == tick) {
                             OPP_UnitPublish(slot);
-                            return true;
+                            return;
+                        }
+                    }
+                }
+                
+                bool OPP_UnitProductionCancelled (bool testConds, bool runActions) {
+                    if (!runActions || EventUnit() == null || !UnitIsAlive(EventUnit())) { return true; }
+                    OPP_UnitSignal(EventUnit(), EventUnitProgressObjectType(), OPP_KIND_UNIT, true);
+                    return true;
+                }
+                
+                bool OPP_ProductionAbilityCancelled (bool testConds, bool runActions) {
+                    unit facility;
+                    string ability;
+                    string field;
+                    string objectType;
+                    int abilityClass;
+                    int owner;
+                    int count;
+                    int item;
+                    if (!runActions || EventUnit() == null) { return true; }
+                    facility = EventUnit();
+                    owner = UnitGetOwner(facility);
+                    if (owner &lt; 1 || owner &gt;= c_playerAny) { return true; }
+                    ability = AbilityCommandGetAbility(EventUnitAbility());
+                    abilityClass = AbilityClass(ability);
+                    field = "InfoArray[" + IntToString(AbilityCommandGetCommand(EventUnitAbility())) + "]";
+                    if (abilityClass == c_classIdCAbilResearch) {
+                        if (!UnitIsAlive(facility) || !DataTableGetBool(true, "OPPCancelPopups/ResearchAdapter")) { return true; }
+                        objectType = CatalogFieldValueGet(c_gameCatalogAbil, ability, field + ".Upgrade", owner);
+                        OPP_UnitSignal(facility, objectType, OPP_KIND_RESEARCH, false);
+                    }
+                    else if (abilityClass == c_classIdCAbilTrain || abilityClass == c_classIdCAbilArmMagazine || abilityClass == c_classIdCAbilWarpTrain) {
+                        // LarvaTrain deliberately destroys the egg on a legitimate Cancel.
+                        // Other dead producers must not contribute their lost queue entries.
+                        if (!UnitIsAlive(facility) &amp;&amp; (abilityClass != c_classIdCAbilTrain || CatalogFieldValueGet(c_gameCatalogAbil, ability, "Flags[KillOnCancel]", owner) != "1")) { return true; }
+                        if (abilityClass == c_classIdCAbilTrain) {
+                            count = CatalogFieldValueCount(c_gameCatalogAbil, ability, field + ".Unit", owner);
+                            for (item = 0; item &lt; count; item += 1) {
+                                objectType = CatalogFieldValueGet(c_gameCatalogAbil, ability, field + ".Unit[" + IntToString(item) + "]", owner);
+                                OPP_UnitSignal(facility, objectType, OPP_KIND_UNIT, false);
+                            }
+                        }
+                        else {
+                            objectType = CatalogFieldValueGet(c_gameCatalogAbil, ability, field + ".Unit", owner);
+                            OPP_UnitSignal(facility, objectType, OPP_KIND_UNIT, false);
                         }
                     }
                     return true;
@@ -341,9 +416,12 @@
                 void OPP_Units_Init () {
                     trigger progress;
                     trigger cancelOrder;
+                    trigger abilityCancel;
                     progress = TriggerCreate("OPP_UnitProductionCancelled");
                     TriggerAddEventUnitTrainProgress(progress, null, c_unitProgressStageCancel);
                     TriggerAddEventUnitArmMagazineProgress(progress, null, c_unitProgressStageCancel);
+                    abilityCancel = TriggerCreate("OPP_ProductionAbilityCancelled");
+                    TriggerAddEventUnitAbility(abilityCancel, null, null, c_unitAbilStageCancel, false);
                     cancelOrder = TriggerCreate("OPP_UnitProductionCancelOrder");
                     TriggerAddEventUnitOrder(cancelOrder, null, null);
                 }
@@ -371,8 +449,6 @@
                     int slot;
                     bool visible;
                     string upgrade;
-                    string icon;
-                    text name;
                     if (!runActions) { return true; }
                     facility = EventUnit();
                     if (facility == null) { return true; }
@@ -398,10 +474,10 @@
                     // without depending on a logical Visible flag that may still render clipped.
                     if (slot &gt;= 0) { libGHLo_gf_UpgradeNotificationsRemoveRunningUpgrade(slot); }
                     if (!UnitIsAlive(facility) || owner &lt; 1 || owner &gt;= c_playerAny || upgrade == "") { return true; }
-                    icon = CatalogFieldValueGet(c_gameCatalogUpgrade, upgrade, "Icon", owner);
-                    name = StringExternal(CatalogFieldValueGet(c_gameCatalogUpgrade, upgrade, "Name", owner));
-                    OPP_UI_PushTyped(owner, name, icon, OPP_KIND_RESEARCH, upgrade);
-                    DataTableSetInt(true, "OPPCancelPopups/ResearchOwn", DataTableGetInt(true, "OPPCancelPopups/ResearchOwn") + 1);
+                    // Only the running item has this progress event. Its Ability Cancel event
+                    // also fires; the shared source counts prevent notifying it twice.
+                    // Waiting upgrades are handled by Ability Cancel without retiring this slot.
+                    OPP_UnitSignal(facility, upgrade, OPP_KIND_RESEARCH, true);
                     return true;
                 }
                 
