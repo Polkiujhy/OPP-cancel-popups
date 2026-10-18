@@ -8,7 +8,7 @@
         <Element Type="CustomScript" Id="00000001">
             <Name>OPP Cancel Popups - generated canonical source</Name>
             <ScriptCode>
-                // Rows inherit the GameHeart notification template and collapse into its visual stack.
+                // Rows retain the GameHeart template in our separate left-column stack.
                 // Queue ownership stays separate from GameHeart research-facility slots.
                 // Observer routing follows the verified GameHeart DefaultObservedPlayerId contract.
                 const int OPP_UI_ROWS = 3;
@@ -170,7 +170,7 @@
                     OPP_UI_Viewers = PlayerGroupSingle(OPP_UI_ViewerId);
                     expiry = TriggerCreate("OPP_UI_Expire");
                     for (row = 0; row &lt; OPP_UI_ROWS; row += 1) {
-                        path = "UIContainer/FullscreenUpperContainer/TimerNotificationPanel/ToggledContent/OPPCancelRow" + IntToString(row);
+                        path = "UIContainer/FullscreenUpperContainer/TimerNotificationPanel/ToggledContent/OPPCancelStack/OPPCancelRow" + IntToString(row);
                         OPP_UI_Panel[row] = OPP_UI_Hook(c_triggerControlTypePanel, path);
                         // Record an explicit initial visibility value. Replay seeks can reuse
                         // the loaded layout, so XML defaults alone leave stale rows on screen.

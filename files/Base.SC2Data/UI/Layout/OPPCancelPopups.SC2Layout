@@ -1,107 +1,126 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <Desc>
     <Frame type="Frame" name="GameUI/UIContainer/FullscreenUpperContainer/TimerNotificationPanel/ToggledContent" file="GameUI">
-        <Frame type="Frame" name="OPPCancelRow0" template="UpgradeNotifications/TimerFrameTemplate">
-            <Anchor side="Bottom" relative="$parent/TimerFrame0" pos="Min" offset="-6" />
+        <Frame type="Frame" name="OPPCancelStack">
+            <!-- Fixed space below production; worker visibility must not move our stack. -->
+            <Anchor side="Left" relative="$parent/$parent/$parent" pos="Min" offset="0" />
+            <Anchor side="Top" relative="$parent/$parent/$parent" pos="Min" offset="245" />
+            <Width val="400" />
+            <Height val="288" />
+            <Unclipped val="true" />
             <AcceptsMouse val="false" />
-            <Frame type="Image" name="TimerWindow">
-                <Frame type="ProgressBar" name="TimerBar">
-                    <Visible val="false" />
-                </Frame>
-                <Frame type="Label" name="TimerCountdown">
-                    <Visible val="false" />
-                </Frame>
-                <Frame type="Label" name="Owner">
-                    <Anchor side="Left" relative="$parent" pos="Min" offset="96" />
-                    <Anchor side="Right" relative="$parent" pos="Max" offset="-12" />
-                    <Anchor side="Bottom" relative="$parent" pos="Max" offset="-2" />
-                    <Height val="20" />
-                    <Style val="OPPCancelOwner" />
-                    <IgnoreParentColor val="true" />
-                    <RenderPriority val="501" />
-                    <AcceptsMouse val="false" />
+            <Frame type="Frame" name="OPPCancelRow0" template="UpgradeNotifications/TimerFrameTemplate">
+                <!-- Width adds to the left/right anchor span: zero keeps the row inside the stack. -->
+                <Width val="0" />
+                <Anchor side="Bottom" relative="$parent" pos="Max" offset="0" />
+                <AcceptsMouse val="false" />
+                <Frame type="Image" name="TimerWindow">
+                    <Frame type="ProgressBar" name="TimerBar">
+                        <Visible val="false" />
+                    </Frame>
+                    <Frame type="Label" name="TimerCountdown">
+                        <Visible val="false" />
+                    </Frame>
+                    <Frame type="Label" name="Owner">
+                        <Anchor side="Left" relative="$parent" pos="Min" offset="96" />
+                        <Anchor side="Right" relative="$parent" pos="Max" offset="-12" />
+                        <Anchor side="Bottom" relative="$parent" pos="Max" offset="-2" />
+                        <Height val="20" />
+                        <Style val="OPPCancelOwner" />
+                        <IgnoreParentColor val="true" />
+                        <RenderPriority val="501" />
+                        <AcceptsMouse val="false" />
+                    </Frame>
+                    <Unclipped val="true" />
+                    <Frame type="Image" name="TimerIcon">
+                        <Unclipped val="true" />
+                    </Frame>
+                    <Frame type="Label" name="TimerType">
+                        <Height val="30" />
+                        <Unclipped val="true" />
+                    </Frame>
+                    <Frame type="Label" name="TimerStatus">
+                        <Height val="40" />
+                        <Unclipped val="true" />
+                    </Frame>
                 </Frame>
                 <Unclipped val="true" />
-                <Frame type="Image" name="TimerIcon">
-                    <Unclipped val="true" />
-                </Frame>
-                <Frame type="Label" name="TimerType">
-                    <Unclipped val="true" />
-                </Frame>
-                <Frame type="Label" name="TimerStatus">
-                    <Unclipped val="true" />
-                </Frame>
+                <RenderPriority val="500" />
             </Frame>
-            <Unclipped val="true" />
-            <RenderPriority val="500" />
-        </Frame>
-        <Frame type="Frame" name="OPPCancelRow1" template="UpgradeNotifications/TimerFrameTemplate">
-            <Anchor side="Bottom" relative="$parent/OPPCancelRow0" pos="Min" offset="-6" />
-            <AcceptsMouse val="false" />
-            <Frame type="Image" name="TimerWindow">
-                <Frame type="ProgressBar" name="TimerBar">
-                    <Visible val="false" />
-                </Frame>
-                <Frame type="Label" name="TimerCountdown">
-                    <Visible val="false" />
-                </Frame>
-                <Frame type="Label" name="Owner">
-                    <Anchor side="Left" relative="$parent" pos="Min" offset="96" />
-                    <Anchor side="Right" relative="$parent" pos="Max" offset="-12" />
-                    <Anchor side="Bottom" relative="$parent" pos="Max" offset="-2" />
-                    <Height val="20" />
-                    <Style val="OPPCancelOwner" />
-                    <IgnoreParentColor val="true" />
-                    <RenderPriority val="501" />
-                    <AcceptsMouse val="false" />
+            <Frame type="Frame" name="OPPCancelRow1" template="UpgradeNotifications/TimerFrameTemplate">
+                <Width val="0" />
+                <Anchor side="Bottom" relative="$parent/OPPCancelRow0" pos="Min" offset="-6" />
+                <AcceptsMouse val="false" />
+                <Frame type="Image" name="TimerWindow">
+                    <Frame type="ProgressBar" name="TimerBar">
+                        <Visible val="false" />
+                    </Frame>
+                    <Frame type="Label" name="TimerCountdown">
+                        <Visible val="false" />
+                    </Frame>
+                    <Frame type="Label" name="Owner">
+                        <Anchor side="Left" relative="$parent" pos="Min" offset="96" />
+                        <Anchor side="Right" relative="$parent" pos="Max" offset="-12" />
+                        <Anchor side="Bottom" relative="$parent" pos="Max" offset="-2" />
+                        <Height val="20" />
+                        <Style val="OPPCancelOwner" />
+                        <IgnoreParentColor val="true" />
+                        <RenderPriority val="501" />
+                        <AcceptsMouse val="false" />
+                    </Frame>
+                    <Unclipped val="true" />
+                    <Frame type="Image" name="TimerIcon">
+                        <Unclipped val="true" />
+                    </Frame>
+                    <Frame type="Label" name="TimerType">
+                        <Height val="30" />
+                        <Unclipped val="true" />
+                    </Frame>
+                    <Frame type="Label" name="TimerStatus">
+                        <Height val="40" />
+                        <Unclipped val="true" />
+                    </Frame>
                 </Frame>
                 <Unclipped val="true" />
-                <Frame type="Image" name="TimerIcon">
-                    <Unclipped val="true" />
-                </Frame>
-                <Frame type="Label" name="TimerType">
-                    <Unclipped val="true" />
-                </Frame>
-                <Frame type="Label" name="TimerStatus">
-                    <Unclipped val="true" />
-                </Frame>
+                <RenderPriority val="500" />
             </Frame>
-            <Unclipped val="true" />
-            <RenderPriority val="500" />
-        </Frame>
-        <Frame type="Frame" name="OPPCancelRow2" template="UpgradeNotifications/TimerFrameTemplate">
-            <Anchor side="Bottom" relative="$parent/OPPCancelRow1" pos="Min" offset="-6" />
-            <AcceptsMouse val="false" />
-            <Frame type="Image" name="TimerWindow">
-                <Frame type="ProgressBar" name="TimerBar">
-                    <Visible val="false" />
-                </Frame>
-                <Frame type="Label" name="TimerCountdown">
-                    <Visible val="false" />
-                </Frame>
-                <Frame type="Label" name="Owner">
-                    <Anchor side="Left" relative="$parent" pos="Min" offset="96" />
-                    <Anchor side="Right" relative="$parent" pos="Max" offset="-12" />
-                    <Anchor side="Bottom" relative="$parent" pos="Max" offset="-2" />
-                    <Height val="20" />
-                    <Style val="OPPCancelOwner" />
-                    <IgnoreParentColor val="true" />
-                    <RenderPriority val="501" />
-                    <AcceptsMouse val="false" />
+            <Frame type="Frame" name="OPPCancelRow2" template="UpgradeNotifications/TimerFrameTemplate">
+                <Width val="0" />
+                <Anchor side="Bottom" relative="$parent/OPPCancelRow1" pos="Min" offset="-6" />
+                <AcceptsMouse val="false" />
+                <Frame type="Image" name="TimerWindow">
+                    <Frame type="ProgressBar" name="TimerBar">
+                        <Visible val="false" />
+                    </Frame>
+                    <Frame type="Label" name="TimerCountdown">
+                        <Visible val="false" />
+                    </Frame>
+                    <Frame type="Label" name="Owner">
+                        <Anchor side="Left" relative="$parent" pos="Min" offset="96" />
+                        <Anchor side="Right" relative="$parent" pos="Max" offset="-12" />
+                        <Anchor side="Bottom" relative="$parent" pos="Max" offset="-2" />
+                        <Height val="20" />
+                        <Style val="OPPCancelOwner" />
+                        <IgnoreParentColor val="true" />
+                        <RenderPriority val="501" />
+                        <AcceptsMouse val="false" />
+                    </Frame>
+                    <Unclipped val="true" />
+                    <Frame type="Image" name="TimerIcon">
+                        <Unclipped val="true" />
+                    </Frame>
+                    <Frame type="Label" name="TimerType">
+                        <Height val="30" />
+                        <Unclipped val="true" />
+                    </Frame>
+                    <Frame type="Label" name="TimerStatus">
+                        <Height val="40" />
+                        <Unclipped val="true" />
+                    </Frame>
                 </Frame>
                 <Unclipped val="true" />
-                <Frame type="Image" name="TimerIcon">
-                    <Unclipped val="true" />
-                </Frame>
-                <Frame type="Label" name="TimerType">
-                    <Unclipped val="true" />
-                </Frame>
-                <Frame type="Label" name="TimerStatus">
-                    <Unclipped val="true" />
-                </Frame>
+                <RenderPriority val="500" />
             </Frame>
-            <Unclipped val="true" />
-            <RenderPriority val="500" />
         </Frame>
     </Frame>
 </Desc>

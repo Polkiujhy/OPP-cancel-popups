@@ -1,4 +1,4 @@
-# OPP Cancel Popups — wydanie 1.1
+# OPP Cancel Popups — wydanie 1.2
 
 Pakiet dla autora docelowego moda. Dodaje popupy anulowania budynków, produkcji
 jednostek i badań ulepszeń wyłącznie obserwatorom/sędziom. Aktywny popup tego
@@ -19,8 +19,10 @@ cache, binarek diagnostycznych ani cudzych modów i tekstur.
 
 ## Wymagane środowisko
 
-Integracja była rozwijana dla SC2 5.0.16.97563, Observer PlusPlus EU 1.1
-oraz WCS GameHeart EU 1.24, z Void Multi. W testowym dokumencie zależności to:
+Integracja była rozwijana dla SC2 5.0.16.97563, a wydanie 1.2 opublikowano
+z edytora 5.0.17.98310 po akceptacji testu użytkownika. Zależności:
+Observer PlusPlus EU 1.1 oraz WCS GameHeart EU 1.24, z Void Multi.
+W dokumencie zależności to:
 
 ```
 bnet:Void Multi (Mod)/0.0/999,file:Mods/VoidMulti.SC2Mod
@@ -39,8 +41,12 @@ Dokładne używane symbole są w `source/opp_research.galaxy`.
 Layout korzysta z istniejącego panelu
 `GameUI/UIContainer/FullscreenUpperContainer/TimerNotificationPanel/ToggledContent`
 oraz szablonu `UpgradeNotifications/TimerFrameTemplate` i stylów `TimerType` /
-`TimerStatus` dostarczanych przez GameHeart. Wiersze tworzą wspólny stos
-ze standardowymi powiadomieniami; kolejka anulowań pozostaje osobna.
+`TimerStatus` dostarczanych przez GameHeart. Własne wiersze są w osobnym
+kontenerze `OPPCancelStack`, po lewej pod produkcją. Kotwice wskazują stały
+`FullscreenUpperContainer` (Left=0, Top=245), bez zależności od alertów robotnic.
+Kontener ma Width=400 i Height=288, a wiersze Width=0 przy obu kotwicach
+poziomych. Wiersze nadal korzystają ze wspólnego przełącznika panelu;
+kolejka anulowań pozostaje osobna.
 Routing wymaga `GameUI/Dflt/DefaultObservedPlayerId` zgodnego z GameHeart.
 Dla innego UI lub zmodyfikowanego GameHeart potrzebna jest adaptacja tych miejsc.
 
@@ -122,14 +128,18 @@ python3 tools/generate_mod.py --check
 Generator aktualizuje wyłącznie pliki w paczce. Po zmianach ponownie scal
 bibliotekę z docelowym Triggers. XML i pakowanie nie są kompilatorem Galaxy.
 
-Wydanie 1.1 korzysta z oryginalnego szablonu powiadomień GameHeart.
-Test Document v34 w SC2 5.0.16.97563 oraz testy grupowania budynków i jednostek,
-timerów i widoczności kontrolek zakończyły się powodzeniem. Wygląd został
-zaakceptowany przez użytkownika. Panel sterowania lokalnego Rewind edytora
-może zasłaniać dolne wiersze. Nie przeprowadzono ponownego testu wielu klientów
-dla tej zmiany wizualnej; docelowa integracja wymaga własnego odbioru.
+Wydanie 1.2 zachowuje szablon GameHeart i przenosi wyłącznie własne anulowania.
+Test Document v52/v53 w SC2 5.0.16.97563 potwierdził trzy wiersze, kolejkę
+czwartego wpisu, grupowanie, timery i brak widoczności kontrolek aktywnych graczy.
+Sprawdzono wygasanie i naprzemienne odświeżanie alertów robotnic i anulowań.
+Następnie przygotowano lobby 1v1 + obserwator na trzech kontach w EU,
+SC2 5.0.17.98310, z prywatną wersją testową 1.4. Użytkownik potwierdził poprawne
+działanie i polecił publikację publiczną. To akceptacja użytkownika;
+docelowa integracja do innego moda wymaga własnego odbioru.
 
 Publiczny mod w EU: **OPP Cancel Popups**, autor **Auddi**, Public / Unlocked.
 W grze: Custom → Melee → wybierz mapę → Create with Mod → wyszukaj nazwę.
-Numer 1.1 dotyczy publicznej linii wydań; wcześniejsza paczka 1.2 odpowiadała
-osobnej, prywatnej publikacji testowej.
+Numer 1.2 dotyczy publicznej linii wydań. Ta paczka ma dodatkowy sufiks
+20261018, aby odróżnić ją od starszej paczki oznaczonej 1.2, która odpowiadała
+wcześniejszej prywatnej publikacji testowej. Osobny mod testowy pozostaje
+Private / Locked w wersji 1.4.
