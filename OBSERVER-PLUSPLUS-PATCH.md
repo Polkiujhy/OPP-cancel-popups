@@ -1,5 +1,7 @@
 # Naprawa BattleReport Observer PlusPlus
 
+**Język / Language:** **Polski** | [English](https://github.com/Polkiujhy/OPP-cancel-popups/blob/main/OBSERVER-PLUSPLUS-PATCH.en.md)
+
 ## Gotowa zależność na Battle.net — 2026-10-19
 
 **Observer PlusPlus - Popup Fix 1.0** jest dostępny w **EU, US i KR**, wszędzie

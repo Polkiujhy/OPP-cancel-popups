@@ -1,5 +1,7 @@
 # Testy funkcjonalne — z zależnościami
 
+**Język / Language:** **Polski** | [English](README.en.md)
+
 Są tu dwa osobne rodzaje sprawdzeń: wykonanie patchera na rzeczywistych
 komponentach zależności oraz scenariusze uruchamiane w StarCraft II.
 Wynik jednego nie zalicza drugiego.

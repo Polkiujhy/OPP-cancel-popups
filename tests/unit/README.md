@@ -1,5 +1,7 @@
 # Testy jednostkowe — bez zależności zewnętrznych
 
+**Język / Language:** **Polski** | [English](README.en.md)
+
 Wymagany jest Python 3.12+; wystarczą biblioteka standardowa i lokalna kopia repozytorium.
 Nie potrzeba StarCraft II, mpqcli, kont Battle.net ani cudzych plików.
 

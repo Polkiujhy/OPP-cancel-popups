@@ -1,5 +1,7 @@
 # Testy
 
+**Język / Language:** **Polski** | [English](README.en.md)
+
 | Zestaw | Zależności | Co potwierdza |
 | --- | --- | --- |
 | [jednostkowe](unit/README.md) | Python 3.12+ i pliki tego repozytorium | Generator, pakowanie, protokoły banków, walidatory, korelację dowodów i przygotowanie scenariuszy. |

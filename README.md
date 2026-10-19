@@ -1,5 +1,7 @@
 # OPP Cancel Popups — wydanie 1.4
 
+**Język / Language:** **Polski** | [English](README.en.md)
+
 Popupy anulowania dla obserwatorów i sędziów StarCraft II. Wydanie obejmuje
 budowy, aktywne i oczekujące jednostki/ulepszenia, addony, anulowalne przemiany
 oraz warp-iny przerwane utratą zasilania Prisma lub Pylona.
@@ -144,8 +146,8 @@ python3 -m unittest discover -s tests/unit -v
 
 Testy jednostkowe wymagają tylko Pythona 3.12+ i działają w GitHub Actions.
 Testy funkcjonalne obejmują rzeczywistą transformację Obs++/MPQ oraz osobne
-scenariusze w SC2 z walidatorami
-banków. [Instrukcja testów](tests/README.md) rozróżnia ich zakres i wymagania.
+scenariusze w SC2 z walidatorami banków. [Instrukcja testów](tests/README.md)
+rozróżnia ich zakres i wymagania.
 Zielony CI nie zastępuje kompilacji Galaxy, Test Document, replaya ani testu ról.
 
 ## Wiki projektu

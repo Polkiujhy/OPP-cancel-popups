@@ -1,5 +1,7 @@
 # OPP Cancel Popups — wydanie 1.4
 
+**Język / Language:** **Polski** | [English](https://github.com/Polkiujhy/OPP-cancel-popups/blob/main/distribution/README-INTEGRATION.en.md)
+
 Popupy anulowania dla obserwatorów i sędziów StarCraft II. Wydanie obejmuje
 budowy, aktywne i oczekujące jednostki/ulepszenia, addony, anulowalne przemiany
 oraz warp-iny przerwane utratą zasilania Prisma lub Pylona.
@@ -57,7 +59,7 @@ Nie dodawaj obu kopii Obs++ jednocześnie. Zachowaj Void Multi i WCS GameHeart.
 Oryginalny Observer PlusPlus: **nice__username / ESLMaps**.
 Pełny Obs++, jego biblioteki i zasoby nie są zawarte w tym repozytorium ani ZIP-ie.
 Publikujemy własny patcher, manifest zgodnego wejścia i krótkie fragmenty poprawki.
-[Instrukcja patchera i szczegóły naprawy](../OBSERVER-PLUSPLUS-PATCH.md) są dla
+[Instrukcja patchera i szczegóły naprawy](https://github.com/Polkiujhy/OPP-cancel-popups/blob/main/OBSERVER-PLUSPLUS-PATCH.md) są dla
 autorów pracujących na lokalnych komponentach. Patcher przyjmuje tylko dokładnie
 określone, niezmienione wejście; nie służy do ponownego patchowania wersji Popup Fix.
 
