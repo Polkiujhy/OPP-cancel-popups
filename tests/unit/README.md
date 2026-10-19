@@ -1,6 +1,6 @@
-# Unit — samodzielne
+# Testy jednostkowe — bez zależności zewnętrznych
 
-Wymagany jest Python 3.12+; wystarcza biblioteka standardowa i checkout repo.
+Wymagany jest Python 3.12+; wystarczą biblioteka standardowa i lokalna kopia repozytorium.
 Nie potrzeba StarCraft II, mpqcli, kont Battle.net ani cudzych plików.
 
 ```bash
@@ -20,9 +20,9 @@ Zestaw obejmuje 159 testów w 13 modułach:
   mieszanej regresji i BattleReport.
 - Wykrywanie podmiany źródeł, archiwum, receiptu i deklaracji zależności.
 - Dobór nazw banków, deklaracje bridge i protokół ESC/TAB. Wejście UI jest
-  mockowane; te testy nie wysyłają klawiszy.
+  symulowane; te testy nie wysyłają naciśnięć klawiszy.
 
 Przykłady banków są syntetycznymi danymi protokołu. Testy celowo usuwają
 zdarzenia, zmieniają właściciela, tag, ikonę lub timer i wymagają odrzucenia
 takiego materiału. Nie odtwarzają w Pythonie logiki produkcyjnych adapterów
-Galaxy i nie zastępują functional w grze.
+Galaxy i nie zastępują testów funkcjonalnych w grze.

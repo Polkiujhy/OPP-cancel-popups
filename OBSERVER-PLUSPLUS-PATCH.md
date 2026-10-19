@@ -27,9 +27,9 @@ Wszystkie 203 anulowane warp-iny miały neutralnego sprawcę `KillingPlayer=16`,
 w tym pięć jednostek gracza 2. Popupy anulowań działały, ale zależność Obs++
 zgłaszała błędy indeksowania statystyk. Ta historyczna próba pozostaje niezaliczona.
 
-W zamrożonym `Lib7805B319.galaxy:1512–1517` neutralny killer16 daje slot15,
-następnie kod przekazuje owner1/2 do `OppositePlayerSlot`, który przyjmuje slot0/1
-(`:1155–1169`). Owner2 daje−1. Przedziały i jednostki numeracji muszą się zgadzać.
+W zamrożonym `Lib7805B319.galaxy:1512–1517` neutralny killer16 daje slot 15,
+następnie kod przekazuje owner1/2 do `OppositePlayerSlot`, który przyjmuje slot 0/1
+(`:1155–1169`). Owner2 daje −1. Przedziały i jednostki numeracji muszą się zgadzać.
 
 Naprawiony callback zachowuje zwykły kredyt walki `killer-1`. Przy killer16
 stosuje `OppositePlayerSlot(owner-1)`. Oryginalny komentarz Triggers
@@ -39,7 +39,7 @@ liczbą jednostek przed późniejszym liczeniem typów i zasobów. Nie zmieniamy
 właścicieli, sprawców, KillOnCancel, natywnych ConstructCancel ani zasad walki.
 
 Remove kończy callback przed jakąkolwiek zmianą statystyk. Końcowy guard
-odrzuca sloty poza0/1 przed pierwszym odczytem/zapisem tablic. Zwykłe rzeczywiste
+odrzuca sloty poza 0/1 przed pierwszym odczytem/zapisem tablic. Zwykłe rzeczywiste
 zgony nadal zwiększają właściwe liczniki; raport i jego trigger pozostają włączone.
 
 ## Źródło i powtarzalny patch
@@ -53,12 +53,12 @@ PlusPlus z regionu EU, rozpoznawana po pełnych SHA256:
 Własny manifest jest w `src/observer-plusplus-patches/track-unit-kills-v1.json`.
 Zawiera wyłącznie identyfikatory transformacji i krótkie własne wyrażenia/guardy.
 Patcher odmawia nieznanych bajtów, ponownego zastosowania i istniejącego outputu,
-archiwum, reportu lub pliku instalacji. Nie nadpisuje oryginalnej zależności.
+archiwum, raportu lub pliku instalacji. Nie nadpisuje oryginalnej zależności.
 
-Rzeczywisty graf Triggers: biblioteka7805B319, callback D3F37C35,
-neutralny Param6C9458E6 oraz Baneling Param8A08DB2C. Pozostałe elementy i pliki
+Rzeczywisty graf Triggers: biblioteka 7805B319, callback D3F37C35,
+neutralny Param 6C9458E6 oraz Baneling Param 8A08DB2C. Pozostałe elementy i pliki
 pozostają bajtowo niezmienione. Własne akcje CustomScript korzystają z istniejącego
-FunctionDef Ntve00000123; parametry `CustomType=int/ScriptCode` mają wzorzec
+FunctionDef Ntve 00000123; parametry `CustomType=int/ScriptCode` mają wzorzec
 w lokalnym `NativeLib.TriggerLib:43652`. Istniejący callback, jego event/warunki
 i rzeczywiste akcje raportu pozostają. Galaxy ma tę samą transformację, aby
 regeneracja w edytorze zachowała naprawę. Kompilacja i porównanie faktycznej
@@ -77,7 +77,7 @@ python3 /sciezka/do/paczki/tools/patch_observer_plus_plus.py \
 `mpqcli` jest lokalnym narzędziem wskazanym jawnie; binarki i cudze zasoby nie
 są częścią paczki. Patcher tworzy nowy katalog, `<output>.mpq` oraz
 `<output>.patch.json`; odczytuje każdy plik z MPQ i porównuje bajty, następnie
-instaluje pod nową nazwą. Report zawiera hashe wejść, wszystkich plików wyjścia,
+instaluje pod nową nazwą. Raport zawiera hashe wejść, wszystkich plików wyjścia,
 archiwum/instalacji, własnego patchera, manifestu i snippetów. Zmieniają się
 wyłącznie Triggers i jedna biblioteka Galaxy.
 
@@ -88,7 +88,7 @@ czyli bank potwierdzający tożsamość zestawu załadowanego przez grę. Oba za
 `observer_patch_manifest` i `observer_patch_manifest_sha256`, nazwę zależności
 oraz jej pliki/hashe. Sama ścieżka do raportu nie jest dowodem zgodności plików.
 
-Zamrozić oryginalny report, katalog output oraz dokładny MPQ. Validator
+Zamrozić oryginalny raport, katalog wyjściowy oraz dokładny MPQ. Walidator
 `verify_runtime_provenance.py` przyjmuje komplet:
 
 ```text
@@ -118,7 +118,7 @@ i UnitDied z tagiem, owner/type, czasem, killerem oraz Remove. Read-only bridge
 odczytuje oba rzeczywiste sloty: liczbę jednostek, typy/ilości, minerały, gaz
 i supply, stan bitwy i włączony trigger. Supply jest mierzone także w samym
 UnitDied, zgodnie z dostępną natywną właściwością w tej fazie życia obiektu.
-Validator wymaga dokładnych delt, także dodatkowej śmierci Prisma w Warp2;
+Walidator wymaga dokładnych delt, także dodatkowej śmierci Prisma w Warp2;
 Remove/unsupported killer/ukończenie nie zmieniają liczników raportu.
 Własne popupy rosną wyłącznie raz w obu rzeczywistych anulowaniach warp-inu;
 pozostałe kontrole dają zero.
@@ -160,5 +160,5 @@ Testy ról w rzeczywistym meczu wielu klientów i końcowy odbiór wizualny
 pozostają osobnymi, otwartymi punktami; powyższa tabela ich nie zalicza.
 
 Kod scenariuszy i walidatorów oraz wymagania uruchomienia są opisane
-w [instrukcji testów functional](https://github.com/Polkiujhy/OPP-cancel-popups/blob/main/tests/functional/README.md). Samodzielne
+w [instrukcji testów funkcjonalnych](https://github.com/Polkiujhy/OPP-cancel-popups/blob/main/tests/functional/README.md). Samodzielne
 testy walidatorów w Pythonie nie zastępują prób w SC2.

@@ -74,7 +74,7 @@ ZIP jest pakietem integracyjnym dla autora moda. Nie jest samodzielnym modem
 do otwarcia w grze. Nie zawiera prywatnych map testowych, banków, replayów,
 cache, kont ani narzędzi binarnych.
 
-## Integracja do własnego moda
+## Integracja z własnym modem
 
 1. Pracuj na kopii docelowego moda. Wybierz w edytorze zgodne zależności:
    Void Multi, WCS GameHeart oraz **Observer PlusPlus - Popup Fix 1.0**.
@@ -120,7 +120,7 @@ z dokumentem docelowym. Generator i kontrola XML nie kompilują Galaxy.
 
 ## Walidacja i ograniczenia
 
-Kod sprawdzono w SC2 **5.0.17.98310**: 188 testów Python, 13 konfiguracji
+Kod sprawdzono w SC2 **5.0.17.98310**: 188 testów Pythona, 13 konfiguracji
 natywnych, kompilacje bez błędów, Test Document, nowe replaye, Rewind/seek,
 pauza/prędkości i perspektywy. Próby obejmowały 17 konfiguracji addonów,
 macierz przemian, Oracle/Void Ray/Phoenix ×5, utratę zasilania warp-inów
@@ -130,19 +130,25 @@ także kompilację z publiczną zależnością i zgodność kodu paczki.
 Rzeczywisty wspólny mecz kilku klientów z rolami observer/referee/active player
 oraz końcowy odbiór wizualny użytkownika pozostają otwarte dla tego pakietu.
 W części scen Default występowały ostrzeżenia fontów/layoutów i aktora Zealot;
-nie były to ScriptErrors. Własna integracja do innego moda wymaga własnego odbioru.
+nie były to ScriptErrors. Własna integracja z innym modem wymaga własnego odbioru.
 Stockowa możliwość ręcznego anulowania warp-inu pozostaje bez zmian.
 
 ## Testy i praca nad kodem
 
-Zestawy są rozdzielone na [unit — samodzielne](tests/unit/README.md)
-i [functional — z zależnościami](tests/functional/README.md).
+Zestawy są rozdzielone na [testy jednostkowe — bez zależności zewnętrznych](tests/unit/README.md)
+i [testy funkcjonalne — z zależnościami](tests/functional/README.md).
 
 ```bash
 python3 -m unittest discover -s tests/unit -v
 ```
 
-Unit wymaga tylko Pythona 3.12+ i działa w GitHub Actions. Functional obejmuje
-rzeczywistą transformację Obs++/MPQ oraz osobne scenariusze w SC2 z walidatorami
+Testy jednostkowe wymagają tylko Pythona 3.12+ i działają w GitHub Actions.
+Testy funkcjonalne obejmują rzeczywistą transformację Obs++/MPQ oraz osobne
+scenariusze w SC2 z walidatorami
 banków. [Instrukcja testów](tests/README.md) rozróżnia ich zakres i wymagania.
 Zielony CI nie zastępuje kompilacji Galaxy, Test Document, replaya ani testu ról.
+
+## Wiki projektu
+
+[Wiki](https://github.com/Polkiujhy/OPP-cancel-popups/wiki) opisuje tryb pracy,
+architekturę, testy jednostkowe i funkcjonalne, dowody oraz proces wydawania.

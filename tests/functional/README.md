@@ -1,6 +1,6 @@
-# Functional — z zależnościami
+# Testy funkcjonalne — z zależnościami
 
-Są tu dwa osobne rodzaje sprawdzenia: wykonanie patchera na rzeczywistych
+Są tu dwa osobne rodzaje sprawdzeń: wykonanie patchera na rzeczywistych
 komponentach zależności oraz scenariusze uruchamiane w StarCraft II.
 Wynik jednego nie zalicza drugiego.
 
@@ -73,7 +73,7 @@ gotowej mapy ani dowodem kompilacji.
    dodatnia adaptera. Zapisz loaded value i odrębnie wykonaj stockowy
    `prism-direct-order-probe` bez override. Override nigdy nie trafia do wydania.
 5. Uruchom Test Document, wykonaj wymagane rzeczywiste ESC/TAB/kliknięcia
-   i zachowaj wszystkie banki/fragments, mapę, MPQ, logi oraz replay.
+   i zachowaj wszystkie banki i fragmenty, mapę, MPQ, logi oraz replay.
    Dla addonów sterownik `drive_addon_acceptance.py` wymaga własnego jawnie
    wskazanego helpera, który przy każdym wejściu sprawdza cel PID/okna.
    Helper zależny od pulpitu nie jest dołączony do repozytorium.
@@ -81,7 +81,7 @@ gotowej mapy ani dowodem kompilacji.
    powtarzalne argumenty `--matrix-bank`, `--retention-bank` lub `--fragment-bank`.
    Dokładne argumenty pokazuje `--help` danego walidatora.
 7. Obejrzyj właściwe UI w replayu, sprawdź Rewind/seek, pauzę, prędkości,
-   perspektywy i normalny klient. Role observer/referee/active player wymagają
+   perspektywy i normalnego klienta. Role observer/referee/active player wymagają
    rzeczywistego meczu wielu klientów; odczyt kontrolek w fixture go nie zastępuje.
 
 Przykłady walidacji prostych, zamkniętych prób:

@@ -57,7 +57,7 @@ Nie dodawaj obu kopii Obs++ jednocześnie. Zachowaj Void Multi i WCS GameHeart.
 Oryginalny Observer PlusPlus: **nice__username / ESLMaps**.
 Pełny Obs++, jego biblioteki i zasoby nie są zawarte w tym repozytorium ani ZIP-ie.
 Publikujemy własny patcher, manifest zgodnego wejścia i krótkie fragmenty poprawki.
-[Instrukcja patchera i szczegóły naprawy](OBSERVER-PLUSPLUS-PATCH.md) są dla
+[Instrukcja patchera i szczegóły naprawy](../OBSERVER-PLUSPLUS-PATCH.md) są dla
 autorów pracujących na lokalnych komponentach. Patcher przyjmuje tylko dokładnie
 określone, niezmienione wejście; nie służy do ponownego patchowania wersji Popup Fix.
 
@@ -74,7 +74,7 @@ ZIP jest pakietem integracyjnym dla autora moda. Nie jest samodzielnym modem
 do otwarcia w grze. Nie zawiera prywatnych map testowych, banków, replayów,
 cache, kont ani narzędzi binarnych.
 
-## Integracja do własnego moda
+## Integracja z własnym modem
 
 1. Pracuj na kopii docelowego moda. Wybierz w edytorze zgodne zależności:
    Void Multi, WCS GameHeart oraz **Observer PlusPlus - Popup Fix 1.0**.
@@ -120,7 +120,7 @@ z dokumentem docelowym. Generator i kontrola XML nie kompilują Galaxy.
 
 ## Walidacja i ograniczenia
 
-Kod sprawdzono w SC2 **5.0.17.98310**: 188 testów Python, 13 konfiguracji
+Kod sprawdzono w SC2 **5.0.17.98310**: 188 testów Pythona, 13 konfiguracji
 natywnych, kompilacje bez błędów, Test Document, nowe replaye, Rewind/seek,
 pauza/prędkości i perspektywy. Próby obejmowały 17 konfiguracji addonów,
 macierz przemian, Oracle/Void Ray/Phoenix ×5, utratę zasilania warp-inów
@@ -130,5 +130,5 @@ także kompilację z publiczną zależnością i zgodność kodu paczki.
 Rzeczywisty wspólny mecz kilku klientów z rolami observer/referee/active player
 oraz końcowy odbiór wizualny użytkownika pozostają otwarte dla tego pakietu.
 W części scen Default występowały ostrzeżenia fontów/layoutów i aktora Zealot;
-nie były to ScriptErrors. Własna integracja do innego moda wymaga własnego odbioru.
+nie były to ScriptErrors. Własna integracja z innym modem wymaga własnego odbioru.
 Stockowa możliwość ręcznego anulowania warp-inu pozostaje bez zmian.
