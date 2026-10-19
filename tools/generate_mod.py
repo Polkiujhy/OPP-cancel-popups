@@ -7,13 +7,15 @@ CustomScript XML is verified against Alzarath's SimpleBaseDiscovery.SC2Lib;
 MapInit and custom action FunctionDefs against NativeLib.TriggerLib.
 """
 import argparse
+import json
 from pathlib import Path
 import textwrap
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
+SOURCES = tuple(json.loads(Path(__file__).with_name('galaxy_sources.json').read_text()))
 MOD = ROOT / 'files'
-SOURCES = ['opp_popup_ui.galaxy', 'opp_events.galaxy', 'opp_units.galaxy', 'opp_research.galaxy', 'opp_bootstrap.galaxy']
+SOURCE_DIR = ROOT / 'source'
 
 
 def script_text(source):
@@ -24,7 +26,7 @@ def script_text(source):
 
 
 def products():
-    source = '\n'.join((ROOT / 'source' / name).read_text().rstrip() for name in SOURCES) + '\n'
+    source = '\n'.join((SOURCE_DIR / name).read_text().rstrip() for name in SOURCES) + '\n'
     root = ET.Element('TriggerData')
     lib = ET.SubElement(root, 'Library', Id='C0DEC0DE')
     libroot = ET.SubElement(lib, 'Root')

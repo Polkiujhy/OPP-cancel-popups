@@ -1,0 +1,3 @@
+// Ordinary credited combat retains killer-1. Neutral 16 was resolved above.
+// Reject other sources before any playerBattleStats array access.
+if (lv_playerSlot < 0 || lv_playerSlot > 1) { return true; }

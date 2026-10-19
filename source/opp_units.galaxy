@@ -84,6 +84,10 @@ void OPP_UnitSignal (unit facility, string objectType, int kind, bool progress) 
 
 bool OPP_UnitProductionCancelled (bool testConds, bool runActions) {
     if (!runActions || EventUnit() == null || !UnitIsAlive(EventUnit())) { return true; }
+    if (OPP_WarpTracked(EventUnitProgressUnit())) {
+        OPP_WarpCancelSignal(EventUnitProgressUnit());
+        return true;
+    }
     OPP_UnitSignal(EventUnit(), EventUnitProgressObjectType(), OPP_KIND_UNIT, true);
     return true;
 }
@@ -109,7 +113,10 @@ bool OPP_ProductionAbilityCancelled (bool testConds, bool runActions) {
         objectType = CatalogFieldValueGet(c_gameCatalogAbil, ability, field + ".Upgrade", owner);
         OPP_UnitSignal(facility, objectType, OPP_KIND_RESEARCH, false);
     }
-    else if (abilityClass == c_classIdCAbilTrain || abilityClass == c_classIdCAbilArmMagazine || abilityClass == c_classIdCAbilWarpTrain) {
+    // WarpTrain is published only by the actual child/generation gate, shared
+    // with Warpable Cancel and Prism closure. A producer aggregate loses that
+    // identity and cannot deduplicate a Construct Cancel of the same child.
+    else if (abilityClass == c_classIdCAbilTrain || abilityClass == c_classIdCAbilArmMagazine) {
         // LarvaTrain deliberately destroys the egg on a legitimate Cancel.
         // Other dead producers must not contribute their lost queue entries.
         if (!UnitIsAlive(facility) && (abilityClass != c_classIdCAbilTrain || CatalogFieldValueGet(c_gameCatalogAbil, ability, "Flags[KillOnCancel]", owner) != "1")) { return true; }
@@ -139,7 +146,12 @@ bool OPP_UnitProductionCancelOrder (bool testConds, bool runActions) {
     command = OrderGetAbilityCommand(EventUnitOrder());
     abilityClass = AbilityClass(AbilityCommandGetAbility(command));
     index = AbilityCommandGetCommand(command);
+    if (abilityClass == c_classIdCAbilWarpable && index == c_abilWarpableCmdCancel) {
+        OPP_WarpDirectSignal(EventUnit());
+        return true;
+    }
     if (!((abilityClass == c_classIdCAbilQueue && (index == c_abilQueueCmdCancelLast || index == c_abilQueueCmdCancelSlot)) || (abilityClass == c_classIdCAbilWarpable && index == c_abilWarpableCmdCancel))) { return true; }
+    OPP_WarpQueueSignal(EventUnit());
     tag = UnitGetTag(EventUnit());
     tick = CurrentSynchronousGameTimeGet();
     OPP_UnitOrderTag[OPP_UnitOrderNext] = tag;

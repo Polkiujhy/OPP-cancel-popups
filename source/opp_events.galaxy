@@ -1,63 +1,173 @@
-// Runtime probe: BuildInProgress cancel has no ability-stage event. Construction
-// cancel supplies EventUnitProgressUnit; the order callback can follow removal.
-// Require BOTH progress cancellation and the explicit Cancel command. Pairing is
-// independent of callback order; death/completion/rejected orders cannot notify.
-int[128] OPP_BuildTags;
-bool[128] OPP_BuildProgress;
-bool[128] OPP_BuildOrder;
-bool[128] OPP_BuildNotified;
-int OPP_BuildNext = 0;
+// A construction attempt is the created child's tag, never the parent's lifetime.
+// Store metadata before removal: dead addons lose their live owner/type, and the
+// native addon relationship getters are null during construction (runtime v65).
+// DataTable keys do not recycle an active/pending attempt after 128 other builds.
+string OPP_BuildKey (int tag) {
+    return "OPPCancelPopups/Build/" + IntToString(tag) + "/";
+}
 
-void OPP_BuildSignal (unit building, bool progress) {
-    int owner;
+text OPP_BuildName (string objectType) {
+    if (objectType == "BarracksTechLab") { return StringExternal("OPP/BarracksTechLab"); }
+    if (objectType == "FactoryTechLab") { return StringExternal("OPP/FactoryTechLab"); }
+    if (objectType == "StarportTechLab") { return StringExternal("OPP/StarportTechLab"); }
+    if (objectType == "BarracksReactor") { return StringExternal("OPP/BarracksReactor"); }
+    if (objectType == "FactoryReactor") { return StringExternal("OPP/FactoryReactor"); }
+    if (objectType == "StarportReactor") { return StringExternal("OPP/StarportReactor"); }
+    return UnitTypeGetName(objectType);
+}
+
+void OPP_BuildRemember (unit child, unit parent, string ability) {
+    string key;
+    string objectType;
     int tag;
-    int i;
-    int slot;
+    int owner;
+    int parentTag;
+    if (child == null || !UnitIsAlive(child)) { return; }
+    objectType = UnitGetType(child);
+    if (!UnitTypeTestAttribute(objectType, c_unitAttributeStructure)) { return; }
+    tag = UnitGetTag(child);
+    owner = UnitGetOwner(child);
+    if (tag <= 0 || owner < 1 || owner >= c_playerAny) { return; }
+    key = OPP_BuildKey(tag);
+    if (DataTableGetBool(true, key + "Closed")) { return; }
+    DataTableSetInt(true, key + "Owner", owner);
+    DataTableSetString(true, key + "Type", objectType);
+    // The creator response, not UnitAddOnChild/Parent, identifies this attempt.
+    if (parent != null && AbilityClass(ability) == c_classIdCAbilBuild && CatalogFieldValueGet(c_gameCatalogAbil, ability, "Type", owner) == "AddOn") {
+        parentTag = UnitGetTag(parent);
+        if (parentTag <= 0) { return; }
+        DataTableSetInt(true, key + "Parent", parentTag);
+        DataTableSetString(true, key + "Ability", ability);
+        DataTableSetInt(true, OPP_BuildKey(parentTag) + "Child", tag);
+    }
+}
+
+void OPP_BuildPublish (int tag) {
+    string key;
     string objectType;
     string icon;
-    if (building == null) { return; }
-    owner = UnitGetOwner(building);
-    tag = UnitGetTag(building);
-    objectType = UnitGetType(building);
-    if (tag <= 0 || objectType == "" || owner < 1 || owner >= c_playerAny) { return; }
-    slot = -1;
-    for (i = 0; i < 128; i += 1) {
-        if (OPP_BuildTags[i] == tag) { slot = i; }
-    }
-    if (slot < 0) {
-        slot = OPP_BuildNext;
-        OPP_BuildNext = (OPP_BuildNext + 1) % 128;
-        OPP_BuildTags[slot] = tag;
-        OPP_BuildProgress[slot] = false;
-        OPP_BuildOrder[slot] = false;
-        OPP_BuildNotified[slot] = false;
-    }
-    if (progress) { OPP_BuildProgress[slot] = true; }
-    else { OPP_BuildOrder[slot] = true; }
-    if (!OPP_BuildProgress[slot] || !OPP_BuildOrder[slot] || OPP_BuildNotified[slot]) { return; }
-    OPP_BuildNotified[slot] = true;
+    int owner;
+    key = OPP_BuildKey(tag);
+    if (tag <= 0 || DataTableGetBool(true, key + "Closed") || !DataTableGetBool(true, key + "Progress") || !DataTableGetBool(true, key + "Order")) { return; }
+    if (DataTableGetFixed(true, key + "ProgressTime") != DataTableGetFixed(true, key + "OrderTime")) { return; }
+    objectType = DataTableGetString(true, key + "Type");
+    owner = DataTableGetInt(true, key + "Owner");
+    if (objectType == "" || owner < 1 || owner >= c_playerAny) { return; }
+    // Both routes meet here, before incrementing counters or enqueuing the UI.
+    DataTableSetBool(true, key + "Closed", true);
     icon = CatalogFieldValueGet(c_gameCatalogActor, objectType, "UnitIcon", owner);
     DataTableSetInt(true, "OPPCancelPopups/BuildingCancels", DataTableGetInt(true, "OPPCancelPopups/BuildingCancels") + 1);
-    OPP_UI_PushTyped(owner, UnitTypeGetName(objectType), icon, OPP_KIND_BUILDING, objectType);
+    OPP_UI_PushTyped(owner, OPP_BuildName(objectType), icon, OPP_KIND_BUILDING, objectType);
+}
+
+void OPP_BuildOrderSignal (int tag) {
+    string key;
+    if (tag <= 0) { return; }
+    key = OPP_BuildKey(tag);
+    if (DataTableGetBool(true, key + "Closed")) { return; }
+    DataTableSetBool(true, key + "Order", true);
+    DataTableSetFixed(true, key + "OrderTime", GameGetMissionTime());
+    OPP_BuildPublish(tag);
+}
+
+bool OPP_BuildCreated (bool testConds, bool runActions) {
+    if (!runActions || !UnitTestState(EventUnitCreatedUnit(), c_unitStateUnderConstruction)) { return true; }
+    OPP_BuildRemember(EventUnitCreatedUnit(), EventUnit(), EventUnitCreatedAbil());
+    return true;
+}
+
+bool OPP_BuildStarted (bool testConds, bool runActions) {
+    // Ordinary buildings also have this progress path. Addon metadata comes
+    // from Created, including the actual creator ability and parent.
+    if (!runActions) { return true; }
+    OPP_BuildRemember(EventUnitProgressUnit(), null, "");
+    return true;
+}
+
+void OPP_BuildProgressSignal (unit parent, unit child, string objectType) {
+    string key;
+    string parentKey;
+    int tag;
+    int parentTag;
+    if (child == null) { return; }
+    tag = UnitGetTag(child);
+    if (tag <= 0) { return; }
+    key = OPP_BuildKey(tag);
+    if (DataTableGetBool(true, key + "Closed")) { return; }
+    // Fallback only while the object still has valid metadata. Never substitute
+    // EventUnit's owner/type: EventUnit is the producer, not the cancelled child.
+    if (DataTableGetString(true, key + "Type") == "") { OPP_BuildRemember(child, null, ""); }
+    parentTag = DataTableGetInt(true, key + "Parent");
+    if (parentTag > 0) {
+        if (parent == null || UnitGetTag(parent) != parentTag || objectType != DataTableGetString(true, key + "Type")) { return; }
+        parentKey = OPP_BuildKey(parentTag);
+        // Keep a progress-first attempt independently of the next active child.
+        DataTableSetInt(true, parentKey + "PendingChild", tag);
+        DataTableSetFixed(true, parentKey + "PendingTime", GameGetMissionTime());
+    }
+    DataTableSetBool(true, key + "Progress", true);
+    DataTableSetFixed(true, key + "ProgressTime", GameGetMissionTime());
+    OPP_BuildPublish(tag);
+}
+
+void OPP_BuildParentOrderSignal (unit parent, string ability) {
+    string key;
+    string childKey;
+    int tag;
+    int childTag;
+    int pendingTag;
+    if (parent == null) { return; }
+    tag = UnitGetTag(parent);
+    key = OPP_BuildKey(tag);
+    childTag = DataTableGetInt(true, key + "Child");
+    pendingTag = DataTableGetInt(true, key + "PendingChild");
+    if (pendingTag > 0 && DataTableGetFixed(true, key + "PendingTime") == GameGetMissionTime() && !DataTableGetBool(true, OPP_BuildKey(pendingTag) + "Closed")) { childTag = pendingTag; }
+    childKey = OPP_BuildKey(childTag);
+    if (childTag <= 0 || DataTableGetInt(true, childKey + "Parent") != tag || DataTableGetString(true, childKey + "Ability") != ability) { return; }
+    OPP_BuildOrderSignal(childTag);
 }
 
 bool OPP_BuildCancelled (bool testConds, bool runActions) {
     if (!runActions) { return true; }
-    OPP_BuildSignal(EventUnitProgressUnit(), true);
+    OPP_BuildProgressSignal(EventUnit(), EventUnitProgressUnit(), EventUnitProgressObjectType());
     return true;
 }
 
 bool OPP_BuildCancelOrder (bool testConds, bool runActions) {
-    if (!runActions) { return true; }
-    OPP_BuildSignal(EventUnit(), false);
+    abilcmd command;
+    string ability;
+    int owner;
+    if (!runActions || EventUnit() == null) { return true; }
+    command = OrderGetAbilityCommand(EventUnitOrder());
+    ability = AbilityCommandGetAbility(command);
+    if (ability == "BuildInProgress" && AbilityCommandGetCommand(command) == c_abilBuildableCmdCancel) {
+        // The child may already be removed. Use its saved metadata and tag.
+        OPP_BuildOrderSignal(UnitGetTag(EventUnit()));
+        return true;
+    }
+    owner = UnitGetOwner(EventUnit());
+    if (AbilityClass(ability) != c_classIdCAbilBuild || AbilityCommandGetCommand(command) != c_abilBuildCmdHalt || owner < 1 || owner >= c_playerAny || CatalogFieldValueGet(c_gameCatalogAbil, ability, "Type", owner) != "AddOn") { return true; }
+    OPP_BuildParentOrderSignal(EventUnit(), ability);
+    return true;
+}
+
+bool OPP_BuildCompleted (bool testConds, bool runActions) {
+    if (!runActions || EventUnitProgressUnit() == null) { return true; }
+    // A later Halt/rejected Cancel must not resurrect a completed attempt.
+    DataTableSetBool(true, OPP_BuildKey(UnitGetTag(EventUnitProgressUnit())) + "Closed", true);
     return true;
 }
 
 void OPP_Events_Init () {
-    trigger buildingCancel;
-    trigger cancelOrder;
-    buildingCancel = TriggerCreate("OPP_BuildCancelled");
-    TriggerAddEventUnitConstructProgress(buildingCancel, null, c_unitProgressStageCancel);
-    cancelOrder = TriggerCreate("OPP_BuildCancelOrder");
-    TriggerAddEventUnitOrder(cancelOrder, null, AbilityCommand("BuildInProgress", c_abilBuildableCmdCancel));
+    trigger construction;
+    construction = TriggerCreate("OPP_BuildCreated");
+    TriggerAddEventUnitCreated(construction, null, null, null);
+    construction = TriggerCreate("OPP_BuildStarted");
+    TriggerAddEventUnitConstructProgress(construction, null, c_unitProgressStageStart);
+    construction = TriggerCreate("OPP_BuildCancelled");
+    TriggerAddEventUnitConstructProgress(construction, null, c_unitProgressStageCancel);
+    construction = TriggerCreate("OPP_BuildCompleted");
+    TriggerAddEventUnitConstructProgress(construction, null, c_unitProgressStageComplete);
+    construction = TriggerCreate("OPP_BuildCancelOrder");
+    TriggerAddEventUnitOrder(construction, null, null);
 }

@@ -1,0 +1,8 @@
+// Remove is not a combat loss, including the total-unit count.
+if (EventUnitDamageDeathCheck(c_deathTypeRemove)) { return true; }
+if (UnitGetOwner(lv_deadUnit) < 1 || UnitGetOwner(lv_deadUnit) > 2) { return true; }
+// Original BattleReport policy: a Baneling belongs to its owner's opponent.
+// Apply it before every counter, not only the later type/resource counters.
+if (lv_killedUnitType == "Baneling") {
+    lv_playerSlot = lib7805B319_gf_OppositePlayerSlot((UnitGetOwner(lv_deadUnit) - 1));
+}

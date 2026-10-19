@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "patch_id": "obspp-eu-v2-battle-report-slots-v1",
+  "library": "7805B319",
+  "trigger": "D3F37C35",
+  "callback": "lib7805B319_gt_TrackUnitKills_Func",
+  "input_files": {
+    "Triggers": "9e1fd8806c80d1d5559755ed51e3810b03cda8c0a264cd6b86f9de461775f1af",
+    "Base.SC2Data/Lib7805B319.galaxy": "dc489e014c281deeaf1d326b4a7b042dc45e6650f4eabe2f11e186a2f341aa00"
+  },
+  "neutral_parameter": "6C9458E6",
+  "neutral_original_call": "4EEBE671",
+  "neutral_expression": "(UnitGetOwner(lv_deadUnit) - 1)",
+  "baneling_parameter": "8A08DB2C",
+  "baneling_original_call": "3D309EB0",
+  "baneling_expression": "lib7805B319_gf_OppositePlayerSlot((UnitGetOwner(lv_deadUnit) - 1))",
+  "neutral_action": "29D7A32A",
+  "start_action": "0BB00001",
+  "slot_action": "0BB00002",
+  "start_asset": "track-unit-kills-start.galaxy",
+  "slot_asset": "track-unit-kills-slot.galaxy"
+}

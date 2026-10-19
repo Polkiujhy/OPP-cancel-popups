@@ -33,15 +33,21 @@ string[3] OPP_UI_RowKey;
 int[3] OPP_UI_RowCount;
 string[128] OPP_UI_QueueKey;
 int[128] OPP_UI_QueueKind;
+int[128] OPP_UI_QueueCopies;
 
-void OPP_UI_Show (int row, int owner, text objectName, string icon, int kind, string objectKey) {
+text OPP_UI_CancelStatus (int count) {
+    if (count > 1) { return StringExternal("OPP/Cancelled") + StringToText(" ×") + IntToText(count); }
+    return StringExternal("OPP/Cancelled");
+}
+
+void OPP_UI_Show (int row, int owner, text objectName, string icon, int kind, string objectKey, int count) {
     libNtve_gf_SetDialogItemColor(OPP_UI_Background[row], libNtve_gf_ConvertPlayerColorToColor(PlayerGetColorIndex(owner, false)), OPP_UI_Viewers);
     DialogControlSetVisible(OPP_UI_Background[row], OPP_UI_Viewers, true);
     libNtve_gf_SetDialogItemText(OPP_UI_Owner[row], PlayerName(owner), OPP_UI_Viewers);
     libNtve_gf_SetDialogItemColor(OPP_UI_Owner[row], libNtve_gf_ConvertPlayerColorToColor(PlayerGetColorIndex(owner, false)), OPP_UI_Viewers);
     libNtve_gf_SetDialogItemText(OPP_UI_Name[row], objectName, OPP_UI_Viewers);
     libNtve_gf_SetDialogItemImage(OPP_UI_Icon[row], icon, OPP_UI_Viewers);
-    libNtve_gf_SetDialogItemText(OPP_UI_Status[row], StringExternal("OPP/Cancelled"), OPP_UI_Viewers);
+    libNtve_gf_SetDialogItemText(OPP_UI_Status[row], OPP_UI_CancelStatus(count), OPP_UI_Viewers);
     DialogControlSetVisible(OPP_UI_Icon[row], OPP_UI_Viewers, true);
     // The player-colored icon square identifies the owner; keep its label for probes only.
     DialogControlSetVisible(OPP_UI_Owner[row], OPP_UI_Viewers, false);
@@ -51,7 +57,7 @@ void OPP_UI_Show (int row, int owner, text objectName, string icon, int kind, st
     OPP_UI_RowOwner[row] = owner;
     OPP_UI_RowKind[row] = kind;
     OPP_UI_RowKey[row] = objectKey;
-    OPP_UI_RowCount[row] = 1;
+    OPP_UI_RowCount[row] = count;
     OPP_UI_Busy[row] = true;
     TimerStart(OPP_UI_Timer[row], 5.0, false, c_timeGame);
     DataTableSetInt(true, "OPPCancelPopups/Displayed", DataTableGetInt(true, "OPPCancelPopups/Displayed") + 1);
@@ -66,9 +72,11 @@ void OPP_UI_Drain () {
     for (row = 0; row < OPP_UI_ROWS; row += 1) {
         if (!OPP_UI_Busy[row]) {
             if (OPP_UI_Count > 0) {
-                OPP_UI_Show(row, OPP_UI_QueueOwner[OPP_UI_Head], OPP_UI_QueueName[OPP_UI_Head], OPP_UI_QueueIcon[OPP_UI_Head], OPP_UI_QueueKind[OPP_UI_Head], OPP_UI_QueueKey[OPP_UI_Head]);
+                OPP_UI_Show(row, OPP_UI_QueueOwner[OPP_UI_Head], OPP_UI_QueueName[OPP_UI_Head], OPP_UI_QueueIcon[OPP_UI_Head], OPP_UI_QueueKind[OPP_UI_Head], OPP_UI_QueueKey[OPP_UI_Head], OPP_UI_QueueCopies[OPP_UI_Head]);
                 OPP_UI_QueueName[OPP_UI_Head] = null;
                 OPP_UI_QueueIcon[OPP_UI_Head] = "";
+                OPP_UI_QueueKey[OPP_UI_Head] = "";
+                OPP_UI_QueueCopies[OPP_UI_Head] = 0;
                 OPP_UI_Head = (OPP_UI_Head + 1) % OPP_UI_CAPACITY;
                 OPP_UI_Count -= 1;
             }
@@ -85,7 +93,7 @@ void OPP_UI_Drain () {
                                 summary = IntToText(count) + StringExternal("OPP/MoreUnits");
                             }
                             OPP_UI_Overflow[owner][kind] = 0;
-                            OPP_UI_Show(row, owner, summary, "Assets\\Textures\\btn-command-cancel.dds", kind, "");
+                            OPP_UI_Show(row, owner, summary, "Assets\\Textures\\btn-command-cancel.dds", kind, "", 1);
                         }
                     }
                 }
@@ -94,23 +102,40 @@ void OPP_UI_Drain () {
     }
 }
 
+bool OPP_UI_MergeActive (int owner, int kind, string objectKey) {
+    int row;
+    if (objectKey == "") { return false; }
+    for (row = 0; row < OPP_UI_ROWS; row += 1) {
+        if (OPP_UI_Busy[row] && TimerGetRemaining(OPP_UI_Timer[row]) > 0.0 && OPP_UI_RowOwner[row] == owner && OPP_UI_RowKind[row] == kind && OPP_UI_RowKey[row] == objectKey) {
+            OPP_UI_RowCount[row] += 1;
+            libNtve_gf_SetDialogItemText(OPP_UI_Status[row], OPP_UI_CancelStatus(OPP_UI_RowCount[row]), OPP_UI_Viewers);
+            TimerStart(OPP_UI_Timer[row], 5.0, false, c_timeGame);
+            return true;
+        }
+    }
+    return false;
+}
+
 void OPP_UI_PushTyped (int owner, text objectName, string icon, int kind, string objectKey) {
     int tail;
-    int row;
-    if (!OPP_UI_Ready || owner < 1 || owner >= c_playerAny) { return; }
-    // Only currently active popups merge across buildings, units and upgrades. Use catalog IDs, never
-    // localized display text; different owners always retain separate counts.
+    int offset;
+    int index;
+    if (!OPP_UI_Ready || owner < 1 || owner >= c_playerAny || kind < 0 || kind >= 3) { return; }
+    // A catalog ID, kind and owner identify a group for its entire pending lifetime.
+    if (OPP_UI_MergeActive(owner, kind, objectKey)) { return; }
+    OPP_UI_Drain();
+    // Drain may just have displayed the same group; preserve its count and refresh it.
+    if (OPP_UI_MergeActive(owner, kind, objectKey)) { return; }
     if (objectKey != "") {
-        for (row = 0; row < OPP_UI_ROWS; row += 1) {
-            if (OPP_UI_Busy[row] && TimerGetRemaining(OPP_UI_Timer[row]) > 0.0 && OPP_UI_RowOwner[row] == owner && OPP_UI_RowKind[row] == kind && OPP_UI_RowKey[row] == objectKey) {
-                OPP_UI_RowCount[row] += 1;
-                libNtve_gf_SetDialogItemText(OPP_UI_Status[row], StringExternal("OPP/Cancelled") + StringToText(" ×") + IntToText(OPP_UI_RowCount[row]), OPP_UI_Viewers);
-                TimerStart(OPP_UI_Timer[row], 5.0, false, c_timeGame);
+        for (offset = 0; offset < OPP_UI_Count; offset += 1) {
+            index = (OPP_UI_Head + offset) % OPP_UI_CAPACITY;
+            if (OPP_UI_QueueOwner[index] == owner && OPP_UI_QueueKind[index] == kind && OPP_UI_QueueKey[index] == objectKey) {
+                OPP_UI_QueueCopies[index] += 1;
                 return;
             }
         }
     }
-    OPP_UI_Drain();
+    // Search existing groups before overflow: a duplicate consumes no new group slot.
     if (OPP_UI_Count == OPP_UI_CAPACITY) {
         OPP_UI_Overflow[owner][kind] += 1;
         return;
@@ -121,6 +146,7 @@ void OPP_UI_PushTyped (int owner, text objectName, string icon, int kind, string
     OPP_UI_QueueIcon[tail] = icon;
     OPP_UI_QueueKind[tail] = kind;
     OPP_UI_QueueKey[tail] = objectKey;
+    OPP_UI_QueueCopies[tail] = 1;
     OPP_UI_Count += 1;
     OPP_UI_Drain();
 }
@@ -189,68 +215,662 @@ void OPP_UI_Init () {
     OPP_UI_Ready = true;
     DataTableSetBool(true, "OPPCancelPopups/UIReady", true);
 }
-// Runtime probe: BuildInProgress cancel has no ability-stage event. Construction
-// cancel supplies EventUnitProgressUnit; the order callback can follow removal.
-// Require BOTH progress cancellation and the explicit Cancel command. Pairing is
-// independent of callback order; death/completion/rejected orders cannot notify.
-int[128] OPP_BuildTags;
-bool[128] OPP_BuildProgress;
-bool[128] OPP_BuildOrder;
-bool[128] OPP_BuildNotified;
-int OPP_BuildNext = 0;
+// A construction attempt is the created child's tag, never the parent's lifetime.
+// Store metadata before removal: dead addons lose their live owner/type, and the
+// native addon relationship getters are null during construction (runtime v65).
+// DataTable keys do not recycle an active/pending attempt after 128 other builds.
+string OPP_BuildKey (int tag) {
+    return "OPPCancelPopups/Build/" + IntToString(tag) + "/";
+}
 
-void OPP_BuildSignal (unit building, bool progress) {
-    int owner;
+text OPP_BuildName (string objectType) {
+    if (objectType == "BarracksTechLab") { return StringExternal("OPP/BarracksTechLab"); }
+    if (objectType == "FactoryTechLab") { return StringExternal("OPP/FactoryTechLab"); }
+    if (objectType == "StarportTechLab") { return StringExternal("OPP/StarportTechLab"); }
+    if (objectType == "BarracksReactor") { return StringExternal("OPP/BarracksReactor"); }
+    if (objectType == "FactoryReactor") { return StringExternal("OPP/FactoryReactor"); }
+    if (objectType == "StarportReactor") { return StringExternal("OPP/StarportReactor"); }
+    return UnitTypeGetName(objectType);
+}
+
+void OPP_BuildRemember (unit child, unit parent, string ability) {
+    string key;
+    string objectType;
     int tag;
-    int i;
-    int slot;
+    int owner;
+    int parentTag;
+    if (child == null || !UnitIsAlive(child)) { return; }
+    objectType = UnitGetType(child);
+    if (!UnitTypeTestAttribute(objectType, c_unitAttributeStructure)) { return; }
+    tag = UnitGetTag(child);
+    owner = UnitGetOwner(child);
+    if (tag <= 0 || owner < 1 || owner >= c_playerAny) { return; }
+    key = OPP_BuildKey(tag);
+    if (DataTableGetBool(true, key + "Closed")) { return; }
+    DataTableSetInt(true, key + "Owner", owner);
+    DataTableSetString(true, key + "Type", objectType);
+    // The creator response, not UnitAddOnChild/Parent, identifies this attempt.
+    if (parent != null && AbilityClass(ability) == c_classIdCAbilBuild && CatalogFieldValueGet(c_gameCatalogAbil, ability, "Type", owner) == "AddOn") {
+        parentTag = UnitGetTag(parent);
+        if (parentTag <= 0) { return; }
+        DataTableSetInt(true, key + "Parent", parentTag);
+        DataTableSetString(true, key + "Ability", ability);
+        DataTableSetInt(true, OPP_BuildKey(parentTag) + "Child", tag);
+    }
+}
+
+void OPP_BuildPublish (int tag) {
+    string key;
     string objectType;
     string icon;
-    if (building == null) { return; }
-    owner = UnitGetOwner(building);
-    tag = UnitGetTag(building);
-    objectType = UnitGetType(building);
-    if (tag <= 0 || objectType == "" || owner < 1 || owner >= c_playerAny) { return; }
-    slot = -1;
-    for (i = 0; i < 128; i += 1) {
-        if (OPP_BuildTags[i] == tag) { slot = i; }
-    }
-    if (slot < 0) {
-        slot = OPP_BuildNext;
-        OPP_BuildNext = (OPP_BuildNext + 1) % 128;
-        OPP_BuildTags[slot] = tag;
-        OPP_BuildProgress[slot] = false;
-        OPP_BuildOrder[slot] = false;
-        OPP_BuildNotified[slot] = false;
-    }
-    if (progress) { OPP_BuildProgress[slot] = true; }
-    else { OPP_BuildOrder[slot] = true; }
-    if (!OPP_BuildProgress[slot] || !OPP_BuildOrder[slot] || OPP_BuildNotified[slot]) { return; }
-    OPP_BuildNotified[slot] = true;
+    int owner;
+    key = OPP_BuildKey(tag);
+    if (tag <= 0 || DataTableGetBool(true, key + "Closed") || !DataTableGetBool(true, key + "Progress") || !DataTableGetBool(true, key + "Order")) { return; }
+    if (DataTableGetFixed(true, key + "ProgressTime") != DataTableGetFixed(true, key + "OrderTime")) { return; }
+    objectType = DataTableGetString(true, key + "Type");
+    owner = DataTableGetInt(true, key + "Owner");
+    if (objectType == "" || owner < 1 || owner >= c_playerAny) { return; }
+    // Both routes meet here, before incrementing counters or enqueuing the UI.
+    DataTableSetBool(true, key + "Closed", true);
     icon = CatalogFieldValueGet(c_gameCatalogActor, objectType, "UnitIcon", owner);
     DataTableSetInt(true, "OPPCancelPopups/BuildingCancels", DataTableGetInt(true, "OPPCancelPopups/BuildingCancels") + 1);
-    OPP_UI_PushTyped(owner, UnitTypeGetName(objectType), icon, OPP_KIND_BUILDING, objectType);
+    OPP_UI_PushTyped(owner, OPP_BuildName(objectType), icon, OPP_KIND_BUILDING, objectType);
+}
+
+void OPP_BuildOrderSignal (int tag) {
+    string key;
+    if (tag <= 0) { return; }
+    key = OPP_BuildKey(tag);
+    if (DataTableGetBool(true, key + "Closed")) { return; }
+    DataTableSetBool(true, key + "Order", true);
+    DataTableSetFixed(true, key + "OrderTime", GameGetMissionTime());
+    OPP_BuildPublish(tag);
+}
+
+bool OPP_BuildCreated (bool testConds, bool runActions) {
+    if (!runActions || !UnitTestState(EventUnitCreatedUnit(), c_unitStateUnderConstruction)) { return true; }
+    OPP_BuildRemember(EventUnitCreatedUnit(), EventUnit(), EventUnitCreatedAbil());
+    return true;
+}
+
+bool OPP_BuildStarted (bool testConds, bool runActions) {
+    // Ordinary buildings also have this progress path. Addon metadata comes
+    // from Created, including the actual creator ability and parent.
+    if (!runActions) { return true; }
+    OPP_BuildRemember(EventUnitProgressUnit(), null, "");
+    return true;
+}
+
+void OPP_BuildProgressSignal (unit parent, unit child, string objectType) {
+    string key;
+    string parentKey;
+    int tag;
+    int parentTag;
+    if (child == null) { return; }
+    tag = UnitGetTag(child);
+    if (tag <= 0) { return; }
+    key = OPP_BuildKey(tag);
+    if (DataTableGetBool(true, key + "Closed")) { return; }
+    // Fallback only while the object still has valid metadata. Never substitute
+    // EventUnit's owner/type: EventUnit is the producer, not the cancelled child.
+    if (DataTableGetString(true, key + "Type") == "") { OPP_BuildRemember(child, null, ""); }
+    parentTag = DataTableGetInt(true, key + "Parent");
+    if (parentTag > 0) {
+        if (parent == null || UnitGetTag(parent) != parentTag || objectType != DataTableGetString(true, key + "Type")) { return; }
+        parentKey = OPP_BuildKey(parentTag);
+        // Keep a progress-first attempt independently of the next active child.
+        DataTableSetInt(true, parentKey + "PendingChild", tag);
+        DataTableSetFixed(true, parentKey + "PendingTime", GameGetMissionTime());
+    }
+    DataTableSetBool(true, key + "Progress", true);
+    DataTableSetFixed(true, key + "ProgressTime", GameGetMissionTime());
+    OPP_BuildPublish(tag);
+}
+
+void OPP_BuildParentOrderSignal (unit parent, string ability) {
+    string key;
+    string childKey;
+    int tag;
+    int childTag;
+    int pendingTag;
+    if (parent == null) { return; }
+    tag = UnitGetTag(parent);
+    key = OPP_BuildKey(tag);
+    childTag = DataTableGetInt(true, key + "Child");
+    pendingTag = DataTableGetInt(true, key + "PendingChild");
+    if (pendingTag > 0 && DataTableGetFixed(true, key + "PendingTime") == GameGetMissionTime() && !DataTableGetBool(true, OPP_BuildKey(pendingTag) + "Closed")) { childTag = pendingTag; }
+    childKey = OPP_BuildKey(childTag);
+    if (childTag <= 0 || DataTableGetInt(true, childKey + "Parent") != tag || DataTableGetString(true, childKey + "Ability") != ability) { return; }
+    OPP_BuildOrderSignal(childTag);
 }
 
 bool OPP_BuildCancelled (bool testConds, bool runActions) {
     if (!runActions) { return true; }
-    OPP_BuildSignal(EventUnitProgressUnit(), true);
+    OPP_BuildProgressSignal(EventUnit(), EventUnitProgressUnit(), EventUnitProgressObjectType());
     return true;
 }
 
 bool OPP_BuildCancelOrder (bool testConds, bool runActions) {
-    if (!runActions) { return true; }
-    OPP_BuildSignal(EventUnit(), false);
+    abilcmd command;
+    string ability;
+    int owner;
+    if (!runActions || EventUnit() == null) { return true; }
+    command = OrderGetAbilityCommand(EventUnitOrder());
+    ability = AbilityCommandGetAbility(command);
+    if (ability == "BuildInProgress" && AbilityCommandGetCommand(command) == c_abilBuildableCmdCancel) {
+        // The child may already be removed. Use its saved metadata and tag.
+        OPP_BuildOrderSignal(UnitGetTag(EventUnit()));
+        return true;
+    }
+    owner = UnitGetOwner(EventUnit());
+    if (AbilityClass(ability) != c_classIdCAbilBuild || AbilityCommandGetCommand(command) != c_abilBuildCmdHalt || owner < 1 || owner >= c_playerAny || CatalogFieldValueGet(c_gameCatalogAbil, ability, "Type", owner) != "AddOn") { return true; }
+    OPP_BuildParentOrderSignal(EventUnit(), ability);
+    return true;
+}
+
+bool OPP_BuildCompleted (bool testConds, bool runActions) {
+    if (!runActions || EventUnitProgressUnit() == null) { return true; }
+    // A later Halt/rejected Cancel must not resurrect a completed attempt.
+    DataTableSetBool(true, OPP_BuildKey(UnitGetTag(EventUnitProgressUnit())) + "Closed", true);
     return true;
 }
 
 void OPP_Events_Init () {
-    trigger buildingCancel;
-    trigger cancelOrder;
-    buildingCancel = TriggerCreate("OPP_BuildCancelled");
-    TriggerAddEventUnitConstructProgress(buildingCancel, null, c_unitProgressStageCancel);
-    cancelOrder = TriggerCreate("OPP_BuildCancelOrder");
-    TriggerAddEventUnitOrder(cancelOrder, null, AbilityCommand("BuildInProgress", c_abilBuildableCmdCancel));
+    trigger construction;
+    construction = TriggerCreate("OPP_BuildCreated");
+    TriggerAddEventUnitCreated(construction, null, null, null);
+    construction = TriggerCreate("OPP_BuildStarted");
+    TriggerAddEventUnitConstructProgress(construction, null, c_unitProgressStageStart);
+    construction = TriggerCreate("OPP_BuildCancelled");
+    TriggerAddEventUnitConstructProgress(construction, null, c_unitProgressStageCancel);
+    construction = TriggerCreate("OPP_BuildCompleted");
+    TriggerAddEventUnitConstructProgress(construction, null, c_unitProgressStageComplete);
+    construction = TriggerCreate("OPP_BuildCancelOrder");
+    TriggerAddEventUnitOrder(construction, null, null);
+}
+// Physical warp-in instances own publication, for both Warpable Cancel and
+// power lost by explicit Prism closure or destruction of its actual provider.
+// Dynamic records retain active instances independently of history.
+// Provider edges survive their loss until correlation
+// closes at a later game instant; callback-time power queries alone are too late.
+int OPP_WarpSequence = 0;
+int OPP_WarpHead = 0;
+int OPP_WarpRecords = 0;
+int OPP_PowerSequence = 0;
+int OPP_PowerHead = 0;
+int OPP_PowerRecords = 0;
+
+string OPP_WarpKey (int generation) { return "OPPCancelPopups/Warp/" + IntToString(generation) + "/"; }
+string OPP_PowerKey (int generation) { return "OPPCancelPopups/Power/" + IntToString(generation) + "/"; }
+string OPP_WarpIndex (int tag) { return "OPPCancelPopups/WarpTag/" + IntToString(tag); }
+string OPP_PowerIndex (int tag) { return "OPPCancelPopups/PowerTag/" + IntToString(tag); }
+string OPP_WarpEdge (int warp, int source) { return OPP_WarpKey(warp) + "Provider/" + IntToString(source) + "/"; }
+
+bool OPP_PowerBehavior (string behavior) {
+    if (behavior == "" || !CatalogEntryIsValid(c_gameCatalogBehavior, behavior)) { return false; }
+    // Compare verified catalog classes, without inventing a numeric class ID.
+    return CatalogEntryClass(c_gameCatalogBehavior, behavior) == CatalogEntryClass(c_gameCatalogBehavior, "PowerSource");
+}
+
+bool OPP_PowerCapable (unit source) {
+    int i;
+    int count;
+    int owner;
+    string objectType;
+    string behavior;
+    if (source == null || !UnitIsValid(source) || !UnitIsAlive(source)) { return false; }
+    owner = UnitGetOwner(source);
+    objectType = UnitGetType(source);
+    count = CatalogFieldValueCount(c_gameCatalogUnit, objectType, "BehaviorArray", owner);
+    for (i = 0; i < count; i += 1) {
+        behavior = CatalogFieldValueGet(c_gameCatalogUnit, objectType, "BehaviorArray[" + IntToString(i) + "].Link", owner);
+        if (OPP_PowerBehavior(behavior)) { return true; }
+    }
+    return false;
+}
+
+int OPP_PowerRemember (unit source, bool knownBehavior) {
+    int generation;
+    string key;
+    if (source == null || !UnitIsValid(source) || !UnitIsAlive(source)) { return 0; }
+    generation = DataTableGetInt(true, OPP_PowerIndex(UnitGetTag(source)));
+    if (generation > 0) { return generation; }
+    if (!knownBehavior && !OPP_PowerCapable(source)) { return 0; }
+    OPP_PowerSequence += 1;
+    generation = OPP_PowerSequence;
+    key = OPP_PowerKey(generation);
+    DataTableSetUnit(true, key + "Unit", source);
+    DataTableSetInt(true, key + "Tag", UnitGetTag(source));
+    DataTableSetString(true, key + "Type", UnitGetType(source));
+    DataTableSetInt(true, key + "Next", OPP_PowerHead);
+    DataTableSetFixed(true, key + "Touched", GameGetMissionTime());
+    DataTableSetInt(true, OPP_PowerIndex(UnitGetTag(source)), generation);
+    OPP_PowerHead = generation;
+    OPP_PowerRecords += 1;
+    if (OPP_PowerRecords > DataTableGetInt(true, "OPPCancelPopups/PowerPeakRecords")) { DataTableSetInt(true, "OPPCancelPopups/PowerPeakRecords", OPP_PowerRecords); }
+    return generation;
+}
+
+void OPP_WarpRefreshPair (int warp, int sourceGeneration) {
+    int owner;
+    string sourceKey;
+    string key;
+    string edge;
+    unit source;
+    bool supplied;
+    bool previous;
+    bool valid;
+    if (sourceGeneration <= 0 || warp <= 0) { return; }
+    sourceKey = OPP_PowerKey(sourceGeneration);
+    source = DataTableGetUnit(true, sourceKey + "Unit");
+    valid = source != null && UnitIsValid(source) && UnitIsAlive(source);
+    key = OPP_WarpKey(warp);
+    edge = OPP_WarpEdge(warp, sourceGeneration);
+    owner = DataTableGetInt(true, key + "Owner");
+    supplied = false;
+    // Registry membership proves this is a provider-capable unit. Never
+    // call the native on a dead/removed nonnull handle (runtime v71/v72).
+    if (valid && !DataTableGetBool(true, key + "Cancelled")) { supplied = PowerIsProvidedBy(owner, DataTableGetPoint(true, key + "Point"), "PowerSource", source, 1); }
+    previous = DataTableGetBool(true, edge + "Current");
+    if (supplied && !DataTableGetBool(true, edge + "Known")) {
+        DataTableSetBool(true, edge + "Known", true);
+        DataTableSetInt(true, edge + "SourceTag", DataTableGetInt(true, sourceKey + "Tag"));
+        DataTableSetInt(true, edge + "Next", DataTableGetInt(true, key + "Providers"));
+        DataTableSetInt(true, key + "Providers", sourceGeneration);
+    }
+    if (previous && !supplied) {
+        DataTableSetBool(true, edge + "Lost", true);
+        DataTableSetFixed(true, edge + "LostTime", GameGetMissionTime());
+    }
+    if (supplied) { DataTableSetBool(true, edge + "Lost", false); }
+    if (supplied || DataTableGetBool(true, edge + "Known")) { DataTableSetBool(true, edge + "Current", supplied); }
+    if (DataTableGetBool(true, edge + "Lost")) {
+        // Only the real Unit Died callback proves destruction. An invalid
+        // handle or UnitRemove can remove power without a death event.
+        if (DataTableGetBool(true, sourceKey + "Death")) {
+            DataTableSetBool(true, edge + "Death", true);
+            DataTableSetFixed(true, edge + "DeathTime", DataTableGetFixed(true, sourceKey + "DeathTime"));
+        }
+        if (DataTableGetBool(true, sourceKey + "Order") && DataTableGetFixed(true, sourceKey + "OrderTime") == DataTableGetFixed(true, edge + "LostTime")) {
+            DataTableSetBool(true, edge + "CloseOrder", true);
+            DataTableSetFixed(true, edge + "CloseOrderTime", DataTableGetFixed(true, sourceKey + "OrderTime"));
+        }
+        if (DataTableGetBool(true, sourceKey + "Execute") && DataTableGetFixed(true, sourceKey + "ExecuteTime") == DataTableGetFixed(true, edge + "LostTime")) {
+            DataTableSetBool(true, edge + "CloseExecute", true);
+            DataTableSetFixed(true, edge + "CloseExecuteTime", DataTableGetFixed(true, sourceKey + "ExecuteTime"));
+        }
+    }
+}
+
+void OPP_WarpRefreshSource (int sourceGeneration) {
+    int warp;
+    if (sourceGeneration <= 0) { return; }
+    warp = OPP_WarpHead;
+    while (warp > 0) {
+        OPP_WarpRefreshPair(warp, sourceGeneration);
+        warp = DataTableGetInt(true, OPP_WarpKey(warp) + "Next");
+    }
+}
+
+int OPP_WarpFind (unit child) {
+    if (child == null) { return 0; }
+    return DataTableGetInt(true, OPP_WarpIndex(UnitGetTag(child)));
+}
+
+bool OPP_WarpTracked (unit child) { return OPP_WarpFind(child) > 0; }
+
+void OPP_WarpRemember (unit child, unit producer, string ability) {
+    string key;
+    int owner;
+    int source;
+    if (child == null || producer == null || !UnitIsValid(child) || !UnitIsAlive(child) || OPP_WarpTracked(child)) { return; }
+    if (ability == "" || AbilityClass(ability) != c_classIdCAbilWarpTrain) { return; }
+    owner = UnitGetOwner(child);
+    if (owner < 1 || owner >= c_playerAny) { return; }
+    OPP_WarpSequence += 1;
+    key = OPP_WarpKey(OPP_WarpSequence);
+    DataTableSetUnit(true, key + "Unit", child);
+    DataTableSetUnit(true, key + "Producer", producer);
+    DataTableSetInt(true, key + "Tag", UnitGetTag(child));
+    DataTableSetInt(true, key + "Owner", owner);
+    DataTableSetString(true, key + "Type", UnitGetType(child));
+    DataTableSetString(true, key + "Ability", ability);
+    DataTableSetPoint(true, key + "Point", UnitGetPosition(child));
+    DataTableSetFixed(true, key + "Start", GameGetMissionTime());
+    DataTableSetInt(true, key + "Next", OPP_WarpHead);
+    DataTableSetInt(true, OPP_WarpIndex(UnitGetTag(child)), OPP_WarpSequence);
+    OPP_WarpHead = OPP_WarpSequence;
+    OPP_WarpRecords += 1;
+    DataTableSetInt(true, "OPPCancelPopups/WarpCreated", DataTableGetInt(true, "OPPCancelPopups/WarpCreated") + 1);
+    if (OPP_WarpRecords > DataTableGetInt(true, "OPPCancelPopups/WarpPeakRecords")) { DataTableSetInt(true, "OPPCancelPopups/WarpPeakRecords", OPP_WarpRecords); }
+    source = OPP_PowerHead;
+    while (source > 0) {
+        OPP_WarpRefreshPair(OPP_WarpSequence, source);
+        source = DataTableGetInt(true, OPP_PowerKey(source) + "Next");
+    }
+}
+
+void OPP_WarpCancelSignal (unit child) {
+    int generation;
+    string key;
+    generation = OPP_WarpFind(child);
+    if (generation <= 0) { return; }
+    key = OPP_WarpKey(generation);
+    if (!DataTableGetBool(true, key + "Cancelled")) {
+        DataTableSetBool(true, key + "Cancelled", true);
+        DataTableSetFixed(true, key + "End", GameGetMissionTime());
+        DataTableSetInt(true, "OPPCancelPopups/WarpConstructCancels", DataTableGetInt(true, "OPPCancelPopups/WarpConstructCancels") + 1);
+    }
+}
+
+void OPP_WarpDirectSignal (unit child) {
+    int generation;
+    string key;
+    generation = OPP_WarpFind(child);
+    if (generation <= 0) { return; }
+    key = OPP_WarpKey(generation);
+    DataTableSetBool(true, key + "Order", true);
+    DataTableSetFixed(true, key + "OrderTime", GameGetMissionTime());
+}
+
+void OPP_WarpQueueSignal (unit producer) {
+    int generation;
+    string key;
+    generation = OPP_WarpHead;
+    while (generation > 0) {
+        key = OPP_WarpKey(generation);
+        if (DataTableGetUnit(true, key + "Producer") == producer) { OPP_WarpDirectSignal(DataTableGetUnit(true, key + "Unit")); }
+        generation = DataTableGetInt(true, key + "Next");
+    }
+}
+
+bool OPP_WarpPowerLossProof (int generation) {
+    string key;
+    string edge;
+    int source;
+    fixed when;
+    fixed latest;
+    bool death;
+    bool closed;
+    bool lastDeath;
+    key = OPP_WarpKey(generation);
+    when = DataTableGetFixed(true, key + "End");
+    source = DataTableGetInt(true, key + "Providers");
+    latest = -1.0;
+    while (source > 0) {
+        edge = OPP_WarpEdge(generation, source);
+        if (DataTableGetBool(true, edge + "Current")) { return false; }
+        if (DataTableGetBool(true, edge + "Lost") && DataTableGetFixed(true, edge + "LostTime") > latest) {
+            latest = DataTableGetFixed(true, edge + "LostTime");
+        }
+        source = DataTableGetInt(true, edge + "Next");
+    }
+    // The engine may deliver Construct Cancel in the next 0.0625 game tick
+    // after an actual source death. This is a saved edge/child correlation,
+    // never a time window shared by an owner. Closure alone remains exact.
+    if (latest < 0.0 || (latest != when && latest + 0.0625 != when)) { return false; }
+    lastDeath = false;
+    source = DataTableGetInt(true, key + "Providers");
+    while (source > 0) {
+        edge = OPP_WarpEdge(generation, source);
+        if (DataTableGetBool(true, edge + "Lost") && DataTableGetFixed(true, edge + "LostTime") == latest) {
+            death = DataTableGetBool(true, edge + "Death") && DataTableGetFixed(true, edge + "DeathTime") == latest;
+            closed = DataTableGetBool(true, edge + "CloseOrder") && DataTableGetBool(true, edge + "CloseExecute") && DataTableGetFixed(true, edge + "CloseOrderTime") == latest && DataTableGetFixed(true, edge + "CloseExecuteTime") == latest;
+            if (!death && !closed) { return false; }
+            if (death) { lastDeath = true; }
+        }
+        source = DataTableGetInt(true, edge + "Next");
+    }
+    return latest == when || lastDeath;
+}
+
+void OPP_WarpPublish (int generation) {
+    string key;
+    string objectType;
+    string icon;
+    int owner;
+    bool direct;
+    if (generation <= 0) { return; }
+    key = OPP_WarpKey(generation);
+    if (!DataTableGetBool(true, key + "Cancelled") || DataTableGetBool(true, key + "Decided")) { return; }
+    DataTableSetBool(true, key + "Decided", true);
+    direct = DataTableGetBool(true, key + "Order") && DataTableGetFixed(true, key + "OrderTime") == DataTableGetFixed(true, key + "End");
+    if (!direct && !OPP_WarpPowerLossProof(generation)) { return; }
+    DataTableSetBool(true, key + "Sent", true);
+    owner = DataTableGetInt(true, key + "Owner");
+    objectType = DataTableGetString(true, key + "Type");
+    icon = CatalogFieldValueGet(c_gameCatalogActor, objectType, "UnitIcon", owner);
+    OPP_UI_PushTyped(owner, UnitTypeGetName(objectType), icon, OPP_KIND_UNIT, objectType);
+    DataTableSetInt(true, "OPPCancelPopups/UnitCancels", DataTableGetInt(true, "OPPCancelPopups/UnitCancels") + 1);
+    DataTableSetInt(true, "OPPCancelPopups/WarpCancels", DataTableGetInt(true, "OPPCancelPopups/WarpCancels") + 1);
+    if (!direct) { DataTableSetInt(true, "OPPCancelPopups/PrismCancels", DataTableGetInt(true, "OPPCancelPopups/PrismCancels") + 1); }
+}
+
+bool OPP_PrismCreated (bool testConds, bool runActions) {
+    int source;
+    if (!runActions) { return true; }
+    OPP_WarpRemember(EventUnitCreatedUnit(), EventUnit(), EventUnitCreatedAbil());
+    source = OPP_PowerRemember(EventUnitCreatedUnit(), false);
+    OPP_WarpRefreshSource(source);
+    return true;
+}
+
+bool OPP_PrismBehavior (bool testConds, bool runActions) {
+    int source;
+    unit subject;
+    if (!runActions || !OPP_PowerBehavior(EventUnitBehavior())) { return true; }
+    subject = EventUnit();
+    source = OPP_PowerRemember(subject, true);
+    if (source <= 0 && subject != null) { source = DataTableGetInt(true, OPP_PowerIndex(UnitGetTag(subject))); }
+    if (source > 0) { DataTableSetFixed(true, OPP_PowerKey(source) + "Touched", GameGetMissionTime()); }
+    OPP_WarpRefreshSource(source);
+    return true;
+}
+
+bool OPP_PrismCloseOrder (bool testConds, bool runActions) {
+    abilcmd command;
+    int source;
+    string key;
+    if (!runActions || EventUnit() == null) { return true; }
+    command = OrderGetAbilityCommand(EventUnitOrder());
+    if (command == null || AbilityCommandGetAbility(command) != "TransportMode" || AbilityCommandGetCommand(command) != c_abilMorphCmdExecute) { return true; }
+    source = DataTableGetInt(true, OPP_PowerIndex(UnitGetTag(EventUnit())));
+    if (source <= 0) { return true; }
+    key = OPP_PowerKey(source);
+    DataTableSetBool(true, key + "Order", true);
+    DataTableSetFixed(true, key + "OrderTime", GameGetMissionTime());
+    DataTableSetFixed(true, key + "Touched", GameGetMissionTime());
+    OPP_WarpRefreshSource(source);
+    return true;
+}
+
+bool OPP_PrismExecute (bool testConds, bool runActions) {
+    int source;
+    string key;
+    if (!runActions || EventUnit() == null) { return true; }
+    source = DataTableGetInt(true, OPP_PowerIndex(UnitGetTag(EventUnit())));
+    if (source <= 0) { return true; }
+    key = OPP_PowerKey(source);
+    DataTableSetBool(true, key + "Execute", true);
+    DataTableSetFixed(true, key + "ExecuteTime", GameGetMissionTime());
+    DataTableSetFixed(true, key + "Touched", GameGetMissionTime());
+    OPP_WarpRefreshSource(source);
+    return true;
+}
+
+bool OPP_PrismConstruct (bool testConds, bool runActions) {
+    if (runActions) { OPP_WarpCancelSignal(EventUnitProgressUnit()); }
+    return true;
+}
+
+bool OPP_PrismProviderCompleted (bool testConds, bool runActions) {
+    int source;
+    if (!runActions) { return true; }
+    source = OPP_PowerRemember(EventUnitProgressUnit(), false);
+    OPP_WarpRefreshSource(source);
+    return true;
+}
+
+bool OPP_PrismPhased (bool testConds, bool runActions) {
+    int source;
+    if (!runActions) { return true; }
+    source = OPP_PowerRemember(EventUnit(), false);
+    OPP_WarpRefreshSource(source);
+    return true;
+}
+
+bool OPP_PrismDied (bool testConds, bool runActions) {
+    int source;
+    if (!runActions || EventUnit() == null) { return true; }
+    source = DataTableGetInt(true, OPP_PowerIndex(UnitGetTag(EventUnit())));
+    if (source > 0) {
+        if (!DataTableGetBool(true, OPP_PowerKey(source) + "Death")) {
+            DataTableSetBool(true, OPP_PowerKey(source) + "Death", true);
+            DataTableSetFixed(true, OPP_PowerKey(source) + "DeathTime", GameGetMissionTime());
+        }
+        DataTableSetFixed(true, OPP_PowerKey(source) + "Touched", GameGetMissionTime());
+        OPP_WarpRefreshSource(source);
+    }
+    return true;
+}
+
+void OPP_WarpForget (int generation) {
+    string key;
+    string edge;
+    int source;
+    int next;
+    key = OPP_WarpKey(generation);
+    source = DataTableGetInt(true, key + "Providers");
+    while (source > 0) {
+        edge = OPP_WarpEdge(generation, source);
+        next = DataTableGetInt(true, edge + "Next");
+        DataTableValueRemove(true, edge + "Next");
+        DataTableValueRemove(true, edge + "Known");
+        DataTableValueRemove(true, edge + "Current");
+        DataTableValueRemove(true, edge + "Lost");
+        DataTableValueRemove(true, edge + "LostTime");
+        DataTableValueRemove(true, edge + "SourceTag");
+        DataTableValueRemove(true, edge + "Death");
+        DataTableValueRemove(true, edge + "DeathTime");
+        DataTableValueRemove(true, edge + "CloseOrder");
+        DataTableValueRemove(true, edge + "CloseOrderTime");
+        DataTableValueRemove(true, edge + "CloseExecute");
+        DataTableValueRemove(true, edge + "CloseExecuteTime");
+        source = next;
+    }
+    DataTableValueRemove(true, OPP_WarpIndex(DataTableGetInt(true, key + "Tag")));
+    DataTableValueRemove(true, key + "Unit");
+    DataTableValueRemove(true, key + "Producer");
+    DataTableValueRemove(true, key + "Tag");
+    DataTableValueRemove(true, key + "Owner");
+    DataTableValueRemove(true, key + "Type");
+    DataTableValueRemove(true, key + "Ability");
+    DataTableValueRemove(true, key + "Point");
+    DataTableValueRemove(true, key + "Start");
+    DataTableValueRemove(true, key + "Next");
+    DataTableValueRemove(true, key + "Providers");
+    DataTableValueRemove(true, key + "Cancelled");
+    DataTableValueRemove(true, key + "End");
+    DataTableValueRemove(true, key + "Order");
+    DataTableValueRemove(true, key + "OrderTime");
+    DataTableValueRemove(true, key + "Sent");
+    DataTableValueRemove(true, key + "Decided");
+    DataTableValueRemove(true, key + "Retiring");
+    DataTableValueRemove(true, key + "RetireTime");
+    OPP_WarpRecords -= 1;
+}
+
+bool OPP_PrismCollect (bool testConds, bool runActions) {
+    int generation;
+    int previous;
+    int next;
+    string key;
+    unit subject;
+    bool terminal;
+    bool remove;
+    if (!runActions) { return true; }
+    generation = OPP_WarpHead;
+    previous = 0;
+    while (generation > 0) {
+        key = OPP_WarpKey(generation);
+        next = DataTableGetInt(true, key + "Next");
+        subject = DataTableGetUnit(true, key + "Unit");
+        terminal = subject == null || !UnitIsValid(subject) || !UnitIsAlive(subject) || !UnitTestState(subject, c_unitStateUnderConstruction);
+        if (DataTableGetBool(true, key + "Cancelled") && DataTableGetFixed(true, key + "End") + 0.0625 < GameGetMissionTime()) { OPP_WarpPublish(generation); }
+        if (terminal && !DataTableGetBool(true, key + "Retiring")) {
+            DataTableSetBool(true, key + "Retiring", true);
+            DataTableSetFixed(true, key + "RetireTime", GameGetMissionTime());
+        }
+        remove = terminal && DataTableGetBool(true, key + "Retiring") && DataTableGetFixed(true, key + "RetireTime") + 0.5 < GameGetMissionTime();
+        if (remove) {
+            if (previous == 0) { OPP_WarpHead = next; }
+            else { DataTableSetInt(true, OPP_WarpKey(previous) + "Next", next); }
+            OPP_WarpForget(generation);
+        }
+        else { previous = generation; }
+        generation = next;
+    }
+    // Source metadata outlives the correlation and is pruned only afterwards.
+    generation = OPP_PowerHead;
+    previous = 0;
+    while (generation > 0) {
+        key = OPP_PowerKey(generation);
+        next = DataTableGetInt(true, key + "Next");
+        subject = DataTableGetUnit(true, key + "Unit");
+        terminal = subject == null || !UnitIsValid(subject) || !UnitIsAlive(subject);
+        if (!terminal && UnitGetType(subject) != DataTableGetString(true, key + "Type")) { terminal = !OPP_PowerCapable(subject); }
+        remove = terminal && DataTableGetFixed(true, key + "Touched") + 0.25 < GameGetMissionTime();
+        if (remove) {
+            OPP_WarpRefreshSource(generation);
+            if (previous == 0) { OPP_PowerHead = next; }
+            else { DataTableSetInt(true, OPP_PowerKey(previous) + "Next", next); }
+            DataTableValueRemove(true, OPP_PowerIndex(DataTableGetInt(true, key + "Tag")));
+            DataTableValueRemove(true, key + "Unit");
+            DataTableValueRemove(true, key + "Tag");
+            DataTableValueRemove(true, key + "Type");
+            DataTableValueRemove(true, key + "Next");
+            DataTableValueRemove(true, key + "Touched");
+            DataTableValueRemove(true, key + "Order");
+            DataTableValueRemove(true, key + "OrderTime");
+            DataTableValueRemove(true, key + "Execute");
+            DataTableValueRemove(true, key + "ExecuteTime");
+            DataTableValueRemove(true, key + "Death");
+            DataTableValueRemove(true, key + "DeathTime");
+            OPP_PowerRecords -= 1;
+        }
+        else { previous = generation; }
+        generation = next;
+    }
+    return true;
+}
+
+void OPP_Prism_Init () {
+    trigger event;
+    unitgroup initial;
+    int i;
+    event = TriggerCreate("OPP_PrismCreated");
+    TriggerAddEventUnitCreated(event, null, null, null);
+    event = TriggerCreate("OPP_PrismBehavior");
+    TriggerAddEventUnitBehaviorChange(event, null, null, c_unitBehaviorChangeAny);
+    event = TriggerCreate("OPP_PrismCloseOrder");
+    TriggerAddEventUnitOrder(event, null, AbilityCommand("TransportMode", c_abilMorphCmdExecute));
+    event = TriggerCreate("OPP_PrismExecute");
+    TriggerAddEventUnitAbility(event, null, AbilityCommand("TransportMode", c_abilMorphCmdExecute), c_unitAbilStageExecute, false);
+    event = TriggerCreate("OPP_PrismConstruct");
+    TriggerAddEventUnitConstructProgress(event, null, c_unitProgressStageCancel);
+    TriggerAddEventUnitTrainProgress(event, null, c_unitProgressStageCancel);
+    event = TriggerCreate("OPP_PrismProviderCompleted");
+    TriggerAddEventUnitConstructProgress(event, null, c_unitProgressStageComplete);
+    event = TriggerCreate("OPP_PrismPhased");
+    TriggerAddEventUnitAbility(event, null, AbilityCommand("PhasingMode", c_abilMorphCmdExecute), c_unitAbilStageExecute, false);
+    TriggerAddEventUnitAbility(event, null, AbilityCommand("PhasingMode", c_abilMorphCmdExecute), c_unitAbilStageComplete, false);
+    event = TriggerCreate("OPP_PrismDied");
+    TriggerAddEventUnitDied(event, null);
+    event = TriggerCreate("OPP_PrismCollect");
+    TriggerAddEventTimePeriodic(event, 0.0625, c_timeGame);
+    initial = UnitGroup(null, c_playerAny, RegionEntireMap(), UnitFilter(0, 0, 0, 0), 0);
+    for (i = 1; i <= UnitGroupCount(initial, c_unitCountAll); i += 1) { OPP_PowerRemember(UnitGroupUnit(initial, i), false); }
+    DataTableSetBool(true, "OPPCancelPopups/PrismAdapter", true);
 }
 // Ability Cancel also fires for waiting queue entries; progress Cancel only
 // fires for the running entry (SC2 runtime probe v55). Pair either source with
@@ -338,6 +958,10 @@ void OPP_UnitSignal (unit facility, string objectType, int kind, bool progress) 
 
 bool OPP_UnitProductionCancelled (bool testConds, bool runActions) {
     if (!runActions || EventUnit() == null || !UnitIsAlive(EventUnit())) { return true; }
+    if (OPP_WarpTracked(EventUnitProgressUnit())) {
+        OPP_WarpCancelSignal(EventUnitProgressUnit());
+        return true;
+    }
     OPP_UnitSignal(EventUnit(), EventUnitProgressObjectType(), OPP_KIND_UNIT, true);
     return true;
 }
@@ -363,7 +987,10 @@ bool OPP_ProductionAbilityCancelled (bool testConds, bool runActions) {
         objectType = CatalogFieldValueGet(c_gameCatalogAbil, ability, field + ".Upgrade", owner);
         OPP_UnitSignal(facility, objectType, OPP_KIND_RESEARCH, false);
     }
-    else if (abilityClass == c_classIdCAbilTrain || abilityClass == c_classIdCAbilArmMagazine || abilityClass == c_classIdCAbilWarpTrain) {
+    // WarpTrain is published only by the actual child/generation gate, shared
+    // with Warpable Cancel and Prism closure. A producer aggregate loses that
+    // identity and cannot deduplicate a Construct Cancel of the same child.
+    else if (abilityClass == c_classIdCAbilTrain || abilityClass == c_classIdCAbilArmMagazine) {
         // LarvaTrain deliberately destroys the egg on a legitimate Cancel.
         // Other dead producers must not contribute their lost queue entries.
         if (!UnitIsAlive(facility) && (abilityClass != c_classIdCAbilTrain || CatalogFieldValueGet(c_gameCatalogAbil, ability, "Flags[KillOnCancel]", owner) != "1")) { return true; }
@@ -393,7 +1020,12 @@ bool OPP_UnitProductionCancelOrder (bool testConds, bool runActions) {
     command = OrderGetAbilityCommand(EventUnitOrder());
     abilityClass = AbilityClass(AbilityCommandGetAbility(command));
     index = AbilityCommandGetCommand(command);
+    if (abilityClass == c_classIdCAbilWarpable && index == c_abilWarpableCmdCancel) {
+        OPP_WarpDirectSignal(EventUnit());
+        return true;
+    }
     if (!((abilityClass == c_classIdCAbilQueue && (index == c_abilQueueCmdCancelLast || index == c_abilQueueCmdCancelSlot)) || (abilityClass == c_classIdCAbilWarpable && index == c_abilWarpableCmdCancel))) { return true; }
+    OPP_WarpQueueSignal(EventUnit());
     tag = UnitGetTag(EventUnit());
     tick = CurrentSynchronousGameTimeGet();
     OPP_UnitOrderTag[OPP_UnitOrderNext] = tag;
@@ -484,6 +1116,285 @@ void OPP_Research_Init () {
     TriggerAddEventUnitResearchProgress(researchCancel, null, c_unitProgressStageCancel);
     DataTableSetBool(true, "OPPCancelPopups/ResearchAdapter", true);
 }
+// Morph and MorphPlacement share Execute/Cancel commands (verified abil.galaxy).
+// A record belongs to a real Execute generation, not the unit's lifetime.
+// Dynamic records keep every active/pending generation; completed history never
+// displaces a long-running attempt. Terminal records survive their exact game
+// instant so that engine Cancel, order and immediate autocast may interleave.
+int OPP_MorphSequence = 0;
+int OPP_MorphHead = 0;
+int OPP_MorphLiveRecords = 0;
+
+string OPP_MorphKey (int generation) {
+    return "OPPCancelPopups/Morph/" + IntToString(generation) + "/";
+}
+
+bool OPP_MorphClass (string ability) {
+    int kind;
+    kind = AbilityClass(ability);
+    return kind == c_classIdCAbilMorph || kind == c_classIdCAbilMorphPlacement;
+}
+
+string OPP_MorphTarget (string ability, int owner) {
+    string target;
+    string candidate;
+    int stage;
+    int stages;
+    target = "";
+    stages = CatalogFieldValueCount(c_gameCatalogAbil, ability, "InfoArray", owner);
+    // Field arrays are zero-based. A Cancel command index is never a stage.
+    for (stage = 0; stage < stages; stage += 1) {
+        candidate = CatalogFieldValueGet(c_gameCatalogAbil, ability, "InfoArray[" + IntToString(stage) + "].Unit", owner);
+        if (candidate != "" && CatalogEntryIsValid(c_gameCatalogUnit, candidate) && !CatalogEntryIsDefault(c_gameCatalogUnit, candidate)) { target = candidate; }
+    }
+    return target;
+}
+
+string OPP_MorphIcon (string target, string ability, int owner) {
+    string icon;
+    string missing;
+    string alias;
+    string reverse;
+    string forward;
+    string base;
+    string button;
+    int link;
+    int links;
+    int item;
+    int items;
+    icon = "";
+    // Core GenericUnitSelectable defines the inherited missing-image placeholder.
+    missing = CatalogFieldValueGet(c_gameCatalogActor, "GenericUnitSelectable", "UnitIcon", owner);
+    if (CatalogEntryIsValid(c_gameCatalogActor, target)) { icon = CatalogFieldValueGet(c_gameCatalogActor, target, "UnitIcon", owner); }
+    if (icon != "" && icon != missing) { return icon; }
+    // Alternate forms often share their leader's actor, e.g. ThorAP and
+    // burrowed units. These are real CUnit links, not ID-prefix heuristics.
+    alias = CatalogFieldValueGet(c_gameCatalogUnit, target, "LeaderAlias", owner);
+    if (alias != "" && CatalogEntryIsValid(c_gameCatalogActor, alias)) { icon = CatalogFieldValueGet(c_gameCatalogActor, alias, "UnitIcon", owner); }
+    if (icon != "" && icon != missing) { return icon; }
+    alias = CatalogFieldValueGet(c_gameCatalogUnit, target, "SelectAlias", owner);
+    if (alias != "" && CatalogEntryIsValid(c_gameCatalogActor, alias)) { icon = CatalogFieldValueGet(c_gameCatalogActor, alias, "UnitIcon", owner); }
+    if (icon != "" && icon != missing) { return icon; }
+    // Some dependency forms share an actor without LeaderAlias (Defiler is an
+    // observed example). Require a reciprocal catalog morph edge, not a suffix
+    // guess: target -> base, with this forward ability actually linked on base.
+    links = CatalogFieldValueCount(c_gameCatalogUnit, target, "AbilArray", owner);
+    for (link = 0; link < links; link += 1) {
+        reverse = CatalogFieldValueGet(c_gameCatalogUnit, target, "AbilArray[" + IntToString(link) + "].Link", owner);
+        if (reverse == "" || !CatalogEntryIsValid(c_gameCatalogAbil, reverse) || !OPP_MorphClass(reverse)) { continue; }
+        base = OPP_MorphTarget(reverse, owner);
+        if (base == "" || !CatalogEntryIsValid(c_gameCatalogActor, base)) { continue; }
+        items = CatalogFieldValueCount(c_gameCatalogUnit, base, "AbilArray", owner);
+        for (item = 0; item < items; item += 1) {
+            forward = CatalogFieldValueGet(c_gameCatalogUnit, base, "AbilArray[" + IntToString(item) + "].Link", owner);
+            if (forward == ability) {
+                icon = CatalogFieldValueGet(c_gameCatalogActor, base, "UnitIcon", owner);
+                if (icon != "" && icon != missing) { return icon; }
+            }
+        }
+    }
+    // A unit's own button is another catalog representation of the same target.
+    if (CatalogEntryIsValid(c_gameCatalogButton, target)) { icon = CatalogFieldValueGet(c_gameCatalogButton, target, "Icon", owner); }
+    if (icon != "" && icon != missing) { return icon; }
+    // Custom units may expose their only target icon through the morph button.
+    button = CatalogFieldValueGet(c_gameCatalogAbil, ability, "CmdButtonArray[Execute].DefaultButtonFace", owner);
+    if (button != "" && CatalogEntryIsValid(c_gameCatalogButton, button)) { icon = CatalogFieldValueGet(c_gameCatalogButton, button, "Icon", owner); }
+    if (icon == missing) { return ""; }
+    return icon;
+}
+
+void OPP_MorphDiagnostic (string ability, int owner, string reason) {
+    string stages;
+    int stage;
+    int count;
+    stages = "";
+    count = CatalogFieldValueCount(c_gameCatalogAbil, ability, "InfoArray", owner);
+    for (stage = 0; stage < count; stage += 1) {
+        stages += "[" + IntToString(stage) + "]=" + CatalogFieldValueGet(c_gameCatalogAbil, ability, "InfoArray[" + IntToString(stage) + "].Unit", owner) + ";";
+    }
+    DataTableSetInt(true, "OPPCancelPopups/MorphResolverErrors", DataTableGetInt(true, "OPPCancelPopups/MorphResolverErrors") + 1);
+    DataTableSetString(true, "OPPCancelPopups/MorphResolverAbility", ability);
+    DataTableSetString(true, "OPPCancelPopups/MorphResolverStages", stages);
+    DataTableSetString(true, "OPPCancelPopups/MorphResolverReason", reason);
+}
+
+// Oldest eligible generation wins. A new autocast Execute cannot erase the
+// previous Cancel waiting for its matching order at this exact mission time.
+int OPP_MorphFind (unit subject, string ability, bool cancelled) {
+    int generation;
+    int found;
+    string key;
+    generation = OPP_MorphHead;
+    found = 0;
+    while (generation > 0) {
+        key = OPP_MorphKey(generation);
+        if (DataTableGetUnit(true, key + "Unit") == subject && DataTableGetString(true, key + "Ability") == ability) {
+            if (!cancelled && !DataTableGetBool(true, key + "Ended")) { found = generation; }
+            if (cancelled && DataTableGetBool(true, key + "Cancelled") && !DataTableGetBool(true, key + "Order") && DataTableGetFixed(true, key + "EndTime") == GameGetMissionTime()) { found = generation; }
+        }
+        generation = DataTableGetInt(true, key + "Next");
+    }
+    return found;
+}
+
+void OPP_MorphPublish (int generation) {
+    string key;
+    string target;
+    string icon;
+    int owner;
+    int kind;
+    unit subject;
+    if (generation <= 0) { return; }
+    key = OPP_MorphKey(generation);
+    if (DataTableGetBool(true, key + "Sent") || !DataTableGetBool(true, key + "Order") || !DataTableGetBool(true, key + "Cancelled")) { return; }
+    if (DataTableGetFixed(true, key + "OrderTime") != DataTableGetFixed(true, key + "EndTime")) { return; }
+    subject = DataTableGetUnit(true, key + "Unit");
+    if (subject == null || !UnitIsValid(subject) || !UnitIsAlive(subject)) { return; }
+    DataTableSetBool(true, key + "Sent", true);
+    target = DataTableGetString(true, key + "Target");
+    icon = DataTableGetString(true, key + "Icon");
+    owner = DataTableGetInt(true, key + "Owner");
+    if (target == "" || icon == "") {
+        OPP_MorphDiagnostic(DataTableGetString(true, key + "Ability"), owner, "Confirmed cancellable Execute has unresolved target/icon");
+        return;
+    }
+    kind = OPP_KIND_UNIT;
+    if (UnitTypeTestAttribute(target, c_unitAttributeStructure)) { kind = OPP_KIND_BUILDING; }
+    OPP_UI_PushTyped(owner, UnitTypeGetName(target), icon, kind, target);
+    DataTableSetInt(true, "OPPCancelPopups/MorphCancels", DataTableGetInt(true, "OPPCancelPopups/MorphCancels") + 1);
+    if (kind == OPP_KIND_BUILDING) {
+        DataTableSetInt(true, "OPPCancelPopups/BuildingCancels", DataTableGetInt(true, "OPPCancelPopups/BuildingCancels") + 1);
+    }
+    else { DataTableSetInt(true, "OPPCancelPopups/UnitCancels", DataTableGetInt(true, "OPPCancelPopups/UnitCancels") + 1); }
+}
+
+void OPP_MorphBegin (unit subject, string ability) {
+    int owner;
+    string key;
+    string target;
+    if (subject == null || !UnitIsValid(subject) || !UnitIsAlive(subject) || !OPP_MorphClass(ability)) { return; }
+    owner = UnitGetOwner(subject);
+    if (owner < 1 || owner >= c_playerAny) { return; }
+    OPP_MorphSequence += 1;
+    key = OPP_MorphKey(OPP_MorphSequence);
+    target = OPP_MorphTarget(ability, owner);
+    DataTableSetUnit(true, key + "Unit", subject);
+    DataTableSetInt(true, key + "Tag", UnitGetTag(subject));
+    DataTableSetInt(true, key + "Owner", owner);
+    DataTableSetString(true, key + "Ability", ability);
+    DataTableSetString(true, key + "Target", target);
+    if (target != "") { DataTableSetString(true, key + "Icon", OPP_MorphIcon(target, ability, owner)); }
+    DataTableSetFixed(true, key + "StartTime", GameGetMissionTime());
+    DataTableSetInt(true, key + "Next", OPP_MorphHead);
+    OPP_MorphHead = OPP_MorphSequence;
+    OPP_MorphLiveRecords += 1;
+    if (OPP_MorphLiveRecords > DataTableGetInt(true, "OPPCancelPopups/MorphPeakRecords")) { DataTableSetInt(true, "OPPCancelPopups/MorphPeakRecords", OPP_MorphLiveRecords); }
+}
+
+void OPP_MorphEnd (unit subject, string ability, bool cancelled) {
+    int generation;
+    string key;
+    if (subject == null || !UnitIsValid(subject) || !UnitIsAlive(subject)) { return; }
+    generation = OPP_MorphFind(subject, ability, false);
+    if (generation <= 0) { return; }
+    key = OPP_MorphKey(generation);
+    DataTableSetBool(true, key + "Ended", true);
+    DataTableSetBool(true, key + "Cancelled", cancelled);
+    DataTableSetFixed(true, key + "EndTime", GameGetMissionTime());
+    if (cancelled) { OPP_MorphPublish(generation); }
+}
+
+void OPP_MorphOrderSignal (unit subject, string ability) {
+    int generation;
+    string key;
+    if (subject == null || !UnitIsValid(subject) || !UnitIsAlive(subject)) { return; }
+    generation = OPP_MorphFind(subject, ability, true);
+    if (generation <= 0) { generation = OPP_MorphFind(subject, ability, false); }
+    if (generation <= 0) { return; }
+    key = OPP_MorphKey(generation);
+    DataTableSetBool(true, key + "Order", true);
+    DataTableSetFixed(true, key + "OrderTime", GameGetMissionTime());
+    OPP_MorphPublish(generation);
+}
+
+bool OPP_MorphAbilityEvent (bool testConds, bool runActions) {
+    abilcmd command;
+    string ability;
+    int stage;
+    if (!runActions) { return true; }
+    command = EventUnitAbility();
+    if (command == null || AbilityCommandGetCommand(command) != c_abilMorphCmdExecute) { return true; }
+    ability = AbilityCommandGetAbility(command);
+    if (!OPP_MorphClass(ability)) { return true; }
+    stage = EventUnitAbilityStage();
+    if (stage == c_unitAbilStageExecute) { OPP_MorphBegin(EventUnit(), ability); }
+    if (stage == c_unitAbilStageCancel) { OPP_MorphEnd(EventUnit(), ability, true); }
+    if (stage == c_unitAbilStageComplete || stage == c_unitAbilStagePreempt) { OPP_MorphEnd(EventUnit(), ability, false); }
+    return true;
+}
+
+bool OPP_MorphOrderEvent (bool testConds, bool runActions) {
+    abilcmd command;
+    string ability;
+    if (!runActions) { return true; }
+    command = OrderGetAbilityCommand(EventUnitOrder());
+    if (command == null || AbilityCommandGetCommand(command) != c_abilMorphCmdCancel) { return true; }
+    ability = AbilityCommandGetAbility(command);
+    if (OPP_MorphClass(ability)) { OPP_MorphOrderSignal(EventUnit(), ability); }
+    return true;
+}
+
+bool OPP_MorphCollect (bool testConds, bool runActions) {
+    int generation;
+    int previous;
+    int next;
+    string key;
+    unit subject;
+    bool remove;
+    if (!runActions) { return true; }
+    generation = OPP_MorphHead;
+    previous = 0;
+    while (generation > 0) {
+        key = OPP_MorphKey(generation);
+        next = DataTableGetInt(true, key + "Next");
+        subject = DataTableGetUnit(true, key + "Unit");
+        remove = subject == null || !UnitIsValid(subject) || !UnitIsAlive(subject);
+        if (DataTableGetBool(true, key + "Ended") && DataTableGetFixed(true, key + "EndTime") < GameGetMissionTime()) { remove = true; }
+        if (remove) {
+            if (previous == 0) { OPP_MorphHead = next; }
+            else { DataTableSetInt(true, OPP_MorphKey(previous) + "Next", next); }
+            DataTableValueRemove(true, key + "Unit");
+            DataTableValueRemove(true, key + "Tag");
+            DataTableValueRemove(true, key + "Owner");
+            DataTableValueRemove(true, key + "Ability");
+            DataTableValueRemove(true, key + "Target");
+            DataTableValueRemove(true, key + "Icon");
+            DataTableValueRemove(true, key + "StartTime");
+            DataTableValueRemove(true, key + "Next");
+            DataTableValueRemove(true, key + "Ended");
+            DataTableValueRemove(true, key + "Cancelled");
+            DataTableValueRemove(true, key + "Order");
+            DataTableValueRemove(true, key + "OrderTime");
+            DataTableValueRemove(true, key + "EndTime");
+            DataTableValueRemove(true, key + "Sent");
+            OPP_MorphLiveRecords -= 1;
+        }
+        else { previous = generation; }
+        generation = next;
+    }
+    return true;
+}
+
+void OPP_Morphs_Init () {
+    trigger event;
+    event = TriggerCreate("OPP_MorphAbilityEvent");
+    TriggerAddEventUnitAbility(event, null, null, c_unitAbilStageAll, false);
+    event = TriggerCreate("OPP_MorphOrderEvent");
+    TriggerAddEventUnitOrder(event, null, null);
+    event = TriggerCreate("OPP_MorphCollect");
+    TriggerAddEventTimePeriodic(event, 0.0625, c_timeGame);
+    DataTableSetBool(true, "OPPCancelPopups/MorphAdapter", true);
+}
 // Canonical bootstrap source. tools/generate_mod.py embeds this in Triggers.
 void OPP_Init () {
     DataTableSetInt(true, "OPPCancelPopups/InitializationAttempts", DataTableGetInt(true, "OPPCancelPopups/InitializationAttempts") + 1);
@@ -495,8 +1406,10 @@ void OPP_Init () {
     DataTableSetBool(true, "OPPCancelPopups/Debug", false);
     OPP_UI_Init();
     OPP_Events_Init();
+    OPP_Prism_Init();
     OPP_Units_Init();
     OPP_Research_Init();
+    OPP_Morphs_Init();
 }
 
 trigger libC0DEC0DE_gt_Initialization;

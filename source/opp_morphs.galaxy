@@ -1,0 +1,279 @@
+// Morph and MorphPlacement share Execute/Cancel commands (verified abil.galaxy).
+// A record belongs to a real Execute generation, not the unit's lifetime.
+// Dynamic records keep every active/pending generation; completed history never
+// displaces a long-running attempt. Terminal records survive their exact game
+// instant so that engine Cancel, order and immediate autocast may interleave.
+int OPP_MorphSequence = 0;
+int OPP_MorphHead = 0;
+int OPP_MorphLiveRecords = 0;
+
+string OPP_MorphKey (int generation) {
+    return "OPPCancelPopups/Morph/" + IntToString(generation) + "/";
+}
+
+bool OPP_MorphClass (string ability) {
+    int kind;
+    kind = AbilityClass(ability);
+    return kind == c_classIdCAbilMorph || kind == c_classIdCAbilMorphPlacement;
+}
+
+string OPP_MorphTarget (string ability, int owner) {
+    string target;
+    string candidate;
+    int stage;
+    int stages;
+    target = "";
+    stages = CatalogFieldValueCount(c_gameCatalogAbil, ability, "InfoArray", owner);
+    // Field arrays are zero-based. A Cancel command index is never a stage.
+    for (stage = 0; stage < stages; stage += 1) {
+        candidate = CatalogFieldValueGet(c_gameCatalogAbil, ability, "InfoArray[" + IntToString(stage) + "].Unit", owner);
+        if (candidate != "" && CatalogEntryIsValid(c_gameCatalogUnit, candidate) && !CatalogEntryIsDefault(c_gameCatalogUnit, candidate)) { target = candidate; }
+    }
+    return target;
+}
+
+string OPP_MorphIcon (string target, string ability, int owner) {
+    string icon;
+    string missing;
+    string alias;
+    string reverse;
+    string forward;
+    string base;
+    string button;
+    int link;
+    int links;
+    int item;
+    int items;
+    icon = "";
+    // Core GenericUnitSelectable defines the inherited missing-image placeholder.
+    missing = CatalogFieldValueGet(c_gameCatalogActor, "GenericUnitSelectable", "UnitIcon", owner);
+    if (CatalogEntryIsValid(c_gameCatalogActor, target)) { icon = CatalogFieldValueGet(c_gameCatalogActor, target, "UnitIcon", owner); }
+    if (icon != "" && icon != missing) { return icon; }
+    // Alternate forms often share their leader's actor, e.g. ThorAP and
+    // burrowed units. These are real CUnit links, not ID-prefix heuristics.
+    alias = CatalogFieldValueGet(c_gameCatalogUnit, target, "LeaderAlias", owner);
+    if (alias != "" && CatalogEntryIsValid(c_gameCatalogActor, alias)) { icon = CatalogFieldValueGet(c_gameCatalogActor, alias, "UnitIcon", owner); }
+    if (icon != "" && icon != missing) { return icon; }
+    alias = CatalogFieldValueGet(c_gameCatalogUnit, target, "SelectAlias", owner);
+    if (alias != "" && CatalogEntryIsValid(c_gameCatalogActor, alias)) { icon = CatalogFieldValueGet(c_gameCatalogActor, alias, "UnitIcon", owner); }
+    if (icon != "" && icon != missing) { return icon; }
+    // Some dependency forms share an actor without LeaderAlias (Defiler is an
+    // observed example). Require a reciprocal catalog morph edge, not a suffix
+    // guess: target -> base, with this forward ability actually linked on base.
+    links = CatalogFieldValueCount(c_gameCatalogUnit, target, "AbilArray", owner);
+    for (link = 0; link < links; link += 1) {
+        reverse = CatalogFieldValueGet(c_gameCatalogUnit, target, "AbilArray[" + IntToString(link) + "].Link", owner);
+        if (reverse == "" || !CatalogEntryIsValid(c_gameCatalogAbil, reverse) || !OPP_MorphClass(reverse)) { continue; }
+        base = OPP_MorphTarget(reverse, owner);
+        if (base == "" || !CatalogEntryIsValid(c_gameCatalogActor, base)) { continue; }
+        items = CatalogFieldValueCount(c_gameCatalogUnit, base, "AbilArray", owner);
+        for (item = 0; item < items; item += 1) {
+            forward = CatalogFieldValueGet(c_gameCatalogUnit, base, "AbilArray[" + IntToString(item) + "].Link", owner);
+            if (forward == ability) {
+                icon = CatalogFieldValueGet(c_gameCatalogActor, base, "UnitIcon", owner);
+                if (icon != "" && icon != missing) { return icon; }
+            }
+        }
+    }
+    // A unit's own button is another catalog representation of the same target.
+    if (CatalogEntryIsValid(c_gameCatalogButton, target)) { icon = CatalogFieldValueGet(c_gameCatalogButton, target, "Icon", owner); }
+    if (icon != "" && icon != missing) { return icon; }
+    // Custom units may expose their only target icon through the morph button.
+    button = CatalogFieldValueGet(c_gameCatalogAbil, ability, "CmdButtonArray[Execute].DefaultButtonFace", owner);
+    if (button != "" && CatalogEntryIsValid(c_gameCatalogButton, button)) { icon = CatalogFieldValueGet(c_gameCatalogButton, button, "Icon", owner); }
+    if (icon == missing) { return ""; }
+    return icon;
+}
+
+void OPP_MorphDiagnostic (string ability, int owner, string reason) {
+    string stages;
+    int stage;
+    int count;
+    stages = "";
+    count = CatalogFieldValueCount(c_gameCatalogAbil, ability, "InfoArray", owner);
+    for (stage = 0; stage < count; stage += 1) {
+        stages += "[" + IntToString(stage) + "]=" + CatalogFieldValueGet(c_gameCatalogAbil, ability, "InfoArray[" + IntToString(stage) + "].Unit", owner) + ";";
+    }
+    DataTableSetInt(true, "OPPCancelPopups/MorphResolverErrors", DataTableGetInt(true, "OPPCancelPopups/MorphResolverErrors") + 1);
+    DataTableSetString(true, "OPPCancelPopups/MorphResolverAbility", ability);
+    DataTableSetString(true, "OPPCancelPopups/MorphResolverStages", stages);
+    DataTableSetString(true, "OPPCancelPopups/MorphResolverReason", reason);
+}
+
+// Oldest eligible generation wins. A new autocast Execute cannot erase the
+// previous Cancel waiting for its matching order at this exact mission time.
+int OPP_MorphFind (unit subject, string ability, bool cancelled) {
+    int generation;
+    int found;
+    string key;
+    generation = OPP_MorphHead;
+    found = 0;
+    while (generation > 0) {
+        key = OPP_MorphKey(generation);
+        if (DataTableGetUnit(true, key + "Unit") == subject && DataTableGetString(true, key + "Ability") == ability) {
+            if (!cancelled && !DataTableGetBool(true, key + "Ended")) { found = generation; }
+            if (cancelled && DataTableGetBool(true, key + "Cancelled") && !DataTableGetBool(true, key + "Order") && DataTableGetFixed(true, key + "EndTime") == GameGetMissionTime()) { found = generation; }
+        }
+        generation = DataTableGetInt(true, key + "Next");
+    }
+    return found;
+}
+
+void OPP_MorphPublish (int generation) {
+    string key;
+    string target;
+    string icon;
+    int owner;
+    int kind;
+    unit subject;
+    if (generation <= 0) { return; }
+    key = OPP_MorphKey(generation);
+    if (DataTableGetBool(true, key + "Sent") || !DataTableGetBool(true, key + "Order") || !DataTableGetBool(true, key + "Cancelled")) { return; }
+    if (DataTableGetFixed(true, key + "OrderTime") != DataTableGetFixed(true, key + "EndTime")) { return; }
+    subject = DataTableGetUnit(true, key + "Unit");
+    if (subject == null || !UnitIsValid(subject) || !UnitIsAlive(subject)) { return; }
+    DataTableSetBool(true, key + "Sent", true);
+    target = DataTableGetString(true, key + "Target");
+    icon = DataTableGetString(true, key + "Icon");
+    owner = DataTableGetInt(true, key + "Owner");
+    if (target == "" || icon == "") {
+        OPP_MorphDiagnostic(DataTableGetString(true, key + "Ability"), owner, "Confirmed cancellable Execute has unresolved target/icon");
+        return;
+    }
+    kind = OPP_KIND_UNIT;
+    if (UnitTypeTestAttribute(target, c_unitAttributeStructure)) { kind = OPP_KIND_BUILDING; }
+    OPP_UI_PushTyped(owner, UnitTypeGetName(target), icon, kind, target);
+    DataTableSetInt(true, "OPPCancelPopups/MorphCancels", DataTableGetInt(true, "OPPCancelPopups/MorphCancels") + 1);
+    if (kind == OPP_KIND_BUILDING) {
+        DataTableSetInt(true, "OPPCancelPopups/BuildingCancels", DataTableGetInt(true, "OPPCancelPopups/BuildingCancels") + 1);
+    }
+    else { DataTableSetInt(true, "OPPCancelPopups/UnitCancels", DataTableGetInt(true, "OPPCancelPopups/UnitCancels") + 1); }
+}
+
+void OPP_MorphBegin (unit subject, string ability) {
+    int owner;
+    string key;
+    string target;
+    if (subject == null || !UnitIsValid(subject) || !UnitIsAlive(subject) || !OPP_MorphClass(ability)) { return; }
+    owner = UnitGetOwner(subject);
+    if (owner < 1 || owner >= c_playerAny) { return; }
+    OPP_MorphSequence += 1;
+    key = OPP_MorphKey(OPP_MorphSequence);
+    target = OPP_MorphTarget(ability, owner);
+    DataTableSetUnit(true, key + "Unit", subject);
+    DataTableSetInt(true, key + "Tag", UnitGetTag(subject));
+    DataTableSetInt(true, key + "Owner", owner);
+    DataTableSetString(true, key + "Ability", ability);
+    DataTableSetString(true, key + "Target", target);
+    if (target != "") { DataTableSetString(true, key + "Icon", OPP_MorphIcon(target, ability, owner)); }
+    DataTableSetFixed(true, key + "StartTime", GameGetMissionTime());
+    DataTableSetInt(true, key + "Next", OPP_MorphHead);
+    OPP_MorphHead = OPP_MorphSequence;
+    OPP_MorphLiveRecords += 1;
+    if (OPP_MorphLiveRecords > DataTableGetInt(true, "OPPCancelPopups/MorphPeakRecords")) { DataTableSetInt(true, "OPPCancelPopups/MorphPeakRecords", OPP_MorphLiveRecords); }
+}
+
+void OPP_MorphEnd (unit subject, string ability, bool cancelled) {
+    int generation;
+    string key;
+    if (subject == null || !UnitIsValid(subject) || !UnitIsAlive(subject)) { return; }
+    generation = OPP_MorphFind(subject, ability, false);
+    if (generation <= 0) { return; }
+    key = OPP_MorphKey(generation);
+    DataTableSetBool(true, key + "Ended", true);
+    DataTableSetBool(true, key + "Cancelled", cancelled);
+    DataTableSetFixed(true, key + "EndTime", GameGetMissionTime());
+    if (cancelled) { OPP_MorphPublish(generation); }
+}
+
+void OPP_MorphOrderSignal (unit subject, string ability) {
+    int generation;
+    string key;
+    if (subject == null || !UnitIsValid(subject) || !UnitIsAlive(subject)) { return; }
+    generation = OPP_MorphFind(subject, ability, true);
+    if (generation <= 0) { generation = OPP_MorphFind(subject, ability, false); }
+    if (generation <= 0) { return; }
+    key = OPP_MorphKey(generation);
+    DataTableSetBool(true, key + "Order", true);
+    DataTableSetFixed(true, key + "OrderTime", GameGetMissionTime());
+    OPP_MorphPublish(generation);
+}
+
+bool OPP_MorphAbilityEvent (bool testConds, bool runActions) {
+    abilcmd command;
+    string ability;
+    int stage;
+    if (!runActions) { return true; }
+    command = EventUnitAbility();
+    if (command == null || AbilityCommandGetCommand(command) != c_abilMorphCmdExecute) { return true; }
+    ability = AbilityCommandGetAbility(command);
+    if (!OPP_MorphClass(ability)) { return true; }
+    stage = EventUnitAbilityStage();
+    if (stage == c_unitAbilStageExecute) { OPP_MorphBegin(EventUnit(), ability); }
+    if (stage == c_unitAbilStageCancel) { OPP_MorphEnd(EventUnit(), ability, true); }
+    if (stage == c_unitAbilStageComplete || stage == c_unitAbilStagePreempt) { OPP_MorphEnd(EventUnit(), ability, false); }
+    return true;
+}
+
+bool OPP_MorphOrderEvent (bool testConds, bool runActions) {
+    abilcmd command;
+    string ability;
+    if (!runActions) { return true; }
+    command = OrderGetAbilityCommand(EventUnitOrder());
+    if (command == null || AbilityCommandGetCommand(command) != c_abilMorphCmdCancel) { return true; }
+    ability = AbilityCommandGetAbility(command);
+    if (OPP_MorphClass(ability)) { OPP_MorphOrderSignal(EventUnit(), ability); }
+    return true;
+}
+
+bool OPP_MorphCollect (bool testConds, bool runActions) {
+    int generation;
+    int previous;
+    int next;
+    string key;
+    unit subject;
+    bool remove;
+    if (!runActions) { return true; }
+    generation = OPP_MorphHead;
+    previous = 0;
+    while (generation > 0) {
+        key = OPP_MorphKey(generation);
+        next = DataTableGetInt(true, key + "Next");
+        subject = DataTableGetUnit(true, key + "Unit");
+        remove = subject == null || !UnitIsValid(subject) || !UnitIsAlive(subject);
+        if (DataTableGetBool(true, key + "Ended") && DataTableGetFixed(true, key + "EndTime") < GameGetMissionTime()) { remove = true; }
+        if (remove) {
+            if (previous == 0) { OPP_MorphHead = next; }
+            else { DataTableSetInt(true, OPP_MorphKey(previous) + "Next", next); }
+            DataTableValueRemove(true, key + "Unit");
+            DataTableValueRemove(true, key + "Tag");
+            DataTableValueRemove(true, key + "Owner");
+            DataTableValueRemove(true, key + "Ability");
+            DataTableValueRemove(true, key + "Target");
+            DataTableValueRemove(true, key + "Icon");
+            DataTableValueRemove(true, key + "StartTime");
+            DataTableValueRemove(true, key + "Next");
+            DataTableValueRemove(true, key + "Ended");
+            DataTableValueRemove(true, key + "Cancelled");
+            DataTableValueRemove(true, key + "Order");
+            DataTableValueRemove(true, key + "OrderTime");
+            DataTableValueRemove(true, key + "EndTime");
+            DataTableValueRemove(true, key + "Sent");
+            OPP_MorphLiveRecords -= 1;
+        }
+        else { previous = generation; }
+        generation = next;
+    }
+    return true;
+}
+
+void OPP_Morphs_Init () {
+    trigger event;
+    event = TriggerCreate("OPP_MorphAbilityEvent");
+    TriggerAddEventUnitAbility(event, null, null, c_unitAbilStageAll, false);
+    event = TriggerCreate("OPP_MorphOrderEvent");
+    TriggerAddEventUnitOrder(event, null, null);
+    event = TriggerCreate("OPP_MorphCollect");
+    TriggerAddEventTimePeriodic(event, 0.0625, c_timeGame);
+    DataTableSetBool(true, "OPPCancelPopups/MorphAdapter", true);
+}

@@ -9,6 +9,8 @@ void OPP_Init () {
     DataTableSetBool(true, "OPPCancelPopups/Debug", false);
     OPP_UI_Init();
     OPP_Events_Init();
+    OPP_Prism_Init();
     OPP_Units_Init();
     OPP_Research_Init();
+    OPP_Morphs_Init();
 }

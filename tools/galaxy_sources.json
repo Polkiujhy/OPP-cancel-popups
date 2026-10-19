@@ -1,0 +1,9 @@
+[
+  "opp_popup_ui.galaxy",
+  "opp_events.galaxy",
+  "opp_prism.galaxy",
+  "opp_units.galaxy",
+  "opp_research.galaxy",
+  "opp_morphs.galaxy",
+  "opp_bootstrap.galaxy"
+]

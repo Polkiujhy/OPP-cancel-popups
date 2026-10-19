@@ -29,15 +29,21 @@ string[3] OPP_UI_RowKey;
 int[3] OPP_UI_RowCount;
 string[128] OPP_UI_QueueKey;
 int[128] OPP_UI_QueueKind;
+int[128] OPP_UI_QueueCopies;
 
-void OPP_UI_Show (int row, int owner, text objectName, string icon, int kind, string objectKey) {
+text OPP_UI_CancelStatus (int count) {
+    if (count > 1) { return StringExternal("OPP/Cancelled") + StringToText(" ×") + IntToText(count); }
+    return StringExternal("OPP/Cancelled");
+}
+
+void OPP_UI_Show (int row, int owner, text objectName, string icon, int kind, string objectKey, int count) {
     libNtve_gf_SetDialogItemColor(OPP_UI_Background[row], libNtve_gf_ConvertPlayerColorToColor(PlayerGetColorIndex(owner, false)), OPP_UI_Viewers);
     DialogControlSetVisible(OPP_UI_Background[row], OPP_UI_Viewers, true);
     libNtve_gf_SetDialogItemText(OPP_UI_Owner[row], PlayerName(owner), OPP_UI_Viewers);
     libNtve_gf_SetDialogItemColor(OPP_UI_Owner[row], libNtve_gf_ConvertPlayerColorToColor(PlayerGetColorIndex(owner, false)), OPP_UI_Viewers);
     libNtve_gf_SetDialogItemText(OPP_UI_Name[row], objectName, OPP_UI_Viewers);
     libNtve_gf_SetDialogItemImage(OPP_UI_Icon[row], icon, OPP_UI_Viewers);
-    libNtve_gf_SetDialogItemText(OPP_UI_Status[row], StringExternal("OPP/Cancelled"), OPP_UI_Viewers);
+    libNtve_gf_SetDialogItemText(OPP_UI_Status[row], OPP_UI_CancelStatus(count), OPP_UI_Viewers);
     DialogControlSetVisible(OPP_UI_Icon[row], OPP_UI_Viewers, true);
     // The player-colored icon square identifies the owner; keep its label for probes only.
     DialogControlSetVisible(OPP_UI_Owner[row], OPP_UI_Viewers, false);
@@ -47,7 +53,7 @@ void OPP_UI_Show (int row, int owner, text objectName, string icon, int kind, st
     OPP_UI_RowOwner[row] = owner;
     OPP_UI_RowKind[row] = kind;
     OPP_UI_RowKey[row] = objectKey;
-    OPP_UI_RowCount[row] = 1;
+    OPP_UI_RowCount[row] = count;
     OPP_UI_Busy[row] = true;
     TimerStart(OPP_UI_Timer[row], 5.0, false, c_timeGame);
     DataTableSetInt(true, "OPPCancelPopups/Displayed", DataTableGetInt(true, "OPPCancelPopups/Displayed") + 1);
@@ -62,9 +68,11 @@ void OPP_UI_Drain () {
     for (row = 0; row < OPP_UI_ROWS; row += 1) {
         if (!OPP_UI_Busy[row]) {
             if (OPP_UI_Count > 0) {
-                OPP_UI_Show(row, OPP_UI_QueueOwner[OPP_UI_Head], OPP_UI_QueueName[OPP_UI_Head], OPP_UI_QueueIcon[OPP_UI_Head], OPP_UI_QueueKind[OPP_UI_Head], OPP_UI_QueueKey[OPP_UI_Head]);
+                OPP_UI_Show(row, OPP_UI_QueueOwner[OPP_UI_Head], OPP_UI_QueueName[OPP_UI_Head], OPP_UI_QueueIcon[OPP_UI_Head], OPP_UI_QueueKind[OPP_UI_Head], OPP_UI_QueueKey[OPP_UI_Head], OPP_UI_QueueCopies[OPP_UI_Head]);
                 OPP_UI_QueueName[OPP_UI_Head] = null;
                 OPP_UI_QueueIcon[OPP_UI_Head] = "";
+                OPP_UI_QueueKey[OPP_UI_Head] = "";
+                OPP_UI_QueueCopies[OPP_UI_Head] = 0;
                 OPP_UI_Head = (OPP_UI_Head + 1) % OPP_UI_CAPACITY;
                 OPP_UI_Count -= 1;
             }
@@ -81,7 +89,7 @@ void OPP_UI_Drain () {
                                 summary = IntToText(count) + StringExternal("OPP/MoreUnits");
                             }
                             OPP_UI_Overflow[owner][kind] = 0;
-                            OPP_UI_Show(row, owner, summary, "Assets\\Textures\\btn-command-cancel.dds", kind, "");
+                            OPP_UI_Show(row, owner, summary, "Assets\\Textures\\btn-command-cancel.dds", kind, "", 1);
                         }
                     }
                 }
@@ -90,23 +98,40 @@ void OPP_UI_Drain () {
     }
 }
 
+bool OPP_UI_MergeActive (int owner, int kind, string objectKey) {
+    int row;
+    if (objectKey == "") { return false; }
+    for (row = 0; row < OPP_UI_ROWS; row += 1) {
+        if (OPP_UI_Busy[row] && TimerGetRemaining(OPP_UI_Timer[row]) > 0.0 && OPP_UI_RowOwner[row] == owner && OPP_UI_RowKind[row] == kind && OPP_UI_RowKey[row] == objectKey) {
+            OPP_UI_RowCount[row] += 1;
+            libNtve_gf_SetDialogItemText(OPP_UI_Status[row], OPP_UI_CancelStatus(OPP_UI_RowCount[row]), OPP_UI_Viewers);
+            TimerStart(OPP_UI_Timer[row], 5.0, false, c_timeGame);
+            return true;
+        }
+    }
+    return false;
+}
+
 void OPP_UI_PushTyped (int owner, text objectName, string icon, int kind, string objectKey) {
     int tail;
-    int row;
-    if (!OPP_UI_Ready || owner < 1 || owner >= c_playerAny) { return; }
-    // Only currently active popups merge across buildings, units and upgrades. Use catalog IDs, never
-    // localized display text; different owners always retain separate counts.
+    int offset;
+    int index;
+    if (!OPP_UI_Ready || owner < 1 || owner >= c_playerAny || kind < 0 || kind >= 3) { return; }
+    // A catalog ID, kind and owner identify a group for its entire pending lifetime.
+    if (OPP_UI_MergeActive(owner, kind, objectKey)) { return; }
+    OPP_UI_Drain();
+    // Drain may just have displayed the same group; preserve its count and refresh it.
+    if (OPP_UI_MergeActive(owner, kind, objectKey)) { return; }
     if (objectKey != "") {
-        for (row = 0; row < OPP_UI_ROWS; row += 1) {
-            if (OPP_UI_Busy[row] && TimerGetRemaining(OPP_UI_Timer[row]) > 0.0 && OPP_UI_RowOwner[row] == owner && OPP_UI_RowKind[row] == kind && OPP_UI_RowKey[row] == objectKey) {
-                OPP_UI_RowCount[row] += 1;
-                libNtve_gf_SetDialogItemText(OPP_UI_Status[row], StringExternal("OPP/Cancelled") + StringToText(" ×") + IntToText(OPP_UI_RowCount[row]), OPP_UI_Viewers);
-                TimerStart(OPP_UI_Timer[row], 5.0, false, c_timeGame);
+        for (offset = 0; offset < OPP_UI_Count; offset += 1) {
+            index = (OPP_UI_Head + offset) % OPP_UI_CAPACITY;
+            if (OPP_UI_QueueOwner[index] == owner && OPP_UI_QueueKind[index] == kind && OPP_UI_QueueKey[index] == objectKey) {
+                OPP_UI_QueueCopies[index] += 1;
                 return;
             }
         }
     }
-    OPP_UI_Drain();
+    // Search existing groups before overflow: a duplicate consumes no new group slot.
     if (OPP_UI_Count == OPP_UI_CAPACITY) {
         OPP_UI_Overflow[owner][kind] += 1;
         return;
@@ -117,6 +142,7 @@ void OPP_UI_PushTyped (int owner, text objectName, string icon, int kind, string
     OPP_UI_QueueIcon[tail] = icon;
     OPP_UI_QueueKind[tail] = kind;
     OPP_UI_QueueKey[tail] = objectKey;
+    OPP_UI_QueueCopies[tail] = 1;
     OPP_UI_Count += 1;
     OPP_UI_Drain();
 }
