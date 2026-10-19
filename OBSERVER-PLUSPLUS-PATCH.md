@@ -16,19 +16,16 @@ Pełna zależność, jej biblioteki i zasoby nie są częścią publikacji GitHu
 Patcher opisany niżej jest narzędziem dla autorów lokalnych komponentów.
 Przyjmuje tylko bajtowo zgodne wejście o podanych SHA256; odmowa dla innej
 wersji jest zamierzona. Nie stosuj go do już naprawionego Popup Fix 1.0.
-Lokalne nazwy v2/Fix1 i identyfikatory prób poniżej opisują pochodzenie oraz
-walidację poprawki, a nie dodatkowe pliki wymagane do uruchomienia gotowego moda.
-
-Użytkownik zatwierdził fazę6 po zidentyfikowaniu blokady P144, a po testach
-osobno zlecił publikację. Samo MPQ nakładki Cancel Popups **nie naprawia starej
-zależności**. Zestaw wymaga nakładki oraz zgodnej kopii Obs++ po patchu.
+Samo MPQ nakładki Cancel Popups **nie naprawia starej zależności**. Naprawa
+dotyczy statystyk BattleReport wewnątrz Observer PlusPlus, dlatego zestaw
+wymaga nakładki oraz zgodnej kopii Obs++ po patchu.
 
 ## Potwierdzony błąd i rachunkowość
 
-P144 ma 1082 rzeczywiste UnitDied: wszystkie203 anulowane warp-iny mają
-KillingPlayer16, w tym dokładnie5 dzieci owner2 (TwoOwners×2,
-TwoOwnersKilled×2, RetentionHeld×1). Nie ma KillingPlayer0. Historyczny przebieg
-pozostaje FAIL przez logi, mimo poprawnego zachowania popupów i cleanup.
+W próbie sprzed naprawy zarejestrowano 1082 rzeczywiste zdarzenia `UnitDied`.
+Wszystkie 203 anulowane warp-iny miały neutralnego sprawcę `KillingPlayer=16`,
+w tym pięć jednostek gracza 2. Popupy anulowań działały, ale zależność Obs++
+zgłaszała błędy indeksowania statystyk. Ta historyczna próba pozostaje niezaliczona.
 
 W zamrożonym `Lib7805B319.galaxy:1512–1517` neutralny killer16 daje slot15,
 następnie kod przekazuje owner1/2 do `OppositePlayerSlot`, który przyjmuje slot0/1
@@ -47,7 +44,8 @@ zgony nadal zwiększają właściwe liczniki; raport i jego trigger pozostają w
 
 ## Źródło i powtarzalny patch
 
-Obsługiwane wejście to zamrożona lokalna kopia EU PlusPlus v2. Pełne SHA256:
+Obsługiwane wejście to konkretna, niezmieniona kopia komponentów Observer
+PlusPlus z regionu EU, rozpoznawana po pełnych SHA256:
 
 - Galaxy: `dc489e014c281deeaf1d326b4a7b042dc45e6650f4eabe2f11e186a2f341aa00`.
 - Triggers: `9e1fd8806c80d1d5559755ed51e3810b03cda8c0a264cd6b86f9de461775f1af`.
@@ -55,7 +53,7 @@ Obsługiwane wejście to zamrożona lokalna kopia EU PlusPlus v2. Pełne SHA256:
 Własny manifest jest w `src/observer-plusplus-patches/track-unit-kills-v1.json`.
 Zawiera wyłącznie identyfikatory transformacji i krótkie własne wyrażenia/guardy.
 Patcher odmawia nieznanych bajtów, ponownego zastosowania i istniejącego outputu,
-archiwum, reportu lub pliku instalacji. Nie nadpisuje oryginału/v2/referencji.
+archiwum, reportu lub pliku instalacji. Nie nadpisuje oryginalnej zależności.
 
 Rzeczywisty graf Triggers: biblioteka7805B319, callback D3F37C35,
 neutralny Param6C9458E6 oraz Baneling Param8A08DB2C. Pozostałe elementy i pliki
@@ -70,8 +68,8 @@ Przykład z katalogu repo (w paczce te same własne ścieżki, dowolny cwd):
 
 ```bash
 python3 /sciezka/do/paczki/tools/patch_observer_plus_plus.py \
-  --source /sciezka/do/lokalnego/OPP_Dev_EU_PlusPlus_20260920_v2.SC2Mod \
-  --output /sciezka/do/build/OPP_Dev_Popup_ObsPPBattleReportFix1.SC2Mod \
+  --source /sciezka/do/lokalnego/ObserverPlusPlus.SC2Mod \
+  --output /sciezka/do/build/ObserverPlusPlus_Patched.SC2Mod \
   --mpqcli /sciezka/do/lokalnego/mpqcli \
   --install-dir /sciezka/do/StarCraft-II/Mods
 ```
@@ -85,11 +83,10 @@ wyłącznie Triggers i jedna biblioteka Galaxy.
 
 ## Tożsamość uruchomionego zestawu
 
-Stager wymaga jawnego `--observer-patch-manifest <output>.patch.json` dla nowej
-zależności. Zachowuje historyczny tryb bez manifestu. Report i map-only receipt
-zawierają `observer_patch_manifest` i `observer_patch_manifest_sha256`, nazwę
-zależności oraz jej pliki/hashe. Lokalny stage report wskazuje dodatkowo
-oryginalny `observer_patch_manifest_path`; nie jest to zastępstwo weryfikacji.
+W lokalnym procesie testowym zapisujemy raport przygotowania próby oraz receipt,
+czyli bank potwierdzający tożsamość zestawu załadowanego przez grę. Oba zawierają
+`observer_patch_manifest` i `observer_patch_manifest_sha256`, nazwę zależności
+oraz jej pliki/hashe. Sama ścieżka do raportu nie jest dowodem zgodności plików.
 
 Zamrozić oryginalny report, katalog output oraz dokładny MPQ. Validator
 `verify_runtime_provenance.py` przyjmuje komplet:
@@ -101,12 +98,12 @@ Zamrozić oryginalny report, katalog output oraz dokładny MPQ. Validator
 ```
 
 Sprawdza receipt/report, bieżące własne transformacje, faktyczną instalację,
-wszystkie pliki zamrożonego katalogu oraz każdy odczyt z MPQ. Historyczne
-v121/v144 pozostają powiązane ze starą zależnością i zachowują swój FAIL.
+wszystkie pliki zamrożonego katalogu oraz każdy odczyt z MPQ. Wyników prób
+ze starą zależnością nie przepisujemy jako wyników poprawionej wersji.
 
 ## Wymagany dowód runtime
 
-`--fixture obspp-battle-report-acceptance` ma11 rzeczywistych przypadków:
+Scenariusz `obspp-battle-report-acceptance` ma 11 rzeczywistych przypadków:
 normalny kredytowany combat obu stron, native killer16 po przerwanym warp-inie
 owner1/2, Baneling owner1/2, Remove owner1/2, nieobsługiwany killer3 dla ofiar
 owner1/2 oraz naturalne ukończenie warp-inu. Warp1 zamyka Prisma, Warp2 niszczy
@@ -126,8 +123,8 @@ Remove/unsupported killer/ukończenie nie zmieniają liczników raportu.
 Własne popupy rosną wyłącznie raz w obu rzeczywistych anulowaniach warp-inu;
 pozostałe kontrole dają zero.
 
-Pierwszy natywny break v174 potwierdził dodatkowo semantykę aranżacji: jawne
-`UnitRemove` nie emituje UnitDied. Kontrole Remove1/2 korzystają dlatego z
+Osobna próba w silniku potwierdziła, że jawne `UnitRemove` nie emituje
+`UnitDied`. Kontrole usuwania jednostek obu graczy korzystają dlatego z
 rzeczywistego `TriggerAddEventUnitRemoved` (`natives.galaxy:4402`). Zapisują żywy,
 ważny cel przed akcją, zgodność callbacku z tym samym uchwytem i zachowanym tagiem,
 a po akcji niezależnie wymagają `UnitIsValid=false` i braku życia. Metadanych
@@ -138,26 +135,30 @@ i własnych popupów. Nie dopisujemy syntetycznego UnitDied z flagą Remove; ta
 kontrola API nie jest przedstawiana jako pokrycie innej śmierci silnika z
 `c_deathTypeRemove`. Wczesny guard tej flagi pozostaje bez zmian w patchu.
 
-Wyłączenie/pozorna podmiana callbacku nie może zaliczyć tego dowodu: rzeczywiste
-zgony muszą zwiększać oba sloty i konkretne liczniki typów/zasobów. Koordynator
-wykonuje osobny negatywny break-check i przywraca właściwe źródła. Nowa pełna
-akceptacja P/X oraz pozostałych fixture wymaga identycznej poprawionej zależności,
-kompilacji Errors0 i zera nowych ScriptErrors. Do wykonania tych bramek dokument
-opisuje implementację i kontrakt, nie zaliczenie runtime ani publikację.
+Wyłączenie lub pozorna podmiana callbacku nie może zaliczyć tego testu:
+rzeczywiste zgony muszą zwiększać właściwe sloty i konkretne liczniki
+typów/zasobów. Próba kontrolna z celowo wyłączonym callbackiem musi zostać
+odrzucona przez walidator; przed dalszymi testami przywracamy właściwy kod.
+Pełny odbiór wymaga tej samej poprawionej zależności w scenariuszach warp-inów
+i regresji, kompilacji bez błędów oraz braku nowych `ScriptErrors`.
 
-## Bieżące dowody fazy6
+## Wyniki testów naprawy BattleReport
 
-Implementacja patchera: commit `154f572`. Odrębny Fix1 ma38plików MPQ
-zweryfikowanych bajtowo; jego SHA to
-`a8609c8b93e6d032af320d0976b82596aa6f202f271b2256d8954ac039ff998a`.
-Prawdziwe zapisanie Triggers w edytorze na oddzielnej kopii zachowało każdą
-niepustą linię wynikowego Galaxy (`obspp-regeneration1-proof.json`). Wszystkie
-świeże fixture zawierały rzeczywisty kod zależności podczas kompilacji Errors0.
+Poniższe wyniki dotyczą lokalnych prób deweloperskich z 2026-10-19:
 
-BR180 ma11/11PASS, dokładne delty obu slotów i rzeczywiste zdarzenia.
-P152 przeszedł pełną macierz203/200,56fragmentów/129cykli. Obie próby mają
-zero nowych ScriptErrors. Focused natywny break z wyłączonym callbackiem dał
-RED dokładnie na Combat1 Units0; dobry asset przywrócono przed dalszymi próbami.
-Historyczny P144 zachowuje FAIL. X186 przeszedł pełny strict native/provenance/logs
-29źródeł/23grupy oraz obraz własnych popupów. Wszystkie13wymaganych konfiguracji
-mają PASS na tej samej zależności; aktualne artefakty i ograniczenia wyznacza `docs/validation-cancel-popup-completeness-2026-10-19.md`.
+| Sprawdzenie | Wynik |
+| --- | --- |
+| Patcher i archiwum zależności | Wszystkie 38 plików MPQ odczytane i porównane bajt po bajcie. |
+| Zapis i regeneracja w edytorze | Zachowana każda niepusta linia naprawionego Galaxy; kompilacje bez błędów. |
+| Statystyki BattleReport | 11/11 przypadków zaliczonych, dokładne zmiany obu slotów, brak nowych ScriptErrors. |
+| Anulowania warp-inów | 203 anulowania, 200 powiązań ze źródłami zasilania, 56 fragmentów i 129 cykli retencji — zaliczone. |
+| Regresja mieszana | 29 źródeł anulowań i 23 grupy popupów; zgodność uruchomionych plików, logi i obraz popupów sprawdzone. |
+| Celowo wyłączony callback | Walidator odrzucił brak wzrostu statystyk po rzeczywistej śmierci jednostki. |
+
+Łącznie 13 konfiguracji testowych przeszło na tej samej poprawionej zależności.
+Testy ról w rzeczywistym meczu wielu klientów i końcowy odbiór wizualny
+pozostają osobnymi, otwartymi punktami; powyższa tabela ich nie zalicza.
+
+Kod scenariuszy i walidatorów oraz wymagania uruchomienia są opisane
+w [instrukcji testów functional](https://github.com/Polkiujhy/OPP-cancel-popups/blob/main/tests/functional/README.md). Samodzielne
+testy walidatorów w Pythonie nie zastępują prób w SC2.
