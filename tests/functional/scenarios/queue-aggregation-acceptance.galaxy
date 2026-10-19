@@ -1,0 +1,143 @@
+// UI boundary cases use a bridge present only in this uniquely named test dependency.
+include "LibC0DEC0DE_h"
+void OPP_QueueFixture_Push (int owner, string name, int kind, string key);
+void OPP_QueueFixture_Reset ();
+void OPP_QueueFixture_Release (int row);
+void OPP_QueueFixture_Snapshot (bank output, string section, bool details);
+bank OPP_Test_Bank;
+
+void OPP_Test_Block () {
+    int i;
+    for (i = 0; i < 3; i += 1) {
+        OPP_QueueFixture_Push(1, "Block" + IntToString(i), 0, "Block" + IntToString(i));
+    }
+}
+void OPP_Test_Snap (string section) { OPP_QueueFixture_Snapshot(OPP_Test_Bank, section, true); }
+
+void OPP_Test_Air (unit stargate, string label, int command) {
+    int i;
+    bool accepted;
+    OPP_QueueFixture_Reset();
+    OPP_Test_Block();
+    OPP_Test_Snap(label + "/Before");
+    for (i = 0; i < 5; i += 1) {
+        accepted = UnitIssueOrder(stargate, Order(AbilityCommand("StargateTrain", command)), c_orderQueueAddToEnd);
+        BankValueSetFromFlag(OPP_Test_Bank, label, "Start" + IntToString(i), accepted);
+    }
+    Wait(0.25, c_timeGame);
+    for (i = 0; i < 5; i += 1) {
+        accepted = UnitIssueOrder(stargate, Order(AbilityCommand("que5", c_abilQueueCmdCancelLast)), c_orderQueueReplace);
+        BankValueSetFromFlag(OPP_Test_Bank, label, "Cancel" + IntToString(i), accepted);
+    }
+    Wait(0.0625, c_timeGame);
+    OPP_Test_Snap(label + "/Pending");
+    Wait(4.875, c_timeGame);
+    OPP_Test_Snap(label + "/Shown");
+    Wait(4.5, c_timeGame);
+    OPP_Test_Snap(label + "/NearExpiry");
+    Wait(0.625, c_timeGame);
+    OPP_Test_Snap(label + "/Expired");
+}
+
+bool OPP_Test_Run (bool testConds, bool runActions) {
+    unit stargate;
+    int i;
+    if (!runActions) { return true; }
+    OPP_Test_Bank = BankLoad("OPPBuildingCancelTest", 1);
+    BankValueSetFromString(OPP_Test_Bank, "Probe", "Fixture", "queue-aggregation-acceptance");
+    UnitCreate(1, "CommandCenter", 0, 1, Point(25.0, 25.0), 270.0);
+    UnitCreate(1, "Nexus", 0, 2, Point(105.0, 105.0), 270.0);
+    UnitCreate(1, "Pylon", 0, 1, Point(85.0, 31.0), 270.0);
+    UnitCreate(1, "Stargate", 0, 1, Point(85.0, 25.0), 270.0);
+    stargate = UnitLastCreated();
+    TechTreeRequirementsEnable(1, false);
+    TechTreeRestrictionsEnable(1, false);
+    PlayerModifyPropertyInt(1, c_playerPropMinerals, c_playerPropOperSetTo, 100000);
+    PlayerModifyPropertyInt(1, c_playerPropVespene, c_playerPropOperSetTo, 100000);
+    PlayerModifyPropertyInt(1, c_playerPropSuppliesMade, c_playerPropOperSetTo, 200);
+    Wait(8.0, c_timeGame);
+    OPP_QueueFixture_Reset();
+    OPP_Test_Block();
+    OPP_QueueFixture_Push(1, "Oracle", 2, "Oracle");
+    OPP_QueueFixture_Push(1, "Phoenix", 2, "Phoenix");
+    OPP_QueueFixture_Push(1, "Oracle", 2, "Oracle");
+    OPP_Test_Snap("Age/Initial");
+    Wait(4.0, c_timeGame);
+    OPP_Test_Block();
+    Wait(4.0, c_timeGame);
+    OPP_Test_Block();
+    Wait(2.5, c_timeGame);
+    OPP_QueueFixture_Push(1, "Oracle", 2, "Oracle");
+    OPP_Test_Snap("Age/Late");
+    Wait(2.75, c_timeGame);
+    OPP_Test_Snap("Age/Shown");
+    Wait(4.5, c_timeGame);
+    OPP_Test_Snap("Age/NearExpiry");
+    Wait(0.5, c_timeGame);
+    OPP_Test_Snap("Age/Expired");
+
+    OPP_QueueFixture_Reset();
+    OPP_Test_Block();
+    OPP_QueueFixture_Push(1, "UnitOwner1", 2, "SameID");
+    OPP_QueueFixture_Push(2, "UnitOwner2", 2, "SameID");
+    OPP_QueueFixture_Push(1, "BuildingOwner1", 0, "SameID");
+    OPP_QueueFixture_Push(1, "ResearchOwner1", 1, "SameID");
+    OPP_QueueFixture_Push(1, "UnitOtherType", 2, "OtherID");
+    OPP_QueueFixture_Push(1, "UnitOwner1", 2, "SameID");
+    OPP_Test_Snap("Identity/Pending");
+    Wait(5.125, c_timeGame);
+    OPP_Test_Snap("Identity/First");
+    Wait(5.0, c_timeGame);
+    OPP_Test_Snap("Identity/Second");
+    Wait(5.0, c_timeGame);
+
+    OPP_QueueFixture_Reset();
+    OPP_Test_Block();
+    OPP_QueueFixture_Push(1, "Unkeyed1", 0, "");
+    OPP_QueueFixture_Push(1, "Unkeyed2", 0, "");
+    OPP_Test_Snap("Empty/Pending");
+    Wait(5.125, c_timeGame);
+    OPP_Test_Snap("Empty/Shown");
+    Wait(5.0, c_timeGame);
+
+    OPP_QueueFixture_Reset();
+    OPP_Test_Block();
+    OPP_QueueFixture_Push(1, "Oracle", 2, "Oracle");
+    OPP_QueueFixture_Push(1, "Oracle", 2, "Oracle");
+    OPP_QueueFixture_Release(0);
+    OPP_QueueFixture_Push(1, "Oracle", 2, "Oracle");
+    OPP_Test_Snap("Drain/ShownAndMerged");
+    Wait(5.25, c_timeGame);
+
+    OPP_QueueFixture_Reset();
+    OPP_Test_Block();
+    for (i = 0; i < 128; i += 1) {
+        OPP_QueueFixture_Push(1, "Pending" + IntToString(i), 2, "Pending" + IntToString(i));
+        // Direct bridge calls share this fixture thread's operation budget.
+        if (i % 8 == 7) { Wait(0.0625, c_timeGame); }
+    }
+    OPP_Test_Block();
+    OPP_QueueFixture_Push(1, "Pending0", 2, "Pending0");
+    OPP_QueueFixture_Push(2, "OverflowResearch", 1, "OverflowResearch");
+    OPP_QueueFixture_Push(2, "OverflowResearch", 1, "OverflowResearch");
+    OPP_QueueFixture_Push(1, "Pending0", 2, "Pending0");
+    OPP_Test_Snap("Capacity/Full");
+    GameSetGlobalTimeScale(4.0);
+    Wait(5.125, c_timeGame);
+    for (i = 0; i < 43; i += 1) {
+        OPP_QueueFixture_Snapshot(OPP_Test_Bank, "Capacity/Wave" + IntToString(i), false);
+        Wait(5.0, c_timeGame);
+    }
+    GameSetGlobalTimeScale(1.0);
+    OPP_Test_Snap("Capacity/Expired");
+
+    OPP_Test_Air(stargate, "Oracle", c_abilTrainCmdTrain9);
+    OPP_Test_Air(stargate, "VoidRay", c_abilTrainCmdTrain5);
+    OPP_Test_Air(stargate, "Phoenix", c_abilTrainCmdTrain1);
+    BankValueSetFromFlag(OPP_Test_Bank, "Finished", "Done", true);
+    BankValueSetFromFixed(OPP_Test_Bank, "Finished", "Time", GameGetMissionTime());
+    BankSave(OPP_Test_Bank);
+    Wait(2.0, c_timeGame);
+    GameOver(1, c_gameOverDefeat, true, false);
+    return true;
+}

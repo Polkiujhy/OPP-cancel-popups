@@ -1,0 +1,4746 @@
+{
+  "baseline_report": "docs/validation-morph-scope-2026-10-19.md",
+  "baseline_json_sha256": "5b81a952e41bf81b2f20e392e2c87b837d2278a03ae8619522dcfc4ce2556ad3",
+  "scope": "301 effective source-linked Morph/MorphPlacement processes; only real cancellable traces are positive expectations.",
+  "matrix": [
+    {
+      "link": 0,
+      "source": "TechLab",
+      "ability": "BarracksTechLabMorph",
+      "class": "22",
+      "target": "BarracksTechLab",
+      "stages": [
+        "BarracksTechLab"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 1,
+      "source": "TechLab",
+      "ability": "FactoryTechLabMorph",
+      "class": "22",
+      "target": "FactoryTechLab",
+      "stages": [
+        "FactoryTechLab"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 2,
+      "source": "TechLab",
+      "ability": "StarportTechLabMorph",
+      "class": "22",
+      "target": "StarportTechLab",
+      "stages": [
+        "StarportTechLab"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 3,
+      "source": "Reactor",
+      "ability": "BarracksReactorMorph",
+      "class": "22",
+      "target": "BarracksReactor",
+      "stages": [
+        "BarracksReactor"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 4,
+      "source": "Reactor",
+      "ability": "FactoryReactorMorph",
+      "class": "22",
+      "target": "FactoryReactor",
+      "stages": [
+        "FactoryReactor"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 5,
+      "source": "Reactor",
+      "ability": "StarportReactorMorph",
+      "class": "22",
+      "target": "StarportReactor",
+      "stages": [
+        "StarportReactor"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 6,
+      "source": "InfestorTerran",
+      "ability": "BurrowInfestorTerranDown",
+      "class": "22",
+      "target": "InfestorTerranBurrowed",
+      "stages": [
+        "InfestorTerranBurrowed"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 7,
+      "source": "BanelingCocoon",
+      "ability": "MorphToBaneling",
+      "class": "22",
+      "target": "Baneling",
+      "stages": [
+        "BanelingCocoon",
+        "Baneling"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 8,
+      "source": "Baneling",
+      "ability": "BurrowBanelingDown",
+      "class": "22",
+      "target": "BanelingBurrowed",
+      "stages": [
+        "BanelingBurrowed"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": [
+        {
+          "bank": "reports/editor-validation/morph-window-v77.SC2Bank",
+          "sha256": "4a20a05fbe819d1c1dc7563624db800a37c9946ecc1d6ab5d10bc9eb5da74785",
+          "bank_section": "BanelingBurrow",
+          "format": "morph-cancel-window",
+          "source": "Baneling",
+          "ability": "BurrowBanelingDown",
+          "tag": "12582914",
+          "time": "9.125",
+          "result": "cancellable",
+          "cancellations": 1,
+          "source_created_event": "Event41",
+          "execute_event": "Event51",
+          "cancel_order_event": "Event55",
+          "ability_cancel_event": "Event56",
+          "complete_events": [],
+          "window_cancel_hidden": "0",
+          "window_cancel_disabled": "0",
+          "window_ability_enabled": "1"
+        }
+      ]
+    },
+    {
+      "link": 9,
+      "source": "CommandCenter",
+      "ability": "CommandCenterLiftOff",
+      "class": "22",
+      "target": "CommandCenterFlying",
+      "stages": [
+        "CommandCenterFlying"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 10,
+      "source": "CommandCenter",
+      "ability": "UpgradeToPlanetaryFortress",
+      "class": "22",
+      "target": "PlanetaryFortress",
+      "stages": [
+        "PlanetaryFortress"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 11,
+      "source": "CommandCenter",
+      "ability": "UpgradeToOrbital",
+      "class": "22",
+      "target": "OrbitalCommand",
+      "stages": [
+        "OrbitalCommand"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 12,
+      "source": "SupplyDepot",
+      "ability": "SupplyDepotLower",
+      "class": "22",
+      "target": "SupplyDepotLowered",
+      "stages": [
+        "SupplyDepotLowered"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 13,
+      "source": "Barracks",
+      "ability": "BarracksLiftOff",
+      "class": "22",
+      "target": "BarracksFlying",
+      "stages": [
+        "BarracksFlying"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 14,
+      "source": "Factory",
+      "ability": "FactoryLiftOff",
+      "class": "22",
+      "target": "FactoryFlying",
+      "stages": [
+        "FactoryFlying"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 15,
+      "source": "Starport",
+      "ability": "StarportLiftOff",
+      "class": "22",
+      "target": "StarportFlying",
+      "stages": [
+        "StarportFlying"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 16,
+      "source": "SiegeTankSieged",
+      "ability": "Unsiege",
+      "class": "22",
+      "target": "SiegeTank",
+      "stages": [
+        "SiegeTank"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 17,
+      "source": "SiegeTank",
+      "ability": "SiegeMode",
+      "class": "22",
+      "target": "SiegeTankSieged",
+      "stages": [
+        "SiegeTankSieged"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 18,
+      "source": "VikingAssault",
+      "ability": "FighterMode",
+      "class": "22",
+      "target": "VikingFighter",
+      "stages": [
+        "VikingFighter"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 19,
+      "source": "VikingFighter",
+      "ability": "AssaultMode",
+      "class": "22",
+      "target": "VikingAssault",
+      "stages": [
+        "VikingAssault"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 20,
+      "source": "CommandCenterFlying",
+      "ability": "CommandCenterLand",
+      "class": "23",
+      "target": "CommandCenter",
+      "stages": [
+        "CommandCenter"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 21,
+      "source": "BarracksTechLab",
+      "ability": "TechLabMorph",
+      "class": "22",
+      "target": "TechLab",
+      "stages": [
+        "TechLab"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 22,
+      "source": "BarracksTechLab",
+      "ability": "FactoryTechLabMorph",
+      "class": "22",
+      "target": "FactoryTechLab",
+      "stages": [
+        "FactoryTechLab"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 23,
+      "source": "BarracksTechLab",
+      "ability": "StarportTechLabMorph",
+      "class": "22",
+      "target": "StarportTechLab",
+      "stages": [
+        "StarportTechLab"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 24,
+      "source": "BarracksReactor",
+      "ability": "FactoryReactorMorph",
+      "class": "22",
+      "target": "FactoryReactor",
+      "stages": [
+        "FactoryReactor"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 25,
+      "source": "BarracksReactor",
+      "ability": "StarportReactorMorph",
+      "class": "22",
+      "target": "StarportReactor",
+      "stages": [
+        "StarportReactor"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 26,
+      "source": "BarracksReactor",
+      "ability": "ReactorMorph",
+      "class": "22",
+      "target": "Reactor",
+      "stages": [
+        "Reactor"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 27,
+      "source": "FactoryTechLab",
+      "ability": "BarracksTechLabMorph",
+      "class": "22",
+      "target": "BarracksTechLab",
+      "stages": [
+        "BarracksTechLab"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 28,
+      "source": "FactoryTechLab",
+      "ability": "TechLabMorph",
+      "class": "22",
+      "target": "TechLab",
+      "stages": [
+        "TechLab"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 29,
+      "source": "FactoryTechLab",
+      "ability": "StarportTechLabMorph",
+      "class": "22",
+      "target": "StarportTechLab",
+      "stages": [
+        "StarportTechLab"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 30,
+      "source": "FactoryReactor",
+      "ability": "BarracksReactorMorph",
+      "class": "22",
+      "target": "BarracksReactor",
+      "stages": [
+        "BarracksReactor"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 31,
+      "source": "FactoryReactor",
+      "ability": "StarportReactorMorph",
+      "class": "22",
+      "target": "StarportReactor",
+      "stages": [
+        "StarportReactor"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 32,
+      "source": "FactoryReactor",
+      "ability": "ReactorMorph",
+      "class": "22",
+      "target": "Reactor",
+      "stages": [
+        "Reactor"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 33,
+      "source": "StarportTechLab",
+      "ability": "BarracksTechLabMorph",
+      "class": "22",
+      "target": "BarracksTechLab",
+      "stages": [
+        "BarracksTechLab"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 34,
+      "source": "StarportTechLab",
+      "ability": "FactoryTechLabMorph",
+      "class": "22",
+      "target": "FactoryTechLab",
+      "stages": [
+        "FactoryTechLab"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 35,
+      "source": "StarportTechLab",
+      "ability": "TechLabMorph",
+      "class": "22",
+      "target": "TechLab",
+      "stages": [
+        "TechLab"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 36,
+      "source": "StarportReactor",
+      "ability": "BarracksReactorMorph",
+      "class": "22",
+      "target": "BarracksReactor",
+      "stages": [
+        "BarracksReactor"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 37,
+      "source": "StarportReactor",
+      "ability": "FactoryReactorMorph",
+      "class": "22",
+      "target": "FactoryReactor",
+      "stages": [
+        "FactoryReactor"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 38,
+      "source": "StarportReactor",
+      "ability": "ReactorMorph",
+      "class": "22",
+      "target": "Reactor",
+      "stages": [
+        "Reactor"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 39,
+      "source": "FactoryFlying",
+      "ability": "FactoryLand",
+      "class": "23",
+      "target": "Factory",
+      "stages": [
+        "Factory"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk0.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 40,
+      "source": "StarportFlying",
+      "ability": "StarportLand",
+      "class": "23",
+      "target": "Starport",
+      "stages": [
+        "Starport"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 41,
+      "source": "BarracksFlying",
+      "ability": "BarracksLand",
+      "class": "23",
+      "target": "Barracks",
+      "stages": [
+        "Barracks"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 42,
+      "source": "SupplyDepotLowered",
+      "ability": "SupplyDepotRaise",
+      "class": "22",
+      "target": "SupplyDepot",
+      "stages": [
+        "SupplyDepot"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 43,
+      "source": "Thor",
+      "ability": "ThorAPMode",
+      "class": "22",
+      "target": "ThorAP",
+      "stages": [
+        "ThorAP"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 44,
+      "source": "Hellion",
+      "ability": "MorphToHellionTank",
+      "class": "22",
+      "target": "HellionTank",
+      "stages": [
+        "HellionTank"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 45,
+      "source": "Pylon",
+      "ability": "PurifyMorphPylon",
+      "class": "22",
+      "target": "PylonOvercharged",
+      "stages": [
+        "PylonOvercharged"
+      ],
+      "classification": "instant-completion-same-simulation-time",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 46,
+      "source": "Gateway",
+      "ability": "UpgradeToWarpGate",
+      "class": "22",
+      "target": "WarpGate",
+      "stages": [
+        "WarpGate"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": [
+        {
+          "bank": "reports/editor-validation/diagnostics-v66.SC2Bank",
+          "sha256": "261a025f4dc4bfba7d3f9437c816533b52192896dbddc28a18cc7eeeaed15e55",
+          "bank_section": "ToWarpGatePaid",
+          "format": "cancel-diagnostics",
+          "source": "Gateway",
+          "ability": "UpgradeToWarpGate",
+          "tag": "13107201",
+          "owner": "1",
+          "time": "11.25",
+          "source_created_event": "Event41",
+          "execute_event": "Event42",
+          "cancel_order_event": "Event53",
+          "ability_cancel_event": "Event54",
+          "result": "cancellable",
+          "cancellations": 1
+        }
+      ]
+    },
+    {
+      "link": 47,
+      "source": "Gateway",
+      "ability": "MorphBuildingGatewayWarpGateFree",
+      "class": "22",
+      "target": "WarpGate",
+      "stages": [
+        "WarpGate"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": [
+        {
+          "bank": "reports/editor-validation/diagnostics-v66.SC2Bank",
+          "sha256": "261a025f4dc4bfba7d3f9437c816533b52192896dbddc28a18cc7eeeaed15e55",
+          "bank_section": "ToWarpGateFree",
+          "format": "cancel-diagnostics",
+          "source": "Gateway",
+          "ability": "MorphBuildingGatewayWarpGateFree",
+          "tag": "12845057",
+          "owner": "1",
+          "time": "9",
+          "source_created_event": "Event5",
+          "execute_event": "Event6",
+          "cancel_order_event": "Event16",
+          "ability_cancel_event": "Event17",
+          "result": "cancellable",
+          "cancellations": 1
+        },
+        {
+          "bank": "reports/editor-validation/diagnostics-v66.SC2Bank",
+          "sha256": "261a025f4dc4bfba7d3f9437c816533b52192896dbddc28a18cc7eeeaed15e55",
+          "bank_section": "ToWarpGateFree",
+          "format": "cancel-diagnostics",
+          "source": "Gateway",
+          "ability": "MorphBuildingGatewayWarpGateFree",
+          "tag": "12845057",
+          "owner": "1",
+          "time": "10",
+          "source_created_event": "Event5",
+          "execute_event": "Event18",
+          "cancel_order_event": "Event28",
+          "ability_cancel_event": "Event29",
+          "result": "cancellable",
+          "cancellations": 1
+        },
+        {
+          "bank": "reports/editor-validation/diagnostics-v66.SC2Bank",
+          "sha256": "261a025f4dc4bfba7d3f9437c816533b52192896dbddc28a18cc7eeeaed15e55",
+          "bank_section": "ToWarpGateFreeBypass",
+          "format": "cancel-diagnostics",
+          "source": "Gateway",
+          "ability": "MorphBuildingGatewayWarpGateFree",
+          "tag": "13107202",
+          "owner": "1",
+          "time": "14.75",
+          "source_created_event": "Event93",
+          "execute_event": "Event94",
+          "cancel_order_event": "Event105",
+          "ability_cancel_event": "Event106",
+          "result": "cancellable",
+          "cancellations": 1
+        }
+      ]
+    },
+    {
+      "link": 48,
+      "source": "WarpPrism",
+      "ability": "PhasingMode",
+      "class": "22",
+      "target": "WarpPrismPhasing",
+      "stages": [
+        "WarpPrismPhasing"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 49,
+      "source": "Observer",
+      "ability": "ObserverMorphtoObserverSiege",
+      "class": "22",
+      "target": "ObserverSiegeMode",
+      "stages": [
+        "ObserverSiegeMode"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 50,
+      "source": "Hatchery",
+      "ability": "UpgradeToLair",
+      "class": "22",
+      "target": "Lair",
+      "stages": [
+        "Lair"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": [
+        {
+          "bank": "reports/editor-validation/morph-window-v77.SC2Bank",
+          "sha256": "4a20a05fbe819d1c1dc7563624db800a37c9946ecc1d6ab5d10bc9eb5da74785",
+          "bank_section": "PositiveLair",
+          "format": "morph-cancel-window",
+          "source": "Hatchery",
+          "ability": "UpgradeToLair",
+          "tag": "12582913",
+          "time": "8.125",
+          "result": "cancellable",
+          "cancellations": 1,
+          "source_created_event": "Event0",
+          "execute_event": "Event1",
+          "cancel_order_event": "Event12",
+          "ability_cancel_event": "Event13",
+          "complete_events": [],
+          "window_cancel_hidden": "0",
+          "window_cancel_disabled": "0",
+          "window_ability_enabled": "1"
+        },
+        {
+          "bank": "reports/editor-validation/morph-isolated-v80Window.SC2Bank",
+          "sha256": "950bfb866e94e47ff10a37c5b193b6ca5344248282c83601dc598d4d76ae1484",
+          "bank_section": "PositiveLair",
+          "format": "morph-cancel-window",
+          "source": "Hatchery",
+          "ability": "UpgradeToLair",
+          "tag": "12582914",
+          "time": "12.25",
+          "result": "cancellable",
+          "cancellations": 1,
+          "source_created_event": "Event0",
+          "execute_event": "Event1",
+          "cancel_order_event": "Event12",
+          "ability_cancel_event": "Event13",
+          "complete_events": [],
+          "window_cancel_hidden": "0",
+          "window_cancel_disabled": "0",
+          "window_ability_enabled": "1"
+        }
+      ]
+    },
+    {
+      "link": 51,
+      "source": "CreepTumor",
+      "ability": "BurrowCreepTumorDown",
+      "class": "22",
+      "target": "CreepTumorBurrowed",
+      "stages": [
+        "CreepTumorBurrowed"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 52,
+      "source": "Spire",
+      "ability": "UpgradeToGreaterSpire",
+      "class": "22",
+      "target": "GreaterSpire",
+      "stages": [
+        "GreaterSpire"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 53,
+      "source": "SpineCrawler",
+      "ability": "SpineCrawlerUproot",
+      "class": "22",
+      "target": "SpineCrawlerUprooted",
+      "stages": [
+        "SpineCrawlerUprooted"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 54,
+      "source": "SporeCrawler",
+      "ability": "SporeCrawlerUproot",
+      "class": "22",
+      "target": "SporeCrawlerUprooted",
+      "stages": [
+        "SporeCrawlerUprooted"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 55,
+      "source": "Lair",
+      "ability": "UpgradeToHive",
+      "class": "22",
+      "target": "Hive",
+      "stages": [
+        "Hive"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 56,
+      "source": "Drone",
+      "ability": "BurrowDroneDown",
+      "class": "22",
+      "target": "DroneBurrowed",
+      "stages": [
+        "DroneBurrowed"
+      ],
+      "classification": "cancellable-supplemented-engine-trace",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": [
+        {
+          "bank": "reports/editor-validation/morph-window-v77.SC2Bank",
+          "sha256": "4a20a05fbe819d1c1dc7563624db800a37c9946ecc1d6ab5d10bc9eb5da74785",
+          "bank_section": "DroneBurrow",
+          "format": "morph-cancel-window",
+          "source": "Drone",
+          "ability": "BurrowDroneDown",
+          "tag": "12845058",
+          "time": "9.625",
+          "result": "cancellable",
+          "cancellations": 1,
+          "source_created_event": "Event57",
+          "execute_event": "Event58",
+          "cancel_order_event": "Event62",
+          "ability_cancel_event": "Event63",
+          "complete_events": [],
+          "window_cancel_hidden": "0",
+          "window_cancel_disabled": "0",
+          "window_ability_enabled": "1"
+        }
+      ]
+    },
+    {
+      "link": 57,
+      "source": "Zergling",
+      "ability": "BurrowZerglingDown",
+      "class": "22",
+      "target": "ZerglingBurrowed",
+      "stages": [
+        "ZerglingBurrowed"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 58,
+      "source": "Zergling",
+      "ability": "MorphToBaneling",
+      "class": "22",
+      "target": "Baneling",
+      "stages": [
+        "BanelingCocoon",
+        "Baneling"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 59,
+      "source": "Overlord",
+      "ability": "MorphToOverseer",
+      "class": "22",
+      "target": "Overseer",
+      "stages": [
+        "OverlordCocoon",
+        "Overseer"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 60,
+      "source": "Overlord",
+      "ability": "MorphToTransportOverlord",
+      "class": "22",
+      "target": "OverlordTransport",
+      "stages": [
+        "TransportOverlordCocoon",
+        "OverlordTransport"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 61,
+      "source": "Hydralisk",
+      "ability": "BurrowHydraliskDown",
+      "class": "22",
+      "target": "HydraliskBurrowed",
+      "stages": [
+        "HydraliskBurrowed"
+      ],
+      "classification": "cancellable-supplemented-engine-trace",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": [
+        {
+          "bank": "reports/editor-validation/morph-window-v77.SC2Bank",
+          "sha256": "4a20a05fbe819d1c1dc7563624db800a37c9946ecc1d6ab5d10bc9eb5da74785",
+          "bank_section": "HydraliskBurrow",
+          "format": "morph-cancel-window",
+          "source": "Hydralisk",
+          "ability": "BurrowHydraliskDown",
+          "tag": "12582915",
+          "time": "10.125",
+          "result": "cancellable",
+          "cancellations": 1,
+          "source_created_event": "Event64",
+          "execute_event": "Event65",
+          "cancel_order_event": "Event69",
+          "ability_cancel_event": "Event70",
+          "complete_events": [],
+          "window_cancel_hidden": "0",
+          "window_cancel_disabled": "0",
+          "window_ability_enabled": "1"
+        }
+      ]
+    },
+    {
+      "link": 62,
+      "source": "Hydralisk",
+      "ability": "MorphToLurker",
+      "class": "22",
+      "target": "LurkerMP",
+      "stages": [
+        "LurkerMPEgg",
+        "LurkerMP"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 63,
+      "source": "Ultralisk",
+      "ability": "BurrowUltraliskDown",
+      "class": "22",
+      "target": "UltraliskBurrowed",
+      "stages": [
+        "UltraliskBurrowed"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 64,
+      "source": "Roach",
+      "ability": "BurrowRoachDown",
+      "class": "22",
+      "target": "RoachBurrowed",
+      "stages": [
+        "RoachBurrowed"
+      ],
+      "classification": "unavailable-player-cancel-window",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": [
+        {
+          "bank": "reports/editor-validation/morph-isolated-v80Window.SC2Bank",
+          "sha256": "950bfb866e94e47ff10a37c5b193b6ca5344248282c83601dc598d4d76ae1484",
+          "bank_section": "RoachBurrowDown",
+          "format": "morph-cancel-window",
+          "source": "Roach",
+          "ability": "BurrowRoachDown",
+          "tag": "12582915",
+          "time": "13.25",
+          "result": "unavailable-player-cancel-window",
+          "cancellations": 0,
+          "source_created_event": "Event41",
+          "execute_event": "Event51",
+          "cancel_order_event": "none (disabled/hidden)",
+          "ability_cancel_event": "none (completed)",
+          "complete_events": [
+            "Event67"
+          ],
+          "window_cancel_hidden": "1",
+          "window_cancel_disabled": "1",
+          "window_ability_enabled": "0"
+        }
+      ]
+    },
+    {
+      "link": 65,
+      "source": "Roach",
+      "ability": "MorphToRavager",
+      "class": "22",
+      "target": "Ravager",
+      "stages": [
+        "RavagerCocoon",
+        "Ravager"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": [
+        {
+          "bank": "reports/editor-validation/morph-window-v77.SC2Bank",
+          "sha256": "4a20a05fbe819d1c1dc7563624db800a37c9946ecc1d6ab5d10bc9eb5da74785",
+          "bank_section": "PositiveRavager",
+          "format": "morph-cancel-window",
+          "source": "Roach",
+          "ability": "MorphToRavager",
+          "tag": "12845057",
+          "time": "8.625",
+          "result": "cancellable",
+          "cancellations": 1,
+          "source_created_event": "Event14",
+          "execute_event": "Event15",
+          "cancel_order_event": "Event39",
+          "ability_cancel_event": "Event40",
+          "complete_events": [],
+          "window_cancel_hidden": "0",
+          "window_cancel_disabled": "0",
+          "window_ability_enabled": "1"
+        },
+        {
+          "bank": "reports/editor-validation/morph-isolated-v80Window.SC2Bank",
+          "sha256": "950bfb866e94e47ff10a37c5b193b6ca5344248282c83601dc598d4d76ae1484",
+          "bank_section": "PositiveRavager",
+          "format": "morph-cancel-window",
+          "source": "Roach",
+          "ability": "MorphToRavager",
+          "tag": "12845057",
+          "time": "12.75",
+          "result": "cancellable",
+          "cancellations": 1,
+          "source_created_event": "Event14",
+          "execute_event": "Event15",
+          "cancel_order_event": "Event39",
+          "ability_cancel_event": "Event40",
+          "complete_events": [],
+          "window_cancel_hidden": "0",
+          "window_cancel_disabled": "0",
+          "window_ability_enabled": "1"
+        }
+      ]
+    },
+    {
+      "link": 66,
+      "source": "Infestor",
+      "ability": "BurrowInfestorDown",
+      "class": "22",
+      "target": "InfestorBurrowed",
+      "stages": [
+        "InfestorBurrowed"
+      ],
+      "classification": "unavailable-player-cancel-window",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": [
+        {
+          "bank": "reports/editor-validation/morph-isolated-v80Window.SC2Bank",
+          "sha256": "950bfb866e94e47ff10a37c5b193b6ca5344248282c83601dc598d4d76ae1484",
+          "bank_section": "InfestorBurrowDown",
+          "format": "morph-cancel-window",
+          "source": "Infestor",
+          "ability": "BurrowInfestorDown",
+          "tag": "12845058",
+          "time": "13.75",
+          "result": "unavailable-player-cancel-window",
+          "cancellations": 0,
+          "source_created_event": "Event69",
+          "execute_event": "Event70",
+          "cancel_order_event": "none (disabled/hidden)",
+          "ability_cancel_event": "none (completed)",
+          "complete_events": [
+            "Event86"
+          ],
+          "window_cancel_hidden": "1",
+          "window_cancel_disabled": "1",
+          "window_ability_enabled": "0"
+        }
+      ]
+    },
+    {
+      "link": 67,
+      "source": "Corruptor",
+      "ability": "MorphToBroodLord",
+      "class": "22",
+      "target": "BroodLord",
+      "stages": [
+        "BroodLordCocoon",
+        "BroodLord"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 68,
+      "source": "BroodLordCocoon",
+      "ability": "MorphToBroodLord",
+      "class": "22",
+      "target": "BroodLord",
+      "stages": [
+        "BroodLordCocoon",
+        "BroodLord"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 69,
+      "source": "BanelingBurrowed",
+      "ability": "BurrowBanelingUp",
+      "class": "22",
+      "target": "Baneling",
+      "stages": [
+        "Baneling"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 70,
+      "source": "DroneBurrowed",
+      "ability": "BurrowDroneUp",
+      "class": "22",
+      "target": "Drone",
+      "stages": [
+        "Drone"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 71,
+      "source": "HydraliskBurrowed",
+      "ability": "BurrowHydraliskUp",
+      "class": "22",
+      "target": "Hydralisk",
+      "stages": [
+        "Hydralisk"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 72,
+      "source": "RoachBurrowed",
+      "ability": "BurrowRoachUp",
+      "class": "22",
+      "target": "Roach",
+      "stages": [
+        "Roach"
+      ],
+      "classification": "unavailable-player-cancel-window",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": [
+        {
+          "bank": "reports/editor-validation/morph-isolated-v80Window.SC2Bank",
+          "sha256": "950bfb866e94e47ff10a37c5b193b6ca5344248282c83601dc598d4d76ae1484",
+          "bank_section": "RoachBurrowUp",
+          "format": "morph-cancel-window",
+          "source": "RoachBurrowed",
+          "ability": "BurrowRoachUp",
+          "tag": "12582916",
+          "time": "14.25",
+          "result": "unavailable-player-cancel-window",
+          "cancellations": 0,
+          "source_created_event": "Event88",
+          "execute_event": "Event89",
+          "cancel_order_event": "none (disabled/hidden)",
+          "ability_cancel_event": "none (completed)",
+          "complete_events": [
+            "Event105"
+          ],
+          "window_cancel_hidden": "1",
+          "window_cancel_disabled": "1",
+          "window_ability_enabled": "0"
+        }
+      ]
+    },
+    {
+      "link": 73,
+      "source": "ZerglingBurrowed",
+      "ability": "BurrowZerglingUp",
+      "class": "22",
+      "target": "Zergling",
+      "stages": [
+        "Zergling"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 74,
+      "source": "InfestorTerranBurrowed",
+      "ability": "BurrowInfestorTerranUp",
+      "class": "22",
+      "target": "InfestorTerran",
+      "stages": [
+        "InfestorTerran"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 75,
+      "source": "RedstoneLavaCritterBurrowed",
+      "ability": "RedstoneLavaCritterUnburrow",
+      "class": "22",
+      "target": "RedstoneLavaCritter",
+      "stages": [
+        "RedstoneLavaCritter"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 76,
+      "source": "RedstoneLavaCritterInjuredBurrowed",
+      "ability": "RedstoneLavaCritterInjuredUnburrow",
+      "class": "22",
+      "target": "RedstoneLavaCritterInjured",
+      "stages": [
+        "RedstoneLavaCritterInjured"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 77,
+      "source": "RedstoneLavaCritter",
+      "ability": "RedstoneLavaCritterBurrow",
+      "class": "22",
+      "target": "RedstoneLavaCritterBurrowed",
+      "stages": [
+        "RedstoneLavaCritterBurrowed"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 78,
+      "source": "RedstoneLavaCritterInjured",
+      "ability": "RedstoneLavaCritterInjuredBurrow",
+      "class": "22",
+      "target": "RedstoneLavaCritterInjuredBurrowed",
+      "stages": [
+        "RedstoneLavaCritterInjuredBurrowed"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 79,
+      "source": "QueenBurrowed",
+      "ability": "BurrowQueenUp",
+      "class": "22",
+      "target": "Queen",
+      "stages": [
+        "Queen"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk1.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 80,
+      "source": "Queen",
+      "ability": "BurrowQueenDown",
+      "class": "22",
+      "target": "QueenBurrowed",
+      "stages": [
+        "QueenBurrowed"
+      ],
+      "classification": "cancellable-supplemented-engine-trace",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": [
+        {
+          "bank": "reports/editor-validation/morph-window-v77.SC2Bank",
+          "sha256": "4a20a05fbe819d1c1dc7563624db800a37c9946ecc1d6ab5d10bc9eb5da74785",
+          "bank_section": "QueenBurrow",
+          "format": "morph-cancel-window",
+          "source": "Queen",
+          "ability": "BurrowQueenDown",
+          "tag": "12845059",
+          "time": "10.625",
+          "result": "cancellable",
+          "cancellations": 1,
+          "source_created_event": "Event71",
+          "execute_event": "Event72",
+          "cancel_order_event": "Event76",
+          "ability_cancel_event": "Event77",
+          "complete_events": [],
+          "window_cancel_hidden": "0",
+          "window_cancel_disabled": "0",
+          "window_ability_enabled": "1"
+        }
+      ]
+    },
+    {
+      "link": 81,
+      "source": "InfestorBurrowed",
+      "ability": "BurrowInfestorUp",
+      "class": "22",
+      "target": "Infestor",
+      "stages": [
+        "Infestor"
+      ],
+      "classification": "instant-completion-same-simulation-time",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 82,
+      "source": "OverlordCocoon",
+      "ability": "MorphToOverseer",
+      "class": "22",
+      "target": "Overseer",
+      "stages": [
+        "OverlordCocoon",
+        "Overseer"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 83,
+      "source": "Overseer",
+      "ability": "OverseerMorphtoOverseerSiegeMode",
+      "class": "22",
+      "target": "OverseerSiegeMode",
+      "stages": [
+        "OverseerSiegeMode"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 84,
+      "source": "UltraliskBurrowed",
+      "ability": "BurrowUltraliskUp",
+      "class": "22",
+      "target": "Ultralisk",
+      "stages": [
+        "Ultralisk"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 85,
+      "source": "OrbitalCommand",
+      "ability": "OrbitalLiftOff",
+      "class": "22",
+      "target": "OrbitalCommandFlying",
+      "stages": [
+        "OrbitalCommandFlying"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 86,
+      "source": "WarpGate",
+      "ability": "MorphBackToGateway",
+      "class": "22",
+      "target": "Gateway",
+      "stages": [
+        "Gateway"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": [
+        {
+          "bank": "reports/editor-validation/diagnostics-v66.SC2Bank",
+          "sha256": "261a025f4dc4bfba7d3f9437c816533b52192896dbddc28a18cc7eeeaed15e55",
+          "bank_section": "ToGatewayNormal",
+          "format": "cancel-diagnostics",
+          "source": "WarpGate",
+          "ability": "MorphBackToGateway",
+          "tag": "12845058",
+          "owner": "1",
+          "time": "12.5",
+          "source_created_event": "Event66",
+          "execute_event": "Event67",
+          "cancel_order_event": "Event78",
+          "ability_cancel_event": "Event79",
+          "result": "cancellable",
+          "cancellations": 1
+        },
+        {
+          "bank": "reports/editor-validation/diagnostics-v66.SC2Bank",
+          "sha256": "261a025f4dc4bfba7d3f9437c816533b52192896dbddc28a18cc7eeeaed15e55",
+          "bank_section": "ToGatewayNormal",
+          "format": "cancel-diagnostics",
+          "source": "WarpGate",
+          "ability": "MorphBackToGateway",
+          "tag": "12845058",
+          "owner": "1",
+          "time": "13.5",
+          "source_created_event": "Event66",
+          "execute_event": "Event80",
+          "cancel_order_event": "Event91",
+          "ability_cancel_event": "Event92",
+          "result": "cancellable",
+          "cancellations": 1
+        },
+        {
+          "bank": "reports/editor-validation/diagnostics-v66.SC2Bank",
+          "sha256": "261a025f4dc4bfba7d3f9437c816533b52192896dbddc28a18cc7eeeaed15e55",
+          "bank_section": "ToGatewayBypass",
+          "format": "cancel-diagnostics",
+          "source": "WarpGate",
+          "ability": "MorphBackToGateway",
+          "tag": "12845059",
+          "owner": "1",
+          "time": "16",
+          "source_created_event": "Event118",
+          "execute_event": "Event119",
+          "cancel_order_event": "Event130",
+          "ability_cancel_event": "Event131",
+          "result": "cancellable",
+          "cancellations": 1
+        }
+      ]
+    },
+    {
+      "link": 87,
+      "source": "OrbitalCommandFlying",
+      "ability": "OrbitalCommandLand",
+      "class": "23",
+      "target": "OrbitalCommand",
+      "stages": [
+        "OrbitalCommand"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 88,
+      "source": "WarpPrismPhasing",
+      "ability": "TransportMode",
+      "class": "22",
+      "target": "WarpPrism",
+      "stages": [
+        "WarpPrism"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 89,
+      "source": "CreepTumorQueen",
+      "ability": "BurrowCreepTumorDown",
+      "class": "22",
+      "target": "CreepTumorBurrowed",
+      "stages": [
+        "CreepTumorBurrowed"
+      ],
+      "classification": "automatic-no-manual-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 90,
+      "source": "SpineCrawlerUprooted",
+      "ability": "SpineCrawlerRoot",
+      "class": "23",
+      "target": "SpineCrawler",
+      "stages": [
+        "SpineCrawler"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 91,
+      "source": "SporeCrawlerUprooted",
+      "ability": "SporeCrawlerRoot",
+      "class": "23",
+      "target": "SporeCrawler",
+      "stages": [
+        "SporeCrawler"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 92,
+      "source": "GhostAlternate",
+      "ability": "MorphToGhostNova",
+      "class": "22",
+      "target": "GhostNova",
+      "stages": [
+        "GhostNova"
+      ],
+      "classification": "instant-completion-same-simulation-time",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 93,
+      "source": "LurkerMPBurrowed",
+      "ability": "BurrowLurkerMPUp",
+      "class": "22",
+      "target": "LurkerMP",
+      "stages": [
+        "LurkerMP"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 94,
+      "source": "LurkerMPBurrowed",
+      "ability": "BurrowLurkerMPDown",
+      "class": "22",
+      "target": "LurkerMPBurrowed",
+      "stages": [
+        "LurkerMPBurrowed"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 95,
+      "source": "LurkerMP",
+      "ability": "BurrowLurkerMPDown",
+      "class": "22",
+      "target": "LurkerMPBurrowed",
+      "stages": [
+        "LurkerMPBurrowed"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 96,
+      "source": "LurkerMPEgg",
+      "ability": "MorphToLurker",
+      "class": "22",
+      "target": "LurkerMP",
+      "stages": [
+        "LurkerMPEgg",
+        "LurkerMP"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 97,
+      "source": "OverlordTransport",
+      "ability": "MorphToOverseer",
+      "class": "22",
+      "target": "Overseer",
+      "stages": [
+        "OverlordCocoon",
+        "Overseer"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 98,
+      "source": "Ravager",
+      "ability": "BurrowRavagerDown",
+      "class": "22",
+      "target": "RavagerBurrowed",
+      "stages": [
+        "RavagerBurrowed"
+      ],
+      "classification": "cancellable-supplemented-engine-trace",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": [
+        {
+          "bank": "reports/editor-validation/morph-window-v77.SC2Bank",
+          "sha256": "4a20a05fbe819d1c1dc7563624db800a37c9946ecc1d6ab5d10bc9eb5da74785",
+          "bank_section": "RavagerBurrow",
+          "format": "morph-cancel-window",
+          "source": "Ravager",
+          "ability": "BurrowRavagerDown",
+          "tag": "12582916",
+          "time": "11.125",
+          "result": "cancellable",
+          "cancellations": 1,
+          "source_created_event": "Event78",
+          "execute_event": "Event79",
+          "cancel_order_event": "Event83",
+          "ability_cancel_event": "Event91",
+          "complete_events": [],
+          "window_cancel_hidden": "0",
+          "window_cancel_disabled": "0",
+          "window_ability_enabled": "1"
+        }
+      ]
+    },
+    {
+      "link": 99,
+      "source": "RavagerBurrowed",
+      "ability": "BurrowRavagerUp",
+      "class": "22",
+      "target": "Ravager",
+      "stages": [
+        "Ravager"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 100,
+      "source": "RavagerCocoon",
+      "ability": "MorphToRavager",
+      "class": "22",
+      "target": "Ravager",
+      "stages": [
+        "RavagerCocoon",
+        "Ravager"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 101,
+      "source": "TransportOverlordCocoon",
+      "ability": "MorphToTransportOverlord",
+      "class": "22",
+      "target": "OverlordTransport",
+      "stages": [
+        "TransportOverlordCocoon",
+        "OverlordTransport"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 102,
+      "source": "InfestedTerransEgg",
+      "ability": "MorphToInfestedTerran",
+      "class": "22",
+      "target": "InfestorTerran",
+      "stages": [
+        "InfestorTerran"
+      ],
+      "classification": "unavailable-manual-command-observed-natural-lifecycle",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 103,
+      "source": "OverseerSiegeMode",
+      "ability": "OverseerSiegeModeMorphtoOverseer",
+      "class": "22",
+      "target": "Overseer",
+      "stages": [
+        "Overseer"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 104,
+      "source": "LiberatorAG",
+      "ability": "LiberatorMorphtoAA",
+      "class": "22",
+      "target": "Liberator",
+      "stages": [
+        "Liberator"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 105,
+      "source": "LiberatorAG",
+      "ability": "LiberatorMorphtoAG",
+      "class": "22",
+      "target": "LiberatorAG",
+      "stages": [
+        "LiberatorAG"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 106,
+      "source": "HellionTank",
+      "ability": "MorphToHellion",
+      "class": "22",
+      "target": "Hellion",
+      "stages": [
+        "Hellion"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 107,
+      "source": "WidowMine",
+      "ability": "WidowMineBurrow",
+      "class": "22",
+      "target": "WidowMineBurrowed",
+      "stages": [
+        "WidowMineBurrowed"
+      ],
+      "classification": "cancellable-supplemented-engine-trace",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": [
+        {
+          "bank": "reports/editor-validation/morph-window-v77.SC2Bank",
+          "sha256": "4a20a05fbe819d1c1dc7563624db800a37c9946ecc1d6ab5d10bc9eb5da74785",
+          "bank_section": "WidowMineBurrow",
+          "format": "morph-cancel-window",
+          "source": "WidowMine",
+          "ability": "WidowMineBurrow",
+          "tag": "12845060",
+          "time": "11.625",
+          "result": "cancellable",
+          "cancellations": 1,
+          "source_created_event": "Event92",
+          "execute_event": "Event93",
+          "cancel_order_event": "Event97",
+          "ability_cancel_event": "Event98",
+          "complete_events": [],
+          "window_cancel_hidden": "0",
+          "window_cancel_disabled": "0",
+          "window_ability_enabled": "1"
+        }
+      ]
+    },
+    {
+      "link": 108,
+      "source": "Liberator",
+      "ability": "LiberatorMorphtoAG",
+      "class": "22",
+      "target": "LiberatorAG",
+      "stages": [
+        "LiberatorAG"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 109,
+      "source": "SwarmHostMP",
+      "ability": "MorphToSwarmHostBurrowedMP",
+      "class": "22",
+      "target": "SwarmHostBurrowedMP",
+      "stages": [
+        "SwarmHostBurrowedMP"
+      ],
+      "classification": "cancellable-supplemented-engine-trace",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": [
+        {
+          "bank": "reports/editor-validation/morph-window-v77.SC2Bank",
+          "sha256": "4a20a05fbe819d1c1dc7563624db800a37c9946ecc1d6ab5d10bc9eb5da74785",
+          "bank_section": "SwarmHostBurrow",
+          "format": "morph-cancel-window",
+          "source": "SwarmHostMP",
+          "ability": "MorphToSwarmHostBurrowedMP",
+          "tag": "12582917",
+          "time": "12.125",
+          "result": "cancellable",
+          "cancellations": 1,
+          "source_created_event": "Event99",
+          "execute_event": "Event100",
+          "cancel_order_event": "Event104",
+          "ability_cancel_event": "Event105",
+          "complete_events": [],
+          "window_cancel_hidden": "0",
+          "window_cancel_disabled": "0",
+          "window_ability_enabled": "1"
+        }
+      ]
+    },
+    {
+      "link": 110,
+      "source": "MothershipCore",
+      "ability": "MorphToMothership",
+      "class": "22",
+      "target": "Mothership",
+      "stages": [
+        "Mothership"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 111,
+      "source": "ThorAP",
+      "ability": "ThorNormalMode",
+      "class": "22",
+      "target": "Thor",
+      "stages": [
+        "Thor"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 112,
+      "source": "LocustMP",
+      "ability": "LocustMPMorphToAir",
+      "class": "22",
+      "target": "LocustMPFlying",
+      "stages": [
+        "LocustMPFlying"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 113,
+      "source": "SwarmHostBurrowedMP",
+      "ability": "MorphToSwarmHostMP",
+      "class": "22",
+      "target": "SwarmHostMP",
+      "stages": [
+        "SwarmHostMP"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 114,
+      "source": "WidowMineBurrowed",
+      "ability": "WidowMineUnburrow",
+      "class": "22",
+      "target": "WidowMine",
+      "stages": [
+        "WidowMine"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 115,
+      "source": "ExtendingBridgeNEWide8Out",
+      "ability": "ExtendingBridgeNEWide8",
+      "class": "22",
+      "target": "ExtendingBridgeNEWide8",
+      "stages": [
+        "ExtendingBridgeNEWide8"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 116,
+      "source": "ExtendingBridgeNEWide8",
+      "ability": "ExtendingBridgeNEWide8Out",
+      "class": "22",
+      "target": "ExtendingBridgeNEWide8Out",
+      "stages": [
+        "ExtendingBridgeNEWide8Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 117,
+      "source": "ExtendingBridgeNWWide8Out",
+      "ability": "ExtendingBridgeNWWide8",
+      "class": "22",
+      "target": "ExtendingBridgeNWWide8",
+      "stages": [
+        "ExtendingBridgeNWWide8"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 118,
+      "source": "ExtendingBridgeNWWide8",
+      "ability": "ExtendingBridgeNWWide8Out",
+      "class": "22",
+      "target": "ExtendingBridgeNWWide8Out",
+      "stages": [
+        "ExtendingBridgeNWWide8Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 119,
+      "source": "ExtendingBridgeNEWide10Out",
+      "ability": "ExtendingBridgeNEWide10",
+      "class": "22",
+      "target": "ExtendingBridgeNEWide10",
+      "stages": [
+        "ExtendingBridgeNEWide10"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk2.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 120,
+      "source": "ExtendingBridgeNEWide10",
+      "ability": "ExtendingBridgeNEWide10Out",
+      "class": "22",
+      "target": "ExtendingBridgeNEWide10Out",
+      "stages": [
+        "ExtendingBridgeNEWide10Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 121,
+      "source": "ExtendingBridgeNWWide10Out",
+      "ability": "ExtendingBridgeNWWide10",
+      "class": "22",
+      "target": "ExtendingBridgeNWWide10",
+      "stages": [
+        "ExtendingBridgeNWWide10"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 122,
+      "source": "ExtendingBridgeNWWide10",
+      "ability": "ExtendingBridgeNWWide10Out",
+      "class": "22",
+      "target": "ExtendingBridgeNWWide10Out",
+      "stages": [
+        "ExtendingBridgeNWWide10Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 123,
+      "source": "ExtendingBridgeNEWide12Out",
+      "ability": "ExtendingBridgeNEWide12",
+      "class": "22",
+      "target": "ExtendingBridgeNEWide12",
+      "stages": [
+        "ExtendingBridgeNEWide12"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 124,
+      "source": "ExtendingBridgeNEWide12",
+      "ability": "ExtendingBridgeNEWide12Out",
+      "class": "22",
+      "target": "ExtendingBridgeNEWide12Out",
+      "stages": [
+        "ExtendingBridgeNEWide12Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 125,
+      "source": "ExtendingBridgeNWWide12Out",
+      "ability": "ExtendingBridgeNWWide12",
+      "class": "22",
+      "target": "ExtendingBridgeNWWide12",
+      "stages": [
+        "ExtendingBridgeNWWide12"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 126,
+      "source": "ExtendingBridgeNWWide12",
+      "ability": "ExtendingBridgeNWWide12Out",
+      "class": "22",
+      "target": "ExtendingBridgeNWWide12Out",
+      "stages": [
+        "ExtendingBridgeNWWide12Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 127,
+      "source": "XelNaga_Caverns_DoorE",
+      "ability": "XelNaga_Caverns_DoorEOpened",
+      "class": "22",
+      "target": "XelNaga_Caverns_DoorEOpened",
+      "stages": [
+        "XelNaga_Caverns_DoorEOpened"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 128,
+      "source": "XelNaga_Caverns_DoorEOpened",
+      "ability": "XelNaga_Caverns_DoorE",
+      "class": "22",
+      "target": "XelNaga_Caverns_DoorE",
+      "stages": [
+        "XelNaga_Caverns_DoorE"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 129,
+      "source": "XelNaga_Caverns_DoorN",
+      "ability": "XelNaga_Caverns_DoorNOpened",
+      "class": "22",
+      "target": "XelNaga_Caverns_DoorNOpened",
+      "stages": [
+        "XelNaga_Caverns_DoorNOpened"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 130,
+      "source": "XelNaga_Caverns_DoorNE",
+      "ability": "XelNaga_Caverns_DoorNEOpened",
+      "class": "22",
+      "target": "XelNaga_Caverns_DoorNEOpened",
+      "stages": [
+        "XelNaga_Caverns_DoorNEOpened"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 131,
+      "source": "XelNaga_Caverns_DoorNEOpened",
+      "ability": "XelNaga_Caverns_DoorNE",
+      "class": "22",
+      "target": "XelNaga_Caverns_DoorNE",
+      "stages": [
+        "XelNaga_Caverns_DoorNE"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 132,
+      "source": "XelNaga_Caverns_DoorNOpened",
+      "ability": "XelNaga_Caverns_DoorN",
+      "class": "22",
+      "target": "XelNaga_Caverns_DoorN",
+      "stages": [
+        "XelNaga_Caverns_DoorN"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 133,
+      "source": "XelNaga_Caverns_DoorNW",
+      "ability": "XelNaga_Caverns_DoorNWOpened",
+      "class": "22",
+      "target": "XelNaga_Caverns_DoorNWOpened",
+      "stages": [
+        "XelNaga_Caverns_DoorNWOpened"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 134,
+      "source": "XelNaga_Caverns_DoorNWOpened",
+      "ability": "XelNaga_Caverns_DoorNW",
+      "class": "22",
+      "target": "XelNaga_Caverns_DoorNW",
+      "stages": [
+        "XelNaga_Caverns_DoorNW"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 135,
+      "source": "XelNaga_Caverns_DoorS",
+      "ability": "XelNaga_Caverns_DoorSOpened",
+      "class": "22",
+      "target": "XelNaga_Caverns_DoorSOpened",
+      "stages": [
+        "XelNaga_Caverns_DoorSOpened"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 136,
+      "source": "XelNaga_Caverns_DoorSE",
+      "ability": "XelNaga_Caverns_DoorSEOpened",
+      "class": "22",
+      "target": "XelNaga_Caverns_DoorSEOpened",
+      "stages": [
+        "XelNaga_Caverns_DoorSEOpened"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 137,
+      "source": "XelNaga_Caverns_DoorSEOpened",
+      "ability": "XelNaga_Caverns_DoorSE",
+      "class": "22",
+      "target": "XelNaga_Caverns_DoorSE",
+      "stages": [
+        "XelNaga_Caverns_DoorSE"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 138,
+      "source": "XelNaga_Caverns_DoorSOpened",
+      "ability": "XelNaga_Caverns_DoorS",
+      "class": "22",
+      "target": "XelNaga_Caverns_DoorS",
+      "stages": [
+        "XelNaga_Caverns_DoorS"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 139,
+      "source": "XelNaga_Caverns_DoorSW",
+      "ability": "XelNaga_Caverns_DoorSWOpened",
+      "class": "22",
+      "target": "XelNaga_Caverns_DoorSWOpened",
+      "stages": [
+        "XelNaga_Caverns_DoorSWOpened"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 140,
+      "source": "XelNaga_Caverns_DoorSWOpened",
+      "ability": "XelNaga_Caverns_DoorSW",
+      "class": "22",
+      "target": "XelNaga_Caverns_DoorSW",
+      "stages": [
+        "XelNaga_Caverns_DoorSW"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 141,
+      "source": "XelNaga_Caverns_DoorW",
+      "ability": "XelNaga_Caverns_DoorWOpened",
+      "class": "22",
+      "target": "XelNaga_Caverns_DoorWOpened",
+      "stages": [
+        "XelNaga_Caverns_DoorWOpened"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 142,
+      "source": "XelNaga_Caverns_DoorWOpened",
+      "ability": "XelNaga_Caverns_DoorW",
+      "class": "22",
+      "target": "XelNaga_Caverns_DoorW",
+      "stages": [
+        "XelNaga_Caverns_DoorW"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 143,
+      "source": "XelNaga_Caverns_Floating_BridgeNE8Out",
+      "ability": "XelNaga_Caverns_Floating_BridgeNE8",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeNE8",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeNE8"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 144,
+      "source": "XelNaga_Caverns_Floating_BridgeNE8",
+      "ability": "XelNaga_Caverns_Floating_BridgeNE8Out",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeNE8Out",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeNE8Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 145,
+      "source": "XelNaga_Caverns_Floating_BridgeNW8Out",
+      "ability": "XelNaga_Caverns_Floating_BridgeNW8",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeNW8",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeNW8"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 146,
+      "source": "XelNaga_Caverns_Floating_BridgeNW8",
+      "ability": "XelNaga_Caverns_Floating_BridgeNW8Out",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeNW8Out",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeNW8Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 147,
+      "source": "XelNaga_Caverns_Floating_BridgeNE10Out",
+      "ability": "XelNaga_Caverns_Floating_BridgeNE10",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeNE10",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeNE10"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 148,
+      "source": "XelNaga_Caverns_Floating_BridgeNE10",
+      "ability": "XelNaga_Caverns_Floating_BridgeNE10Out",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeNE10Out",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeNE10Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 149,
+      "source": "XelNaga_Caverns_Floating_BridgeNW10Out",
+      "ability": "XelNaga_Caverns_Floating_BridgeNW10",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeNW10",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeNW10"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 150,
+      "source": "XelNaga_Caverns_Floating_BridgeNW10",
+      "ability": "XelNaga_Caverns_Floating_BridgeNW10Out",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeNW10Out",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeNW10Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 151,
+      "source": "XelNaga_Caverns_Floating_BridgeNE12Out",
+      "ability": "XelNaga_Caverns_Floating_BridgeNE12",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeNE12",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeNE12"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 152,
+      "source": "XelNaga_Caverns_Floating_BridgeNE12",
+      "ability": "XelNaga_Caverns_Floating_BridgeNE12Out",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeNE12Out",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeNE12Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 153,
+      "source": "XelNaga_Caverns_Floating_BridgeNW12Out",
+      "ability": "XelNaga_Caverns_Floating_BridgeNW12",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeNW12",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeNW12"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 154,
+      "source": "XelNaga_Caverns_Floating_BridgeNW12",
+      "ability": "XelNaga_Caverns_Floating_BridgeNW12Out",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeNW12Out",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeNW12Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 155,
+      "source": "XelNaga_Caverns_Floating_BridgeH8Out",
+      "ability": "XelNaga_Caverns_Floating_BridgeH8",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeH8",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeH8"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 156,
+      "source": "XelNaga_Caverns_Floating_BridgeH8",
+      "ability": "XelNaga_Caverns_Floating_BridgeH8Out",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeH8Out",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeH8Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 157,
+      "source": "XelNaga_Caverns_Floating_BridgeV8Out",
+      "ability": "XelNaga_Caverns_Floating_BridgeV8",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeV8",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeV8"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 158,
+      "source": "XelNaga_Caverns_Floating_BridgeV8",
+      "ability": "XelNaga_Caverns_Floating_BridgeV8Out",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeV8Out",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeV8Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 159,
+      "source": "XelNaga_Caverns_Floating_BridgeH10Out",
+      "ability": "XelNaga_Caverns_Floating_BridgeH10",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeH10",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeH10"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk3.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 160,
+      "source": "XelNaga_Caverns_Floating_BridgeH10",
+      "ability": "XelNaga_Caverns_Floating_BridgeH10Out",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeH10Out",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeH10Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 161,
+      "source": "XelNaga_Caverns_Floating_BridgeV10Out",
+      "ability": "XelNaga_Caverns_Floating_BridgeV10",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeV10",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeV10"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 162,
+      "source": "XelNaga_Caverns_Floating_BridgeV10",
+      "ability": "XelNaga_Caverns_Floating_BridgeV10Out",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeV10Out",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeV10Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 163,
+      "source": "XelNaga_Caverns_Floating_BridgeH12Out",
+      "ability": "XelNaga_Caverns_Floating_BridgeH12",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeH12",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeH12"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 164,
+      "source": "XelNaga_Caverns_Floating_BridgeH12",
+      "ability": "XelNaga_Caverns_Floating_BridgeH12Out",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeH12Out",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeH12Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 165,
+      "source": "XelNaga_Caverns_Floating_BridgeV12Out",
+      "ability": "XelNaga_Caverns_Floating_BridgeV12",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeV12",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeV12"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 166,
+      "source": "XelNaga_Caverns_Floating_BridgeV12",
+      "ability": "XelNaga_Caverns_Floating_BridgeV12Out",
+      "class": "22",
+      "target": "XelNaga_Caverns_Floating_BridgeV12Out",
+      "stages": [
+        "XelNaga_Caverns_Floating_BridgeV12Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 167,
+      "source": "CollapsibleTerranTowerPushUnitRampLeft",
+      "ability": "MorphToCollapsibleTerranTowerDebrisRampLeft",
+      "class": "22",
+      "target": "DebrisRampLeft",
+      "stages": [
+        "DebrisRampLeft"
+      ],
+      "classification": "completed-before-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 168,
+      "source": "CollapsibleTerranTowerPushUnitRampRight",
+      "ability": "MorphToCollapsibleTerranTowerDebrisRampRight",
+      "class": "22",
+      "target": "DebrisRampRight",
+      "stages": [
+        "DebrisRampRight"
+      ],
+      "classification": "completed-before-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 169,
+      "source": "CollapsibleRockTowerPushUnit",
+      "ability": "MorphToCollapsibleRockTowerDebris",
+      "class": "22",
+      "target": "CollapsibleRockTowerDebris",
+      "stages": [
+        "CollapsibleRockTowerDebris"
+      ],
+      "classification": "completed-before-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 170,
+      "source": "CollapsibleTerranTowerPushUnit",
+      "ability": "MorphToCollapsibleTerranTowerDebris",
+      "class": "22",
+      "target": "CollapsibleTerranTowerDebris",
+      "stages": [
+        "CollapsibleTerranTowerDebris"
+      ],
+      "classification": "completed-before-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 171,
+      "source": "CollapsibleRockTowerPushUnitRampRight",
+      "ability": "MorphToCollapsibleRockTowerDebrisRampRight",
+      "class": "22",
+      "target": "CollapsibleRockTowerDebrisRampRight",
+      "stages": [
+        "CollapsibleRockTowerDebrisRampRight"
+      ],
+      "classification": "completed-before-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 172,
+      "source": "CollapsibleRockTowerPushUnitRampLeft",
+      "ability": "MorphToCollapsibleRockTowerDebrisRampLeft",
+      "class": "22",
+      "target": "CollapsibleRockTowerDebrisRampLeft",
+      "stages": [
+        "CollapsibleRockTowerDebrisRampLeft"
+      ],
+      "classification": "completed-before-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 173,
+      "source": "CollapsibleRockTowerDiagonal",
+      "ability": "MorphToCollapsibleRockTowerDebris",
+      "class": "22",
+      "target": "CollapsibleRockTowerDebris",
+      "stages": [
+        "CollapsibleRockTowerDebris"
+      ],
+      "classification": "completed-before-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 174,
+      "source": "CollapsibleTerranTowerDiagonal",
+      "ability": "MorphToCollapsibleTerranTowerDebris",
+      "class": "22",
+      "target": "CollapsibleTerranTowerDebris",
+      "stages": [
+        "CollapsibleTerranTowerDebris"
+      ],
+      "classification": "completed-before-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 175,
+      "source": "CollapsibleTerranTowerRampLeft",
+      "ability": "MorphToCollapsibleTerranTowerDebrisRampLeft",
+      "class": "22",
+      "target": "DebrisRampLeft",
+      "stages": [
+        "DebrisRampLeft"
+      ],
+      "classification": "completed-before-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 176,
+      "source": "CollapsibleTerranTowerRampRight",
+      "ability": "MorphToCollapsibleTerranTowerDebrisRampRight",
+      "class": "22",
+      "target": "DebrisRampRight",
+      "stages": [
+        "DebrisRampRight"
+      ],
+      "classification": "completed-before-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 177,
+      "source": "CollapsibleRockTower",
+      "ability": "MorphToCollapsibleRockTowerDebris",
+      "class": "22",
+      "target": "CollapsibleRockTowerDebris",
+      "stages": [
+        "CollapsibleRockTowerDebris"
+      ],
+      "classification": "completed-before-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 178,
+      "source": "CollapsibleTerranTower",
+      "ability": "MorphToCollapsibleTerranTowerDebris",
+      "class": "22",
+      "target": "CollapsibleTerranTowerDebris",
+      "stages": [
+        "CollapsibleTerranTowerDebris"
+      ],
+      "classification": "completed-before-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 179,
+      "source": "CollapsibleRockTowerRampRight",
+      "ability": "MorphToCollapsibleRockTowerDebrisRampRight",
+      "class": "22",
+      "target": "CollapsibleRockTowerDebrisRampRight",
+      "stages": [
+        "CollapsibleRockTowerDebrisRampRight"
+      ],
+      "classification": "completed-before-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 180,
+      "source": "CollapsibleRockTowerRampLeft",
+      "ability": "MorphToCollapsibleRockTowerDebrisRampLeft",
+      "class": "22",
+      "target": "CollapsibleRockTowerDebrisRampLeft",
+      "stages": [
+        "CollapsibleRockTowerDebrisRampLeft"
+      ],
+      "classification": "completed-before-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 181,
+      "source": "SnowRefinery_Terran_ExtendingBridgeNEShort8Out",
+      "ability": "SnowRefinery_Terran_ExtendingBridgeNEShort8",
+      "class": "22",
+      "target": "SnowRefinery_Terran_ExtendingBridgeNEShort8",
+      "stages": [
+        "SnowRefinery_Terran_ExtendingBridgeNEShort8"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-isolated-v80.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": [],
+      "execution_policy": "reuse-isolated-noncancellable-proof",
+      "isolated_evidence": {
+        "bank": "reports/editor-validation/morph-isolated-v80.SC2Bank",
+        "sha256": "215dfea880f521a8c0145901e72140b3d8ed73e1ee5c470f799de81b4d74d083",
+        "section": "Link181/Default",
+        "execute_event": "Event1",
+        "complete_event": "Event18",
+        "reason": "Known same-map scenery lifecycle/GH error; preflight reran this source on a fresh map. Never recreate it in the long acceptance map."
+      }
+    },
+    {
+      "link": 182,
+      "source": "SnowRefinery_Terran_ExtendingBridgeNEShort8",
+      "ability": "SnowRefinery_Terran_ExtendingBridgeNEShort8Out",
+      "class": "22",
+      "target": "SnowRefinery_Terran_ExtendingBridgeNEShort8Out",
+      "stages": [
+        "SnowRefinery_Terran_ExtendingBridgeNEShort8Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 183,
+      "source": "SnowRefinery_Terran_ExtendingBridgeNWShort8Out",
+      "ability": "SnowRefinery_Terran_ExtendingBridgeNWShort8",
+      "class": "22",
+      "target": "SnowRefinery_Terran_ExtendingBridgeNWShort8",
+      "stages": [
+        "SnowRefinery_Terran_ExtendingBridgeNWShort8"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 184,
+      "source": "SnowRefinery_Terran_ExtendingBridgeNWShort8",
+      "ability": "SnowRefinery_Terran_ExtendingBridgeNWShort8Out",
+      "class": "22",
+      "target": "SnowRefinery_Terran_ExtendingBridgeNWShort8Out",
+      "stages": [
+        "SnowRefinery_Terran_ExtendingBridgeNWShort8Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 185,
+      "source": "Tarsonis_DoorN",
+      "ability": "Tarsonis_DoorNLowered",
+      "class": "22",
+      "target": "Tarsonis_DoorNLowered",
+      "stages": [
+        "Tarsonis_DoorNLowered"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 186,
+      "source": "Tarsonis_DoorNLowered",
+      "ability": "Tarsonis_DoorN",
+      "class": "22",
+      "target": "Tarsonis_DoorN",
+      "stages": [
+        "Tarsonis_DoorN"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 187,
+      "source": "Tarsonis_DoorNE",
+      "ability": "Tarsonis_DoorNELowered",
+      "class": "22",
+      "target": "Tarsonis_DoorNELowered",
+      "stages": [
+        "Tarsonis_DoorNELowered"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 188,
+      "source": "Tarsonis_DoorNELowered",
+      "ability": "Tarsonis_DoorNE",
+      "class": "22",
+      "target": "Tarsonis_DoorNE",
+      "stages": [
+        "Tarsonis_DoorNE"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 189,
+      "source": "Tarsonis_DoorE",
+      "ability": "Tarsonis_DoorELowered",
+      "class": "22",
+      "target": "Tarsonis_DoorELowered",
+      "stages": [
+        "Tarsonis_DoorELowered"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 190,
+      "source": "Tarsonis_DoorELowered",
+      "ability": "Tarsonis_DoorE",
+      "class": "22",
+      "target": "Tarsonis_DoorE",
+      "stages": [
+        "Tarsonis_DoorE"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 191,
+      "source": "Tarsonis_DoorNW",
+      "ability": "Tarsonis_DoorNWLowered",
+      "class": "22",
+      "target": "Tarsonis_DoorNWLowered",
+      "stages": [
+        "Tarsonis_DoorNWLowered"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 192,
+      "source": "Tarsonis_DoorNWLowered",
+      "ability": "Tarsonis_DoorNW",
+      "class": "22",
+      "target": "Tarsonis_DoorNW",
+      "stages": [
+        "Tarsonis_DoorNW"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 193,
+      "source": "CompoundMansion_DoorN",
+      "ability": "CompoundMansion_DoorNLowered",
+      "class": "22",
+      "target": "CompoundMansion_DoorNLowered",
+      "stages": [
+        "CompoundMansion_DoorNLowered"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 194,
+      "source": "CompoundMansion_DoorNLowered",
+      "ability": "CompoundMansion_DoorN",
+      "class": "22",
+      "target": "CompoundMansion_DoorN",
+      "stages": [
+        "CompoundMansion_DoorN"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 195,
+      "source": "CompoundMansion_DoorNE",
+      "ability": "CompoundMansion_DoorNELowered",
+      "class": "22",
+      "target": "CompoundMansion_DoorNELowered",
+      "stages": [
+        "CompoundMansion_DoorNELowered"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 196,
+      "source": "CompoundMansion_DoorNELowered",
+      "ability": "CompoundMansion_DoorNE",
+      "class": "22",
+      "target": "CompoundMansion_DoorNE",
+      "stages": [
+        "CompoundMansion_DoorNE"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 197,
+      "source": "CompoundMansion_DoorE",
+      "ability": "CompoundMansion_DoorELowered",
+      "class": "22",
+      "target": "CompoundMansion_DoorELowered",
+      "stages": [
+        "CompoundMansion_DoorELowered"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 198,
+      "source": "CompoundMansion_DoorELowered",
+      "ability": "CompoundMansion_DoorE",
+      "class": "22",
+      "target": "CompoundMansion_DoorE",
+      "stages": [
+        "CompoundMansion_DoorE"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 199,
+      "source": "CompoundMansion_DoorNW",
+      "ability": "CompoundMansion_DoorNWLowered",
+      "class": "22",
+      "target": "CompoundMansion_DoorNWLowered",
+      "stages": [
+        "CompoundMansion_DoorNWLowered"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk4.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 200,
+      "source": "CompoundMansion_DoorNWLowered",
+      "ability": "CompoundMansion_DoorNW",
+      "class": "22",
+      "target": "CompoundMansion_DoorNW",
+      "stages": [
+        "CompoundMansion_DoorNW"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 201,
+      "source": "LocustMPFlying",
+      "ability": "LocustMPFlyingMorphToGround",
+      "class": "22",
+      "target": "LocustMP",
+      "stages": [
+        "LocustMP"
+      ],
+      "classification": "instant-completion-same-simulation-time",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 202,
+      "source": "AiurLightBridgeNE8Out",
+      "ability": "AiurLightBridgeNE8",
+      "class": "22",
+      "target": "AiurLightBridgeNE8",
+      "stages": [
+        "AiurLightBridgeNE8"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 203,
+      "source": "AiurLightBridgeNE8",
+      "ability": "AiurLightBridgeNE8Out",
+      "class": "22",
+      "target": "AiurLightBridgeNE8Out",
+      "stages": [
+        "AiurLightBridgeNE8Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 204,
+      "source": "AiurLightBridgeNE10Out",
+      "ability": "AiurLightBridgeNE10",
+      "class": "22",
+      "target": "AiurLightBridgeNE10",
+      "stages": [
+        "AiurLightBridgeNE10"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 205,
+      "source": "AiurLightBridgeNE10",
+      "ability": "AiurLightBridgeNE10Out",
+      "class": "22",
+      "target": "AiurLightBridgeNE10Out",
+      "stages": [
+        "AiurLightBridgeNE10Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 206,
+      "source": "AiurLightBridgeNE12Out",
+      "ability": "AiurLightBridgeNE12",
+      "class": "22",
+      "target": "AiurLightBridgeNE12",
+      "stages": [
+        "AiurLightBridgeNE12"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 207,
+      "source": "AiurLightBridgeNE12",
+      "ability": "AiurLightBridgeNE12Out",
+      "class": "22",
+      "target": "AiurLightBridgeNE12Out",
+      "stages": [
+        "AiurLightBridgeNE12Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 208,
+      "source": "AiurLightBridgeNW8Out",
+      "ability": "AiurLightBridgeNW8",
+      "class": "22",
+      "target": "AiurLightBridgeNW8",
+      "stages": [
+        "AiurLightBridgeNW8"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 209,
+      "source": "AiurLightBridgeNW8",
+      "ability": "AiurLightBridgeNW8Out",
+      "class": "22",
+      "target": "AiurLightBridgeNW8Out",
+      "stages": [
+        "AiurLightBridgeNW8Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 210,
+      "source": "AiurLightBridgeNW10Out",
+      "ability": "AiurLightBridgeNW10",
+      "class": "22",
+      "target": "AiurLightBridgeNW10",
+      "stages": [
+        "AiurLightBridgeNW10"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 211,
+      "source": "AiurLightBridgeNW10",
+      "ability": "AiurLightBridgeNW10Out",
+      "class": "22",
+      "target": "AiurLightBridgeNW10Out",
+      "stages": [
+        "AiurLightBridgeNW10Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 212,
+      "source": "AiurLightBridgeNW12Out",
+      "ability": "AiurLightBridgeNW12",
+      "class": "22",
+      "target": "AiurLightBridgeNW12",
+      "stages": [
+        "AiurLightBridgeNW12"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 213,
+      "source": "AiurLightBridgeNW12",
+      "ability": "AiurLightBridgeNW12Out",
+      "class": "22",
+      "target": "AiurLightBridgeNW12Out",
+      "stages": [
+        "AiurLightBridgeNW12Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 214,
+      "source": "ShakurasLightBridgeNE8Out",
+      "ability": "ShakurasLightBridgeNE8",
+      "class": "22",
+      "target": "ShakurasLightBridgeNE8",
+      "stages": [
+        "ShakurasLightBridgeNE8"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 215,
+      "source": "ShakurasLightBridgeNE8",
+      "ability": "ShakurasLightBridgeNE8Out",
+      "class": "22",
+      "target": "ShakurasLightBridgeNE8Out",
+      "stages": [
+        "ShakurasLightBridgeNE8Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 216,
+      "source": "ShakurasLightBridgeNE10Out",
+      "ability": "ShakurasLightBridgeNE10",
+      "class": "22",
+      "target": "ShakurasLightBridgeNE10",
+      "stages": [
+        "ShakurasLightBridgeNE10"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 217,
+      "source": "ShakurasLightBridgeNE10",
+      "ability": "ShakurasLightBridgeNE10Out",
+      "class": "22",
+      "target": "ShakurasLightBridgeNE10Out",
+      "stages": [
+        "ShakurasLightBridgeNE10Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 218,
+      "source": "ShakurasLightBridgeNE12Out",
+      "ability": "ShakurasLightBridgeNE12",
+      "class": "22",
+      "target": "ShakurasLightBridgeNE12",
+      "stages": [
+        "ShakurasLightBridgeNE12"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 219,
+      "source": "ShakurasLightBridgeNE12",
+      "ability": "ShakurasLightBridgeNE12Out",
+      "class": "22",
+      "target": "ShakurasLightBridgeNE12Out",
+      "stages": [
+        "ShakurasLightBridgeNE12Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 220,
+      "source": "ShakurasLightBridgeNW8Out",
+      "ability": "ShakurasLightBridgeNW8",
+      "class": "22",
+      "target": "ShakurasLightBridgeNW8",
+      "stages": [
+        "ShakurasLightBridgeNW8"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 221,
+      "source": "ShakurasLightBridgeNW8",
+      "ability": "ShakurasLightBridgeNW8Out",
+      "class": "22",
+      "target": "ShakurasLightBridgeNW8Out",
+      "stages": [
+        "ShakurasLightBridgeNW8Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 222,
+      "source": "ShakurasLightBridgeNW10Out",
+      "ability": "ShakurasLightBridgeNW10",
+      "class": "22",
+      "target": "ShakurasLightBridgeNW10",
+      "stages": [
+        "ShakurasLightBridgeNW10"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 223,
+      "source": "ShakurasLightBridgeNW10",
+      "ability": "ShakurasLightBridgeNW10Out",
+      "class": "22",
+      "target": "ShakurasLightBridgeNW10Out",
+      "stages": [
+        "ShakurasLightBridgeNW10Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 224,
+      "source": "ShakurasLightBridgeNW12Out",
+      "ability": "ShakurasLightBridgeNW12",
+      "class": "22",
+      "target": "ShakurasLightBridgeNW12",
+      "stages": [
+        "ShakurasLightBridgeNW12"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 225,
+      "source": "ShakurasLightBridgeNW12",
+      "ability": "ShakurasLightBridgeNW12Out",
+      "class": "22",
+      "target": "ShakurasLightBridgeNW12Out",
+      "stages": [
+        "ShakurasLightBridgeNW12Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 226,
+      "source": "VoidMPImmortalReviveCorpse",
+      "ability": "VoidMPImmortalReviveRebuild",
+      "class": "22",
+      "target": "Immortal",
+      "stages": [
+        "Immortal"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 227,
+      "source": "GuardianCocoonMP",
+      "ability": "MorphToGuardianMP",
+      "class": "22",
+      "target": "GuardianMP",
+      "stages": [
+        "GuardianCocoonMP",
+        "GuardianMP"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 228,
+      "source": "DevourerCocoonMP",
+      "ability": "MorphToDevourerMP",
+      "class": "22",
+      "target": "DevourerMP",
+      "stages": [
+        "DevourerCocoonMP",
+        "DevourerMP"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 229,
+      "source": "DefilerMPBurrowed",
+      "ability": "DefilerMPUnburrow",
+      "class": "22",
+      "target": "DefilerMP",
+      "stages": [
+        "DefilerMP"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 230,
+      "source": "DefilerMP",
+      "ability": "DefilerMPBurrow",
+      "class": "22",
+      "target": "DefilerMPBurrowed",
+      "stages": [
+        "DefilerMPBurrowed"
+      ],
+      "classification": "cancellable",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": [
+        {
+          "bank": "reports/editor-validation/morph-window-v77.SC2Bank",
+          "sha256": "4a20a05fbe819d1c1dc7563624db800a37c9946ecc1d6ab5d10bc9eb5da74785",
+          "bank_section": "DefilerBurrow",
+          "format": "morph-cancel-window",
+          "source": "DefilerMP",
+          "ability": "DefilerMPBurrow",
+          "tag": "12845061",
+          "time": "12.625",
+          "result": "cancellable",
+          "cancellations": 1,
+          "source_created_event": "Event106",
+          "execute_event": "Event107",
+          "cancel_order_event": "Event111",
+          "ability_cancel_event": "Event112",
+          "complete_events": [],
+          "window_cancel_hidden": "0",
+          "window_cancel_disabled": "0",
+          "window_ability_enabled": "1"
+        }
+      ]
+    },
+    {
+      "link": 231,
+      "source": "DisruptorPhased",
+      "ability": "PurificationNovaMorphBack",
+      "class": "22",
+      "target": "Disruptor",
+      "stages": [
+        "Disruptor"
+      ],
+      "classification": "instant-completion-same-simulation-time",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 232,
+      "source": "AiurLightBridgeAbandonedNE8Out",
+      "ability": "AiurLightBridgeAbandonedNE8",
+      "class": "22",
+      "target": "AiurLightBridgeAbandonedNE8",
+      "stages": [
+        "AiurLightBridgeAbandonedNE8"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 233,
+      "source": "AiurLightBridgeAbandonedNE8",
+      "ability": "AiurLightBridgeAbandonedNE8Out",
+      "class": "22",
+      "target": "AiurLightBridgeAbandonedNE8Out",
+      "stages": [
+        "AiurLightBridgeAbandonedNE8Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 234,
+      "source": "AiurLightBridgeAbandonedNE10Out",
+      "ability": "AiurLightBridgeAbandonedNE10",
+      "class": "22",
+      "target": "AiurLightBridgeAbandonedNE10",
+      "stages": [
+        "AiurLightBridgeAbandonedNE10"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 235,
+      "source": "AiurLightBridgeAbandonedNE10",
+      "ability": "AiurLightBridgeAbandonedNE10Out",
+      "class": "22",
+      "target": "AiurLightBridgeAbandonedNE10Out",
+      "stages": [
+        "AiurLightBridgeAbandonedNE10Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 236,
+      "source": "AiurLightBridgeAbandonedNE12Out",
+      "ability": "AiurLightBridgeAbandonedNE12",
+      "class": "22",
+      "target": "AiurLightBridgeAbandonedNE12",
+      "stages": [
+        "AiurLightBridgeAbandonedNE12"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 237,
+      "source": "AiurLightBridgeAbandonedNE12",
+      "ability": "AiurLightBridgeAbandonedNE12Out",
+      "class": "22",
+      "target": "AiurLightBridgeAbandonedNE12Out",
+      "stages": [
+        "AiurLightBridgeAbandonedNE12Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 238,
+      "source": "AiurLightBridgeAbandonedNW8Out",
+      "ability": "AiurLightBridgeAbandonedNW8",
+      "class": "22",
+      "target": "AiurLightBridgeAbandonedNW8",
+      "stages": [
+        "AiurLightBridgeAbandonedNW8"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 239,
+      "source": "AiurLightBridgeAbandonedNW8",
+      "ability": "AiurLightBridgeAbandonedNW8Out",
+      "class": "22",
+      "target": "AiurLightBridgeAbandonedNW8Out",
+      "stages": [
+        "AiurLightBridgeAbandonedNW8Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk5.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 240,
+      "source": "AiurLightBridgeAbandonedNW10Out",
+      "ability": "AiurLightBridgeAbandonedNW10",
+      "class": "22",
+      "target": "AiurLightBridgeAbandonedNW10",
+      "stages": [
+        "AiurLightBridgeAbandonedNW10"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 241,
+      "source": "AiurLightBridgeAbandonedNW10",
+      "ability": "AiurLightBridgeAbandonedNW10Out",
+      "class": "22",
+      "target": "AiurLightBridgeAbandonedNW10Out",
+      "stages": [
+        "AiurLightBridgeAbandonedNW10Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 242,
+      "source": "AiurLightBridgeAbandonedNW12Out",
+      "ability": "AiurLightBridgeAbandonedNW12",
+      "class": "22",
+      "target": "AiurLightBridgeAbandonedNW12",
+      "stages": [
+        "AiurLightBridgeAbandonedNW12"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 243,
+      "source": "AiurLightBridgeAbandonedNW12",
+      "ability": "AiurLightBridgeAbandonedNW12Out",
+      "class": "22",
+      "target": "AiurLightBridgeAbandonedNW12Out",
+      "stages": [
+        "AiurLightBridgeAbandonedNW12Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 244,
+      "source": "PortCity_Bridge_UnitNE8Out",
+      "ability": "PortCity_Bridge_UnitNE8",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitNE8",
+      "stages": [
+        "PortCity_Bridge_UnitNE8"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 245,
+      "source": "PortCity_Bridge_UnitNE8",
+      "ability": "PortCity_Bridge_UnitNE8Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitNE8Out",
+      "stages": [
+        "PortCity_Bridge_UnitNE8Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 246,
+      "source": "PortCity_Bridge_UnitSE8Out",
+      "ability": "PortCity_Bridge_UnitSE8",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitSE8",
+      "stages": [
+        "PortCity_Bridge_UnitSE8"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 247,
+      "source": "PortCity_Bridge_UnitSE8",
+      "ability": "PortCity_Bridge_UnitSE8Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitSE8Out",
+      "stages": [
+        "PortCity_Bridge_UnitSE8Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 248,
+      "source": "PortCity_Bridge_UnitNW8Out",
+      "ability": "PortCity_Bridge_UnitNW8",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitNW8",
+      "stages": [
+        "PortCity_Bridge_UnitNW8"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 249,
+      "source": "PortCity_Bridge_UnitNW8",
+      "ability": "PortCity_Bridge_UnitNW8Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitNW8Out",
+      "stages": [
+        "PortCity_Bridge_UnitNW8Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 250,
+      "source": "PortCity_Bridge_UnitSW8Out",
+      "ability": "PortCity_Bridge_UnitSW8",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitSW8",
+      "stages": [
+        "PortCity_Bridge_UnitSW8"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 251,
+      "source": "PortCity_Bridge_UnitSW8",
+      "ability": "PortCity_Bridge_UnitSW8Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitSW8Out",
+      "stages": [
+        "PortCity_Bridge_UnitSW8Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 252,
+      "source": "PortCity_Bridge_UnitNE10Out",
+      "ability": "PortCity_Bridge_UnitNE10",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitNE10",
+      "stages": [
+        "PortCity_Bridge_UnitNE10"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 253,
+      "source": "PortCity_Bridge_UnitNE10",
+      "ability": "PortCity_Bridge_UnitNE10Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitNE10Out",
+      "stages": [
+        "PortCity_Bridge_UnitNE10Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 254,
+      "source": "PortCity_Bridge_UnitSE10Out",
+      "ability": "PortCity_Bridge_UnitSE10",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitSE10",
+      "stages": [
+        "PortCity_Bridge_UnitSE10"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 255,
+      "source": "PortCity_Bridge_UnitSE10",
+      "ability": "PortCity_Bridge_UnitSE10Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitSE10Out",
+      "stages": [
+        "PortCity_Bridge_UnitSE10Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 256,
+      "source": "PortCity_Bridge_UnitNW10Out",
+      "ability": "PortCity_Bridge_UnitNW10",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitNW10",
+      "stages": [
+        "PortCity_Bridge_UnitNW10"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 257,
+      "source": "PortCity_Bridge_UnitNW10",
+      "ability": "PortCity_Bridge_UnitNW10Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitNW10Out",
+      "stages": [
+        "PortCity_Bridge_UnitNW10Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 258,
+      "source": "PortCity_Bridge_UnitSW10Out",
+      "ability": "PortCity_Bridge_UnitSW10",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitSW10",
+      "stages": [
+        "PortCity_Bridge_UnitSW10"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 259,
+      "source": "PortCity_Bridge_UnitSW10",
+      "ability": "PortCity_Bridge_UnitSW10Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitSW10Out",
+      "stages": [
+        "PortCity_Bridge_UnitSW10Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 260,
+      "source": "PortCity_Bridge_UnitNE12Out",
+      "ability": "PortCity_Bridge_UnitNE12",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitNE12",
+      "stages": [
+        "PortCity_Bridge_UnitNE12"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 261,
+      "source": "PortCity_Bridge_UnitNE12",
+      "ability": "PortCity_Bridge_UnitNE12Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitNE12Out",
+      "stages": [
+        "PortCity_Bridge_UnitNE12Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 262,
+      "source": "PortCity_Bridge_UnitSE12Out",
+      "ability": "PortCity_Bridge_UnitSE12",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitSE12",
+      "stages": [
+        "PortCity_Bridge_UnitSE12"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 263,
+      "source": "PortCity_Bridge_UnitSE12",
+      "ability": "PortCity_Bridge_UnitSE12Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitSE12Out",
+      "stages": [
+        "PortCity_Bridge_UnitSE12Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 264,
+      "source": "PortCity_Bridge_UnitNW12Out",
+      "ability": "PortCity_Bridge_UnitNW12",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitNW12",
+      "stages": [
+        "PortCity_Bridge_UnitNW12"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 265,
+      "source": "PortCity_Bridge_UnitNW12",
+      "ability": "PortCity_Bridge_UnitNW12Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitNW12Out",
+      "stages": [
+        "PortCity_Bridge_UnitNW12Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 266,
+      "source": "PortCity_Bridge_UnitSW12Out",
+      "ability": "PortCity_Bridge_UnitSW12",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitSW12",
+      "stages": [
+        "PortCity_Bridge_UnitSW12"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 267,
+      "source": "PortCity_Bridge_UnitSW12",
+      "ability": "PortCity_Bridge_UnitSW12Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitSW12Out",
+      "stages": [
+        "PortCity_Bridge_UnitSW12Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 268,
+      "source": "PortCity_Bridge_UnitN8Out",
+      "ability": "PortCity_Bridge_UnitN8",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitN8",
+      "stages": [
+        "PortCity_Bridge_UnitN8"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 269,
+      "source": "PortCity_Bridge_UnitN8",
+      "ability": "PortCity_Bridge_UnitN8Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitN8Out",
+      "stages": [
+        "PortCity_Bridge_UnitN8Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 270,
+      "source": "PortCity_Bridge_UnitS8Out",
+      "ability": "PortCity_Bridge_UnitS8",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitS8",
+      "stages": [
+        "PortCity_Bridge_UnitS8"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 271,
+      "source": "PortCity_Bridge_UnitS8",
+      "ability": "PortCity_Bridge_UnitS8Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitS8Out",
+      "stages": [
+        "PortCity_Bridge_UnitS8Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 272,
+      "source": "PortCity_Bridge_UnitE8Out",
+      "ability": "PortCity_Bridge_UnitE8",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitE8",
+      "stages": [
+        "PortCity_Bridge_UnitE8"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 273,
+      "source": "PortCity_Bridge_UnitE8",
+      "ability": "PortCity_Bridge_UnitE8Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitE8Out",
+      "stages": [
+        "PortCity_Bridge_UnitE8Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 274,
+      "source": "PortCity_Bridge_UnitW8Out",
+      "ability": "PortCity_Bridge_UnitW8",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitW8",
+      "stages": [
+        "PortCity_Bridge_UnitW8"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 275,
+      "source": "PortCity_Bridge_UnitW8",
+      "ability": "PortCity_Bridge_UnitW8Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitW8Out",
+      "stages": [
+        "PortCity_Bridge_UnitW8Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 276,
+      "source": "PortCity_Bridge_UnitN10Out",
+      "ability": "PortCity_Bridge_UnitN10",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitN10",
+      "stages": [
+        "PortCity_Bridge_UnitN10"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 277,
+      "source": "PortCity_Bridge_UnitN10",
+      "ability": "PortCity_Bridge_UnitN10Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitN10Out",
+      "stages": [
+        "PortCity_Bridge_UnitN10Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 278,
+      "source": "PortCity_Bridge_UnitS10Out",
+      "ability": "PortCity_Bridge_UnitS10",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitS10",
+      "stages": [
+        "PortCity_Bridge_UnitS10"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 279,
+      "source": "PortCity_Bridge_UnitS10",
+      "ability": "PortCity_Bridge_UnitS10Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitS10Out",
+      "stages": [
+        "PortCity_Bridge_UnitS10Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk6.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 280,
+      "source": "PortCity_Bridge_UnitE10Out",
+      "ability": "PortCity_Bridge_UnitE10",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitE10",
+      "stages": [
+        "PortCity_Bridge_UnitE10"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk7.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 281,
+      "source": "PortCity_Bridge_UnitE10",
+      "ability": "PortCity_Bridge_UnitE10Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitE10Out",
+      "stages": [
+        "PortCity_Bridge_UnitE10Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk7.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 282,
+      "source": "PortCity_Bridge_UnitW10Out",
+      "ability": "PortCity_Bridge_UnitW10",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitW10",
+      "stages": [
+        "PortCity_Bridge_UnitW10"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk7.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 283,
+      "source": "PortCity_Bridge_UnitW10",
+      "ability": "PortCity_Bridge_UnitW10Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitW10Out",
+      "stages": [
+        "PortCity_Bridge_UnitW10Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk7.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 284,
+      "source": "PortCity_Bridge_UnitN12Out",
+      "ability": "PortCity_Bridge_UnitN12",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitN12",
+      "stages": [
+        "PortCity_Bridge_UnitN12"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk7.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 285,
+      "source": "PortCity_Bridge_UnitN12",
+      "ability": "PortCity_Bridge_UnitN12Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitN12Out",
+      "stages": [
+        "PortCity_Bridge_UnitN12Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk7.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 286,
+      "source": "PortCity_Bridge_UnitS12Out",
+      "ability": "PortCity_Bridge_UnitS12",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitS12",
+      "stages": [
+        "PortCity_Bridge_UnitS12"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk7.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 287,
+      "source": "PortCity_Bridge_UnitS12",
+      "ability": "PortCity_Bridge_UnitS12Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitS12Out",
+      "stages": [
+        "PortCity_Bridge_UnitS12Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk7.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 288,
+      "source": "PortCity_Bridge_UnitE12Out",
+      "ability": "PortCity_Bridge_UnitE12",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitE12",
+      "stages": [
+        "PortCity_Bridge_UnitE12"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk7.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 289,
+      "source": "PortCity_Bridge_UnitE12",
+      "ability": "PortCity_Bridge_UnitE12Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitE12Out",
+      "stages": [
+        "PortCity_Bridge_UnitE12Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk7.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 290,
+      "source": "PortCity_Bridge_UnitW12Out",
+      "ability": "PortCity_Bridge_UnitW12",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitW12",
+      "stages": [
+        "PortCity_Bridge_UnitW12"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk7.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 291,
+      "source": "PortCity_Bridge_UnitW12",
+      "ability": "PortCity_Bridge_UnitW12Out",
+      "class": "22",
+      "target": "PortCity_Bridge_UnitW12Out",
+      "stages": [
+        "PortCity_Bridge_UnitW12Out"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-segment-v79Chunk7.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 292,
+      "source": "CollapsibleRockTowerPushUnitRampLeftGreen",
+      "ability": "MorphToCollapsibleRockTowerDebrisRampLeftGreen",
+      "class": "22",
+      "target": "CollapsibleRockTowerDebrisRampLeftGreen",
+      "stages": [
+        "CollapsibleRockTowerDebrisRampLeftGreen"
+      ],
+      "classification": "catalog-only-no-player-morph-command",
+      "source_bank": "reports/editor-validation/morph-tail-v78.SC2Bank",
+      "metadata_evidence": {
+        "mode": "metadata-only-crash-prone-scenery",
+        "source_uncommandable": "0",
+        "source_unselectable": "1",
+        "source_untargetable": "1",
+        "source_race": "Neut",
+        "source_categories": "ObjectType:Destructible,ObjectFamily:Melee",
+        "show_progress": "0",
+        "command_cards": [],
+        "own_morph_commands": []
+      },
+      "supplemental_evidence": []
+    },
+    {
+      "link": 293,
+      "source": "CollapsibleRockTowerPushUnitRampRightGreen",
+      "ability": "MorphToCollapsibleRockTowerDebrisRampRightGreen",
+      "class": "22",
+      "target": "CollapsibleRockTowerDebrisRampRightGreen",
+      "stages": [
+        "CollapsibleRockTowerDebrisRampRightGreen"
+      ],
+      "classification": "catalog-only-no-player-morph-command",
+      "source_bank": "reports/editor-validation/morph-tail-v78.SC2Bank",
+      "metadata_evidence": {
+        "mode": "metadata-only-crash-prone-scenery",
+        "source_uncommandable": "0",
+        "source_unselectable": "1",
+        "source_untargetable": "1",
+        "source_race": "Neut",
+        "source_categories": "ObjectType:Destructible,ObjectFamily:Melee",
+        "show_progress": "0",
+        "command_cards": [],
+        "own_morph_commands": []
+      },
+      "supplemental_evidence": []
+    },
+    {
+      "link": 294,
+      "source": "CollapsiblePurifierTowerPushUnit",
+      "ability": "MorphToCollapsiblePurifierTowerDebris",
+      "class": "22",
+      "target": "CollapsiblePurifierTowerDebris",
+      "stages": [
+        "CollapsiblePurifierTowerDebris"
+      ],
+      "classification": "catalog-only-no-player-morph-command",
+      "source_bank": "reports/editor-validation/morph-tail-v78.SC2Bank",
+      "metadata_evidence": {
+        "mode": "metadata-only-crash-prone-scenery",
+        "source_uncommandable": "0",
+        "source_unselectable": "1",
+        "source_untargetable": "1",
+        "source_race": "Neut",
+        "source_categories": "ObjectType:Destructible,ObjectFamily:Melee",
+        "show_progress": "0",
+        "command_cards": [],
+        "own_morph_commands": []
+      },
+      "supplemental_evidence": []
+    },
+    {
+      "link": 295,
+      "source": "CollapsibleRockTowerRampLeftGreen",
+      "ability": "MorphToCollapsibleRockTowerDebrisRampLeftGreen",
+      "class": "22",
+      "target": "CollapsibleRockTowerDebrisRampLeftGreen",
+      "stages": [
+        "CollapsibleRockTowerDebrisRampLeftGreen"
+      ],
+      "classification": "catalog-only-no-player-morph-command",
+      "source_bank": "reports/editor-validation/morph-tail-v78.SC2Bank",
+      "metadata_evidence": {
+        "mode": "metadata-only-crash-prone-scenery",
+        "source_uncommandable": "0",
+        "source_unselectable": "0",
+        "source_untargetable": "0",
+        "source_race": "Neut",
+        "source_categories": "ObjectType:Destructible,ObjectFamily:Campaign",
+        "show_progress": "0",
+        "command_cards": [],
+        "own_morph_commands": []
+      },
+      "supplemental_evidence": []
+    },
+    {
+      "link": 296,
+      "source": "CollapsibleRockTowerRampRightGreen",
+      "ability": "MorphToCollapsibleRockTowerDebrisRampRightGreen",
+      "class": "22",
+      "target": "CollapsibleRockTowerDebrisRampRightGreen",
+      "stages": [
+        "CollapsibleRockTowerDebrisRampRightGreen"
+      ],
+      "classification": "catalog-only-no-player-morph-command",
+      "source_bank": "reports/editor-validation/morph-tail-v78.SC2Bank",
+      "metadata_evidence": {
+        "mode": "metadata-only-crash-prone-scenery",
+        "source_uncommandable": "0",
+        "source_unselectable": "0",
+        "source_untargetable": "0",
+        "source_race": "Neut",
+        "source_categories": "ObjectType:Destructible,ObjectFamily:Campaign",
+        "show_progress": "0",
+        "command_cards": [],
+        "own_morph_commands": []
+      },
+      "supplemental_evidence": []
+    },
+    {
+      "link": 297,
+      "source": "CollapsiblePurifierTowerDiagonal",
+      "ability": "MorphToCollapsiblePurifierTowerDebris",
+      "class": "22",
+      "target": "CollapsiblePurifierTowerDebris",
+      "stages": [
+        "CollapsiblePurifierTowerDebris"
+      ],
+      "classification": "catalog-only-no-player-morph-command",
+      "source_bank": "reports/editor-validation/morph-tail-v78.SC2Bank",
+      "metadata_evidence": {
+        "mode": "metadata-only-crash-prone-scenery",
+        "source_uncommandable": "0",
+        "source_unselectable": "0",
+        "source_untargetable": "0",
+        "source_race": "Neut",
+        "source_categories": "ObjectType:Destructible,ObjectFamily:Campaign",
+        "show_progress": "0",
+        "command_cards": [],
+        "own_morph_commands": []
+      },
+      "supplemental_evidence": []
+    },
+    {
+      "link": 298,
+      "source": "PylonOvercharged",
+      "ability": "PurifyMorphPylon",
+      "class": "22",
+      "target": "PylonOvercharged",
+      "stages": [
+        "PylonOvercharged"
+      ],
+      "classification": "instant-completion-same-simulation-time",
+      "source_bank": "reports/editor-validation/morph-tail-v78.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 299,
+      "source": "PylonOvercharged",
+      "ability": "PurifyMorphPylonBack",
+      "class": "22",
+      "target": "Pylon",
+      "stages": [
+        "Pylon"
+      ],
+      "classification": "instant-completion-same-simulation-time",
+      "source_bank": "reports/editor-validation/morph-tail-v78.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    },
+    {
+      "link": 300,
+      "source": "ObserverSiegeMode",
+      "ability": "ObserverSiegeMorphtoObserver",
+      "class": "22",
+      "target": "Observer",
+      "stages": [
+        "Observer"
+      ],
+      "classification": "completed-despite-cancel",
+      "source_bank": "reports/editor-validation/morph-tail-v78.SC2Bank",
+      "metadata_evidence": null,
+      "supplemental_evidence": []
+    }
+  ]
+}

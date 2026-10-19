@@ -1,0 +1,287 @@
+// Diagnostic-only baseline of every effective Unit.AbilArray Morph/MorphPlacement link.
+// Requirements/resources/creep are fixture aids, not production balance edits.
+bank OPP_Scope_Bank;
+string OPP_Scope_Section = "";
+string OPP_Scope_Ability = "";
+unit OPP_Scope_Unit;
+unit OPP_Scope_PowerUnit;
+bool OPP_Scope_Tracking = false;
+int OPP_Scope_Events = 0;
+int OPP_Scope_Execute = 0;
+int OPP_Scope_Complete = 0;
+int OPP_Scope_Cancel = 0;
+int OPP_Scope_CancelOrder = 0;
+int OPP_Scope_Index = 0;
+unitgroup OPP_Scope_CreatedUnits;
+bool OPP_Scope_CollectCreated = false;
+
+bool OPP_Scope_Created (bool testConds, bool runActions) {
+    unit created;
+    string section;
+    if (runActions && OPP_Scope_CollectCreated) {
+        created = EventUnitCreatedUnit();
+        UnitGroupAdd(OPP_Scope_CreatedUnits, created);
+        section = "Event" + IntToString(OPP_Scope_Events);
+        OPP_Scope_Events += 1;
+        BankValueSetFromString(OPP_Scope_Bank, section, "Case", OPP_Scope_Section);
+        BankValueSetFromString(OPP_Scope_Bank, section, "Label", "Created");
+        BankValueSetFromString(OPP_Scope_Bank, section, "Ability", EventUnitCreatedAbil());
+        BankValueSetFromInt(OPP_Scope_Bank, section, "Command", -1);
+        BankValueSetFromInt(OPP_Scope_Bank, section, "Stage", 0);
+        BankValueSetFromInt(OPP_Scope_Bank, section, "Tag", UnitGetTag(created));
+        BankValueSetFromString(OPP_Scope_Bank, section, "Type", UnitGetType(created));
+        BankValueSetFromFlag(OPP_Scope_Bank, section, "Alive", UnitIsAlive(created));
+        BankValueSetFromFixed(OPP_Scope_Bank, section, "Time", GameGetMissionTime());
+    }
+    return true;
+}
+
+bool OPP_Scope_Died (bool testConds, bool runActions) {
+    string section;
+    if (!runActions || !OPP_Scope_CollectCreated || !UnitGroupHasUnit(OPP_Scope_CreatedUnits, EventUnit())) { return true; }
+    section = "Event" + IntToString(OPP_Scope_Events);
+    OPP_Scope_Events += 1;
+    BankValueSetFromString(OPP_Scope_Bank, section, "Case", OPP_Scope_Section);
+    BankValueSetFromString(OPP_Scope_Bank, section, "Label", "Died");
+    BankValueSetFromString(OPP_Scope_Bank, section, "Ability", "");
+    BankValueSetFromInt(OPP_Scope_Bank, section, "Command", -1);
+    BankValueSetFromInt(OPP_Scope_Bank, section, "Stage", 0);
+    BankValueSetFromInt(OPP_Scope_Bank, section, "Tag", UnitGetTag(EventUnit()));
+    BankValueSetFromString(OPP_Scope_Bank, section, "Type", UnitGetType(EventUnit()));
+    BankValueSetFromFlag(OPP_Scope_Bank, section, "Alive", UnitIsAlive(EventUnit()));
+    BankValueSetFromFixed(OPP_Scope_Bank, section, "Time", GameGetMissionTime());
+    return true;
+}
+
+void OPP_Scope_UnitState (string label) {
+    BankValueSetFromFlag(OPP_Scope_Bank, OPP_Scope_Section, label + "Present", OPP_Scope_Unit != null);
+    if (OPP_Scope_Unit == null) { return; }
+    BankValueSetFromString(OPP_Scope_Bank, OPP_Scope_Section, label + "Type", UnitGetType(OPP_Scope_Unit));
+    BankValueSetFromInt(OPP_Scope_Bank, OPP_Scope_Section, label + "Tag", UnitGetTag(OPP_Scope_Unit));
+    BankValueSetFromFlag(OPP_Scope_Bank, OPP_Scope_Section, label + "Alive", UnitIsAlive(OPP_Scope_Unit));
+    if (!UnitIsAlive(OPP_Scope_Unit)) { return; }
+    BankValueSetFromFixed(OPP_Scope_Bank, OPP_Scope_Section, label + "X", PointGetX(UnitGetPosition(OPP_Scope_Unit)));
+    BankValueSetFromFixed(OPP_Scope_Bank, OPP_Scope_Section, label + "Y", PointGetY(UnitGetPosition(OPP_Scope_Unit)));
+    if (OPP_Scope_PowerUnit != null && UnitIsAlive(OPP_Scope_PowerUnit)) {
+        BankValueSetFromFixed(OPP_Scope_Bank, OPP_Scope_Section, label + "PylonX", PointGetX(UnitGetPosition(OPP_Scope_PowerUnit)));
+        BankValueSetFromFixed(OPP_Scope_Bank, OPP_Scope_Section, label + "PylonY", PointGetY(UnitGetPosition(OPP_Scope_PowerUnit)));
+    }
+    BankValueSetFromInt(OPP_Scope_Bank, OPP_Scope_Section, label + "Power", PowerLevel(1, UnitGetPosition(OPP_Scope_Unit), "PowerSource"));
+    BankValueSetFromFlag(OPP_Scope_Bank, OPP_Scope_Section, label + "HasAbility", UnitAbilityExists(OPP_Scope_Unit, OPP_Scope_Ability));
+    BankValueSetFromFlag(OPP_Scope_Bank, OPP_Scope_Section, label + "Enabled", UnitAbilityCheck(OPP_Scope_Unit, OPP_Scope_Ability, true));
+    if (!UnitAbilityExists(OPP_Scope_Unit, OPP_Scope_Ability)) { return; }
+    BankValueSetFromFlag(OPP_Scope_Bank, OPP_Scope_Section, label + "Executing", UnitCheckAbilCmdState(OPP_Scope_Unit, AbilityCommand(OPP_Scope_Ability, c_abilMorphCmdExecute), c_cmdStateExecuting));
+    BankValueSetFromFlag(OPP_Scope_Bank, OPP_Scope_Section, label + "Hidden", UnitCheckAbilCmdState(OPP_Scope_Unit, AbilityCommand(OPP_Scope_Ability, c_abilMorphCmdExecute), c_cmdStateHidden));
+    BankValueSetFromFlag(OPP_Scope_Bank, OPP_Scope_Section, label + "Disabled", UnitCheckAbilCmdState(OPP_Scope_Unit, AbilityCommand(OPP_Scope_Ability, c_abilMorphCmdExecute), c_cmdStateDisabled));
+    BankValueSetFromFlag(OPP_Scope_Bank, OPP_Scope_Section, label + "CantSpend", UnitCheckAbilCmdState(OPP_Scope_Unit, AbilityCommand(OPP_Scope_Ability, c_abilMorphCmdExecute), c_cmdStateCantSpend));
+    BankValueSetFromFlag(OPP_Scope_Bank, OPP_Scope_Section, label + "CancelDisabled", UnitCheckAbilCmdState(OPP_Scope_Unit, AbilityCommand(OPP_Scope_Ability, c_abilMorphCmdCancel), c_cmdStateDisabled));
+    BankValueSetFromFlag(OPP_Scope_Bank, OPP_Scope_Section, label + "CancelHidden", UnitCheckAbilCmdState(OPP_Scope_Unit, AbilityCommand(OPP_Scope_Ability, c_abilMorphCmdCancel), c_cmdStateHidden));
+}
+
+void OPP_Scope_Event (string label, abilcmd command, int stage) {
+    string section;
+    int cmd;
+    if (!OPP_Scope_Tracking || OPP_Scope_Unit == null || EventUnit() != OPP_Scope_Unit || command == null) { return; }
+    if (AbilityCommandGetAbility(command) != OPP_Scope_Ability) { return; }
+    cmd = AbilityCommandGetCommand(command);
+    section = "Event" + IntToString(OPP_Scope_Events);
+    OPP_Scope_Events += 1;
+    BankValueSetFromString(OPP_Scope_Bank, section, "Case", OPP_Scope_Section);
+    BankValueSetFromString(OPP_Scope_Bank, section, "Label", label);
+    BankValueSetFromString(OPP_Scope_Bank, section, "Ability", OPP_Scope_Ability);
+    BankValueSetFromInt(OPP_Scope_Bank, section, "Command", cmd);
+    BankValueSetFromInt(OPP_Scope_Bank, section, "Stage", stage);
+    BankValueSetFromInt(OPP_Scope_Bank, section, "Tag", UnitGetTag(EventUnit()));
+    BankValueSetFromString(OPP_Scope_Bank, section, "Type", UnitGetType(EventUnit()));
+    BankValueSetFromFlag(OPP_Scope_Bank, section, "Alive", UnitIsAlive(EventUnit()));
+    BankValueSetFromFixed(OPP_Scope_Bank, section, "Time", GameGetMissionTime());
+    if (label == "Order" && cmd == c_abilMorphCmdCancel) { OPP_Scope_CancelOrder += 1; }
+    if (label == "Ability" && cmd == c_abilMorphCmdExecute) {
+        if (stage == c_unitAbilStageExecute) { OPP_Scope_Execute += 1; }
+        if (stage == c_unitAbilStageComplete) { OPP_Scope_Complete += 1; }
+        if (stage == c_unitAbilStageCancel) { OPP_Scope_Cancel += 1; }
+    }
+}
+
+bool OPP_Scope_Order (bool testConds, bool runActions) {
+    if (runActions) { OPP_Scope_Event("Order", OrderGetAbilityCommand(EventUnitOrder()), 0); }
+    return true;
+}
+bool OPP_Scope_AbilityEvent (bool testConds, bool runActions) {
+    if (runActions) { OPP_Scope_Event("Ability", EventUnitAbility(), EventUnitAbilityStage()); }
+    return true;
+}
+
+void OPP_Scope_Attempt (int link, string source, string ability, bool targetPoint) {
+    unitgroup created;
+    unit cleanup;
+    string sourceAbility;
+    string race;
+    int i;
+    fixed elapsed;
+    bool accepted;
+    OPP_Scope_Section = "Link" + IntToString(link) + "/";
+    if (targetPoint) { OPP_Scope_Section += "Point"; }
+    else { OPP_Scope_Section += "Default"; }
+    OPP_Scope_Ability = ability;
+    OPP_Scope_Execute = 0;
+    OPP_Scope_Complete = 0;
+    OPP_Scope_Cancel = 0;
+    OPP_Scope_CancelOrder = 0;
+    OPP_Scope_Tracking = false;
+    BankValueSetFromFixed(OPP_Scope_Bank, OPP_Scope_Section, "Time", GameGetMissionTime());
+    BankValueSetFromString(OPP_Scope_Bank, OPP_Scope_Section, "Source", source);
+    BankValueSetFromString(OPP_Scope_Bank, OPP_Scope_Section, "Ability", ability);
+    BankValueSetFromFlag(OPP_Scope_Bank, OPP_Scope_Section, "TargetPoint", targetPoint);
+    race = CatalogFieldValueGet(c_gameCatalogUnit, source, "Race", 1);
+    BankValueSetFromString(OPP_Scope_Bank, OPP_Scope_Section, "SourceRace", race);
+    if (race == "Zerg" || race == "Terr" || race == "Prot") { PlayerSetRace(1, race); }
+    CreepModify(Point(65.0, 65.0), 18.0, race == "Zerg", true);
+    PlayerModifyPropertyInt(1, c_playerPropMinerals, c_playerPropOperSetTo, 100000);
+    PlayerModifyPropertyInt(1, c_playerPropVespene, c_playerPropOperSetTo, 100000);
+    PlayerModifyPropertyInt(1, c_playerPropSuppliesMade, c_playerPropOperSetTo, 200);
+    OPP_Scope_CreatedUnits = UnitGroupEmpty();
+    OPP_Scope_CollectCreated = true;
+    created = UnitCreate(1, source, c_unitCreateIgnorePlacement, 1, Point(65.0, 65.0), 270.0);
+    OPP_Scope_Unit = null;
+    if (UnitGroupCount(created, c_unitCountAll) > 0) { OPP_Scope_Unit = UnitGroupUnit(created, 1); }
+    OPP_Scope_UnitState("Created");
+    if (OPP_Scope_Unit == null) { OPP_Scope_CollectCreated = false; BankSave(OPP_Scope_Bank); return; }
+    // Turn off every available autocast before the explicit tested order.
+    for (i = 1; i <= UnitAbilityCount(OPP_Scope_Unit); i += 1) {
+        sourceAbility = UnitAbilityGet(OPP_Scope_Unit, i);
+        if (UnitCheckAbilCmdState(OPP_Scope_Unit, AbilityCommand(sourceAbility, 0), c_cmdStateIsAutoCast)) {
+            UnitIssueOrder(OPP_Scope_Unit, OrderSetAutoCast(AbilityCommand(sourceAbility, 0), false), c_orderQueueReplace);
+        }
+    }
+    Wait(0.0625, c_timeGame);
+    OPP_Scope_UnitState("Before");
+    BankValueSetFromInt(OPP_Scope_Bank, OPP_Scope_Section, "BeforeBuildings", DataTableGetInt(true, "OPPCancelPopups/BuildingCancels"));
+    BankValueSetFromInt(OPP_Scope_Bank, OPP_Scope_Section, "BeforeUnits", DataTableGetInt(true, "OPPCancelPopups/UnitCancels"));
+    OPP_Scope_Tracking = true;
+    accepted = false;
+    if (UnitIsAlive(OPP_Scope_Unit) && UnitAbilityExists(OPP_Scope_Unit, ability)) {
+        if (targetPoint) {
+            accepted = UnitIssueOrder(OPP_Scope_Unit, OrderTargetingPoint(AbilityCommand(ability, c_abilMorphCmdExecute), Point(65.0, 69.0)), c_orderQueueReplace);
+        }
+        else { accepted = UnitIssueOrder(OPP_Scope_Unit, Order(AbilityCommand(ability, c_abilMorphCmdExecute)), c_orderQueueReplace); }
+    }
+    BankValueSetFromFlag(OPP_Scope_Bank, OPP_Scope_Section, "StartAccepted", accepted);
+    Wait(0.0625, c_timeGame);
+    OPP_Scope_UnitState("During");
+    BankValueSetFromInt(OPP_Scope_Bank, OPP_Scope_Section, "BeforeCancelExecute", OPP_Scope_Execute);
+    BankValueSetFromInt(OPP_Scope_Bank, OPP_Scope_Section, "BeforeCancelComplete", OPP_Scope_Complete);
+    BankValueSetFromFixed(OPP_Scope_Bank, OPP_Scope_Section, "CancelIssuedTime", GameGetMissionTime());
+    accepted = false;
+    if (UnitIsAlive(OPP_Scope_Unit) && (UnitAbilityExists(OPP_Scope_Unit, ability) || (OPP_Scope_Execute > 0 && OPP_Scope_Complete == 0))) {
+        accepted = UnitIssueOrder(OPP_Scope_Unit, Order(AbilityCommand(ability, c_abilMorphCmdCancel)), c_orderQueueReplace);
+    }
+    BankValueSetFromFlag(OPP_Scope_Bank, OPP_Scope_Section, "CancelAccepted", accepted);
+    Wait(0.25, c_timeGame);
+    OPP_Scope_UnitState("AfterCancel");
+    if (ability == "MorphToInfestedTerran") {
+        BankValueSetFromFixed(OPP_Scope_Bank, OPP_Scope_Section, "NaturalObservationStart", GameGetMissionTime());
+        OPP_Scope_UnitState("NaturalStart");
+        Wait(6.0, c_timeGame);
+        BankValueSetFromFixed(OPP_Scope_Bank, OPP_Scope_Section, "NaturalObservationEnd", GameGetMissionTime());
+        OPP_Scope_UnitState("NaturalEnd");
+    }
+    elapsed = 0.25;
+    while (OPP_Scope_Execute > 0 && OPP_Scope_Complete == 0 && OPP_Scope_Cancel == 0 && UnitIsAlive(OPP_Scope_Unit) && elapsed < 15.0) {
+        Wait(0.25, c_timeGame);
+        elapsed += 0.25;
+    }
+    OPP_Scope_UnitState("Settled");
+    BankValueSetFromFixed(OPP_Scope_Bank, OPP_Scope_Section, "SettleWait", elapsed);
+    BankValueSetFromInt(OPP_Scope_Bank, OPP_Scope_Section, "ExecuteEvents", OPP_Scope_Execute);
+    BankValueSetFromInt(OPP_Scope_Bank, OPP_Scope_Section, "CompleteEvents", OPP_Scope_Complete);
+    BankValueSetFromInt(OPP_Scope_Bank, OPP_Scope_Section, "CancelEvents", OPP_Scope_Cancel);
+    BankValueSetFromInt(OPP_Scope_Bank, OPP_Scope_Section, "CancelOrderEvents", OPP_Scope_CancelOrder);
+    BankValueSetFromInt(OPP_Scope_Bank, OPP_Scope_Section, "AfterBuildings", DataTableGetInt(true, "OPPCancelPopups/BuildingCancels"));
+    BankValueSetFromInt(OPP_Scope_Bank, OPP_Scope_Section, "AfterUnits", DataTableGetInt(true, "OPPCancelPopups/UnitCancels"));
+    BankValueSetFromInt(OPP_Scope_Bank, OPP_Scope_Section, "CreatedUnits", UnitGroupCount(OPP_Scope_CreatedUnits, c_unitCountAll));
+    BankValueSetFromFlag(OPP_Scope_Bank, OPP_Scope_Section, "SavedAttemptComplete", true);
+    BankSave(OPP_Scope_Bank);
+    OPP_Scope_Tracking = false;
+    OPP_Scope_CollectCreated = false;
+    // Include targets spawned on a new tag, cocoon replacements and debris.
+    while (UnitGroupCount(OPP_Scope_CreatedUnits, c_unitCountAll) > 0) {
+        cleanup = UnitGroupUnit(OPP_Scope_CreatedUnits, 1);
+        UnitGroupRemove(OPP_Scope_CreatedUnits, cleanup);
+        UnitRemove(cleanup);
+    }
+    OPP_Scope_Unit = null;
+}
+
+bool OPP_Test_Run (bool testConds, bool runActions) {
+    trigger probe;
+    string source;
+    string ability;
+    string section;
+    int abilityClass;
+    int i;
+    int j;
+    int count;
+    int units;
+    if (!runActions) { return true; }
+    OPP_Scope_Bank = BankLoad("OPPBuildingCancelTest", 1);
+    BankValueSetFromString(OPP_Scope_Bank, "Probe", "Fixture", "morph-scope-baseline");
+    BankValueSetFromString(OPP_Scope_Bank, "Probe", "Scope", "All effective source links; forced resources/requirements/creep do not establish natural melee reachability.");
+    probe = TriggerCreate("OPP_Scope_Order");
+    TriggerAddEventUnitOrder(probe, null, null);
+    probe = TriggerCreate("OPP_Scope_AbilityEvent");
+    TriggerAddEventUnitAbility(probe, null, null, c_unitAbilStageAll, false);
+    probe = TriggerCreate("OPP_Scope_Created");
+    TriggerAddEventUnitCreated(probe, null, null, null);
+    probe = TriggerCreate("OPP_Scope_Died");
+    TriggerAddEventUnitDied(probe, null);
+    UnitCreate(1, "CommandCenter", 0, 1, Point(25.0, 25.0), 270.0);
+    UnitCreate(1, "Nexus", 0, 2, Point(105.0, 105.0), 270.0);
+    UnitCreate(1, "Pylon", 0, 1, Point(65.0, 61.0), 270.0);
+    OPP_Scope_PowerUnit = UnitLastCreated();
+    UnitSetState(OPP_Scope_PowerUnit, c_unitStateInvulnerable, true);
+    TechTreeRequirementsEnable(1, false);
+    TechTreeRestrictionsEnable(1, false);
+    TechTreeUpgradeAddLevel(1, "WarpGateResearch", 1);
+    Wait(8.0, c_timeGame);
+    GameSetGlobalTimeScale(4.0);
+    units = CatalogEntryCount(c_gameCatalogUnit);
+    for (i = 1; i <= units; i += 1) {
+        if (i % 64 == 0) { Wait(0.0625, c_timeGame); }
+        source = CatalogEntryGet(c_gameCatalogUnit, i);
+        if (!CatalogEntryIsValid(c_gameCatalogUnit, source) || CatalogEntryIsDefault(c_gameCatalogUnit, source)) { continue; }
+        count = CatalogFieldValueCount(c_gameCatalogUnit, source, "AbilArray", 1);
+        for (j = 0; j < count; j += 1) {
+            ability = CatalogFieldValueGet(c_gameCatalogUnit, source, "AbilArray[" + IntToString(j) + "].Link", 1);
+            if (ability == "" || !CatalogEntryIsValid(c_gameCatalogAbil, ability)) { continue; }
+            abilityClass = AbilityClass(ability);
+            if (abilityClass != c_classIdCAbilMorph && abilityClass != c_classIdCAbilMorphPlacement) { continue; }
+            section = "Link" + IntToString(OPP_Scope_Index);
+            BankValueSetFromString(OPP_Scope_Bank, section, "Source", source);
+            BankValueSetFromString(OPP_Scope_Bank, section, "Ability", ability);
+            BankValueSetFromInt(OPP_Scope_Bank, section, "Class", abilityClass);
+            BankValueSetFromString(OPP_Scope_Bank, section, "Automatic", CatalogFieldValueGet(c_gameCatalogAbil, ability, "Flags[Automatic]", 1));
+            BankValueSetFromString(OPP_Scope_Bank, section, "DisableAbils", CatalogFieldValueGet(c_gameCatalogAbil, ability, "Flags[DisableAbils]", 1));
+            BankValueSetFromString(OPP_Scope_Bank, section, "Interruptible", CatalogFieldValueGet(c_gameCatalogAbil, ability, "Flags[Interruptible]", 1));
+            BankValueSetFromString(OPP_Scope_Bank, section, "CancelFace", CatalogFieldValueGet(c_gameCatalogAbil, ability, "CmdButtonArray[Cancel].DefaultButtonFace", 1));
+            BankValueSetFromString(OPP_Scope_Bank, section, "ExecuteRequirements", CatalogFieldValueGet(c_gameCatalogAbil, ability, "CmdButtonArray[Execute].Requirements", 1));
+            BankValueSetFromInt(OPP_Scope_Bank, section, "UnitCatalogIndex", i);
+            BankValueSetFromInt(OPP_Scope_Bank, section, "AbilArrayIndex", j);
+            if (abilityClass == c_classIdCAbilMorphPlacement) { OPP_Scope_Attempt(OPP_Scope_Index, source, ability, true); }
+            else { OPP_Scope_Attempt(OPP_Scope_Index, source, ability, false); }
+            OPP_Scope_Index += 1;
+            BankValueSetFromInt(OPP_Scope_Bank, "Progress", "Links", OPP_Scope_Index);
+            BankValueSetFromInt(OPP_Scope_Bank, "Progress", "Events", OPP_Scope_Events);
+            BankSave(OPP_Scope_Bank);
+        }
+    }
+    GameSetGlobalTimeScale(1.0);
+    BankValueSetFromInt(OPP_Scope_Bank, "Finished", "Links", OPP_Scope_Index);
+    BankValueSetFromInt(OPP_Scope_Bank, "Finished", "Events", OPP_Scope_Events);
+    BankValueSetFromFixed(OPP_Scope_Bank, "Finished", "Time", GameGetMissionTime());
+    BankValueSetFromFlag(OPP_Scope_Bank, "Finished", "Done", true);
+    BankSave(OPP_Scope_Bank);
+    Wait(2.0, c_timeGame);
+    GameOver(1, c_gameOverDefeat, true, false);
+    return true;
+}

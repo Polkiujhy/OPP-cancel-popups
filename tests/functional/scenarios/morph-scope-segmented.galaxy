@@ -1,0 +1,109 @@
+// Helpers are prepended by the stager. Each bank stays far below the engine key limit.
+bool OPP_Test_Run (bool testConds, bool runActions) {
+    trigger probe;
+    bank manifest;
+    string source;
+    string ability;
+    string section;
+    string chunkName;
+    int abilityClass;
+    int i;
+    int j;
+    int count;
+    int units;
+    int chunk;
+    int chunkStart;
+    if (!runActions) { return true; }
+    manifest = BankLoad("OPPBuildingCancelTest", 1);
+    BankValueSetFromString(manifest, "Probe", "Fixture", "morph-scope-segmented");
+    BankValueSetFromInt(manifest, "Probe", "PrefixCompletedLinks", 292);
+    BankValueSetFromInt(manifest, "Probe", "ChunkCapacity", 40);
+    BankValueSetFromString(manifest, "Probe", "Limitation", "No scenery UnitCreate at links292..297; separate finished tail verifies availability and remaining links298..300.");
+    BankSave(manifest);
+    probe = TriggerCreate("OPP_Scope_Order");
+    TriggerAddEventUnitOrder(probe, null, null);
+    probe = TriggerCreate("OPP_Scope_AbilityEvent");
+    TriggerAddEventUnitAbility(probe, null, null, c_unitAbilStageAll, false);
+    probe = TriggerCreate("OPP_Scope_Created");
+    TriggerAddEventUnitCreated(probe, null, null, null);
+    probe = TriggerCreate("OPP_Scope_Died");
+    TriggerAddEventUnitDied(probe, null);
+    UnitCreate(1, "CommandCenter", 0, 1, Point(25.0, 25.0), 270.0);
+    UnitCreate(1, "Nexus", 0, 2, Point(105.0, 105.0), 270.0);
+    UnitCreate(1, "Pylon", 0, 1, Point(65.0, 61.0), 270.0);
+    OPP_Scope_PowerUnit = UnitLastCreated();
+    UnitSetState(OPP_Scope_PowerUnit, c_unitStateInvulnerable, true);
+    TechTreeRequirementsEnable(1, false);
+    TechTreeRestrictionsEnable(1, false);
+    TechTreeUpgradeAddLevel(1, "WarpGateResearch", 1);
+    Wait(8.0, c_timeGame);
+    GameSetGlobalTimeScale(4.0);
+    units = CatalogEntryCount(c_gameCatalogUnit);
+    for (i = 1; i <= units; i += 1) {
+        if (i % 64 == 0) { Wait(0.0625, c_timeGame); }
+        source = CatalogEntryGet(c_gameCatalogUnit, i);
+        if (!CatalogEntryIsValid(c_gameCatalogUnit, source) || CatalogEntryIsDefault(c_gameCatalogUnit, source)) { continue; }
+        count = CatalogFieldValueCount(c_gameCatalogUnit, source, "AbilArray", 1);
+        for (j = 0; j < count; j += 1) {
+            ability = CatalogFieldValueGet(c_gameCatalogUnit, source, "AbilArray[" + IntToString(j) + "].Link", 1);
+            if (ability == "" || !CatalogEntryIsValid(c_gameCatalogAbil, ability)) { continue; }
+            abilityClass = AbilityClass(ability);
+            if (abilityClass != c_classIdCAbilMorph && abilityClass != c_classIdCAbilMorphPlacement) { continue; }
+            if (OPP_Scope_Index < 292) {
+                chunk = OPP_Scope_Index / 40;
+                chunkStart = chunk * 40;
+                if (OPP_Scope_Index % 40 == 0) {
+                    chunkName = "OPPBuildingCancelTest" + "Chunk" + IntToString(chunk);
+                    OPP_Scope_Bank = BankLoad(chunkName, 1);
+                    OPP_Scope_Events = 0;
+                    BankValueSetFromString(OPP_Scope_Bank, "Probe", "Fixture", "morph-scope-chunk");
+                    BankValueSetFromInt(OPP_Scope_Bank, "Probe", "Chunk", chunk);
+                    BankValueSetFromInt(OPP_Scope_Bank, "Probe", "StartLink", chunkStart);
+                }
+                section = "Link" + IntToString(OPP_Scope_Index);
+                BankValueSetFromString(OPP_Scope_Bank, section, "Source", source);
+                BankValueSetFromString(OPP_Scope_Bank, section, "Ability", ability);
+                BankValueSetFromInt(OPP_Scope_Bank, section, "Class", abilityClass);
+                BankValueSetFromString(OPP_Scope_Bank, section, "Automatic", CatalogFieldValueGet(c_gameCatalogAbil, ability, "Flags[Automatic]", 1));
+                BankValueSetFromString(OPP_Scope_Bank, section, "DisableAbils", CatalogFieldValueGet(c_gameCatalogAbil, ability, "Flags[DisableAbils]", 1));
+                BankValueSetFromString(OPP_Scope_Bank, section, "Interruptible", CatalogFieldValueGet(c_gameCatalogAbil, ability, "Flags[Interruptible]", 1));
+                BankValueSetFromString(OPP_Scope_Bank, section, "CancelFace", CatalogFieldValueGet(c_gameCatalogAbil, ability, "CmdButtonArray[Cancel].DefaultButtonFace", 1));
+                BankValueSetFromString(OPP_Scope_Bank, section, "ExecuteRequirements", CatalogFieldValueGet(c_gameCatalogAbil, ability, "CmdButtonArray[Execute].Requirements", 1));
+                BankValueSetFromInt(OPP_Scope_Bank, section, "UnitCatalogIndex", i);
+                BankValueSetFromInt(OPP_Scope_Bank, section, "AbilArrayIndex", j);
+                if (abilityClass == c_classIdCAbilMorphPlacement) { OPP_Scope_Attempt(OPP_Scope_Index, source, ability, true); }
+                else { OPP_Scope_Attempt(OPP_Scope_Index, source, ability, false); }
+                BankValueSetFromInt(OPP_Scope_Bank, "Progress", "CompletedLinks", OPP_Scope_Index + 1 - chunkStart);
+                BankValueSetFromInt(OPP_Scope_Bank, "Progress", "Events", OPP_Scope_Events);
+                if ((OPP_Scope_Index + 1) % 40 == 0 || OPP_Scope_Index == 291) {
+                    BankValueSetFromInt(OPP_Scope_Bank, "Finished", "StartLink", chunkStart);
+                    BankValueSetFromInt(OPP_Scope_Bank, "Finished", "EndLinkExclusive", OPP_Scope_Index + 1);
+                    BankValueSetFromInt(OPP_Scope_Bank, "Finished", "Links", OPP_Scope_Index + 1 - chunkStart);
+                    BankValueSetFromInt(OPP_Scope_Bank, "Finished", "Events", OPP_Scope_Events);
+                    BankValueSetFromFlag(OPP_Scope_Bank, "Finished", "Done", true);
+                    BankSave(OPP_Scope_Bank);
+                    section = "Chunk" + IntToString(chunk);
+                    BankValueSetFromString(manifest, section, "BankName", chunkName);
+                    BankValueSetFromInt(manifest, section, "StartLink", chunkStart);
+                    BankValueSetFromInt(manifest, section, "EndLinkExclusive", OPP_Scope_Index + 1);
+                    BankValueSetFromInt(manifest, section, "Events", OPP_Scope_Events);
+                    BankValueSetFromFlag(manifest, section, "Done", true);
+                }
+                else { BankSave(OPP_Scope_Bank); }
+                BankValueSetFromInt(manifest, "Progress", "CompletedLinks", OPP_Scope_Index + 1);
+                BankValueSetFromInt(manifest, "Progress", "CurrentChunk", chunk);
+                BankSave(manifest);
+            }
+            OPP_Scope_Index += 1;
+        }
+    }
+    GameSetGlobalTimeScale(1.0);
+    BankValueSetFromInt(manifest, "Finished", "CatalogLinks", OPP_Scope_Index);
+    BankValueSetFromInt(manifest, "Finished", "CompletedLinks", 292);
+    BankValueSetFromInt(manifest, "Finished", "Chunks", 8);
+    BankValueSetFromFlag(manifest, "Finished", "Done", true);
+    BankSave(manifest);
+    Wait(2.0, c_timeGame);
+    GameOver(1, c_gameOverDefeat, true, false);
+    return true;
+}

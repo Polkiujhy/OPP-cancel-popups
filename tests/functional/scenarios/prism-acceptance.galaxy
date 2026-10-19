@@ -1,0 +1,755 @@
+// Real engine acceptance. Every small fragment is closed independently before
+// moving on. No forced completion or synthetic cancellation signals are used.
+include "LibC0DEC0DE_h"
+void OPP_PrismFixture_ClearUI ();
+void OPP_PrismFixture_Snapshot (bank output, string section);
+void OPP_PrismFixture_Instance (bank output, string section, unit child);
+void OPP_PrismFixture_BlockRows ();
+void OPP_PrismFixture_Drain ();
+void OPP_PrismFixture_FullQueue ();
+void OPP_PrismFixture_DrainQueue ();
+bank OPP_PA_Main;
+bank OPP_PA_Bank;
+string OPP_PA_Case = "setup";
+string OPP_PA_Fragment = "";
+int OPP_PA_Fragments = 0;
+int OPP_PA_Events = 0;
+int OPP_PA_Deaths = 0;
+string OPP_PA_CleanupPhase = "";
+string OPP_PA_CleanupSection = "";
+int OPP_PA_CleanupTargets = 0;
+int OPP_PA_CleanupLive = 0;
+bool OPP_PA_Tracking = false;
+bool OPP_PA_Compact = false;
+unit OPP_PA_A;
+unit OPP_PA_B;
+unit OPP_PA_Pylon;
+unit OPP_PA_Worker;
+unit[3] OPP_PA_Killers;
+string[3] OPP_PA_DamageEffects;
+fixed[12] OPP_PA_CreatedTimes;
+fixed OPP_PA_NaturalStart = -1.0;
+fixed OPP_PA_NaturalEnd = -1.0;
+unit[4] OPP_PA_Gates;
+unit[12] OPP_PA_Warps;
+point[12] OPP_PA_Positions;
+int[12] OPP_PA_Tags;
+int[12] OPP_PA_Owners;
+string[12] OPP_PA_Types;
+int OPP_PA_Count = 0;
+
+void OPP_PA_Unit (string section, string prefix, unit u) {
+    BankValueSetFromFlag(OPP_PA_Bank, section, prefix + "Present", u != null);
+    if (u == null) { return; }
+    BankValueSetFromInt(OPP_PA_Bank, section, prefix + "Tag", UnitGetTag(u));
+    BankValueSetFromInt(OPP_PA_Bank, section, prefix + "Owner", UnitGetOwner(u));
+    BankValueSetFromString(OPP_PA_Bank, section, prefix + "Type", UnitGetType(u));
+    BankValueSetFromFlag(OPP_PA_Bank, section, prefix + "Alive", UnitIsValid(u) && UnitIsAlive(u));
+    BankValueSetFromFlag(OPP_PA_Bank, section, prefix + "Constructing", UnitIsValid(u) && UnitTestState(u, c_unitStateUnderConstruction));
+}
+
+bool OPP_PA_From (int index, unit source) {
+    if (source == null || !UnitIsValid(source) || !UnitIsAlive(source)) { return false; }
+    return PowerIsProvidedBy(OPP_PA_Owners[index], OPP_PA_Positions[index], "PowerSource", source, 1);
+}
+
+void OPP_PA_Event (string label, unit u, abilcmd command, int stage, unit progress, string detail) {
+    string section;
+    if (!OPP_PA_Tracking) { return; }
+    OPP_PA_Events += 1;
+    section = "Event" + IntToString(OPP_PA_Events);
+    BankValueSetFromString(OPP_PA_Bank, section, "Case", OPP_PA_Case);
+    BankValueSetFromString(OPP_PA_Bank, section, "Label", label);
+    BankValueSetFromString(OPP_PA_Bank, section, "Detail", detail);
+    BankValueSetFromFixed(OPP_PA_Bank, section, "Time", GameGetMissionTime());
+    BankValueSetFromInt(OPP_PA_Bank, section, "Stage", stage);
+    OPP_PA_Unit(section, "Unit", u);
+    OPP_PA_Unit(section, "Progress", progress);
+    if (command != null) {
+        BankValueSetFromString(OPP_PA_Bank, section, "Ability", AbilityCommandGetAbility(command));
+        BankValueSetFromInt(OPP_PA_Bank, section, "Command", AbilityCommandGetCommand(command));
+    }
+    BankSave(OPP_PA_Bank);
+}
+
+void OPP_PA_Snapshot (string label) {
+    string section;
+    string key;
+    int i;
+    section = OPP_PA_Case + "/" + label;
+    BankValueSetFromInt(OPP_PA_Bank, section, "WarpCount", OPP_PA_Count);
+    OPP_PA_Unit(section, "A", OPP_PA_A);
+    OPP_PA_Unit(section, "B", OPP_PA_B);
+    OPP_PA_Unit(section, "Pylon", OPP_PA_Pylon);
+    for (i = 0; i < OPP_PA_Count; i += 1) {
+        key = "Warp" + IntToString(i);
+        OPP_PA_Unit(section, key, OPP_PA_Warps[i]);
+        BankValueSetFromInt(OPP_PA_Bank, section, key + "StartedTag", OPP_PA_Tags[i]);
+        BankValueSetFromInt(OPP_PA_Bank, section, key + "StartedOwner", OPP_PA_Owners[i]);
+        BankValueSetFromString(OPP_PA_Bank, section, key + "StartedType", OPP_PA_Types[i]);
+        if (UnitIsValid(OPP_PA_Warps[i]) && UnitIsAlive(OPP_PA_Warps[i]) && UnitTestState(OPP_PA_Warps[i], c_unitStateUnderConstruction)) {
+            BankValueSetFromFixed(OPP_PA_Bank, section, key + "Progress", UnitGetProgressComplete(OPP_PA_Warps[i], 1));
+        }
+        BankValueSetFromText(OPP_PA_Bank, section, key + "ExpectedName", UnitTypeGetName(OPP_PA_Types[i]));
+        BankValueSetFromString(OPP_PA_Bank, section, key + "ExpectedIcon", CatalogFieldValueGet(c_gameCatalogActor, OPP_PA_Types[i], "UnitIcon", OPP_PA_Owners[i]));
+        BankValueSetFromFixed(OPP_PA_Bank, section, key + "X", PointGetX(OPP_PA_Positions[i]));
+        BankValueSetFromFixed(OPP_PA_Bank, section, key + "Y", PointGetY(OPP_PA_Positions[i]));
+        BankValueSetFromInt(OPP_PA_Bank, section, key + "Power", PowerLevel(OPP_PA_Owners[i], OPP_PA_Positions[i], "PowerSource"));
+        BankValueSetFromFlag(OPP_PA_Bank, section, key + "FromA", OPP_PA_From(i, OPP_PA_A));
+        BankValueSetFromFlag(OPP_PA_Bank, section, key + "FromB", OPP_PA_From(i, OPP_PA_B));
+        BankValueSetFromFlag(OPP_PA_Bank, section, key + "FromPylon", OPP_PA_From(i, OPP_PA_Pylon));
+        if (label == "Before" || label == "Correlated" || label == "Held") {
+            OPP_PrismFixture_Instance(OPP_PA_Bank, section + "/" + key, OPP_PA_Warps[i]);
+        }
+    }
+    OPP_PrismFixture_Snapshot(OPP_PA_Bank, section);
+}
+
+bool OPP_PA_Created (bool testConds, bool runActions) {
+    unit u;
+    string ability;
+    string objectType;
+    int slot;
+    if (!runActions || !OPP_PA_Tracking) { return true; }
+    u = EventUnitCreatedUnit();
+    if (u == null) { return true; }
+    ability = EventUnitCreatedAbil();
+    objectType = UnitGetType(u);
+    if (objectType == "Pylon" && OPP_PA_Case == "NaturalPylon") { OPP_PA_Pylon = u; }
+    if (objectType == "Pylon" || objectType == "WarpPrismPhasing" || objectType == "WarpPrism") {
+        if (!OPP_PA_Compact) { OPP_PA_Event("ProviderCreated", u, null, 0, EventUnit(), ability); }
+    }
+    if (ability == "" || AbilityClass(ability) != c_classIdCAbilWarpTrain) { return true; }
+    if (OPP_PA_Count >= 12) { BankValueSetFromFlag(OPP_PA_Bank, "Finished", "Overflow", true); return true; }
+    slot = OPP_PA_Count;
+    OPP_PA_Count += 1;
+    OPP_PA_Warps[slot] = u;
+    OPP_PA_Tags[slot] = UnitGetTag(u);
+    OPP_PA_Owners[slot] = UnitGetOwner(u);
+    OPP_PA_Types[slot] = objectType;
+    OPP_PA_CreatedTimes[slot] = GameGetMissionTime();
+    OPP_PA_Positions[slot] = UnitGetPosition(u);
+    OPP_PA_Event("Created", u, null, 0, EventUnit(), ability);
+    if (OPP_PA_Case == "NaturalComplete" && objectType == "Zealot") { OPP_PA_NaturalStart = GameGetMissionTime(); }
+    return true;
+}
+
+bool OPP_PA_Order (bool testConds, bool runActions) {
+    abilcmd command;
+    string ability;
+    if (!runActions || !OPP_PA_Tracking) { return true; }
+    command = OrderGetAbilityCommand(EventUnitOrder());
+    ability = AbilityCommandGetAbility(command);
+    if (ability == "TransportMode" || ability == "PhasingMode" || AbilityClass(ability) == c_classIdCAbilWarpable || AbilityClass(ability) == c_classIdCAbilWarpTrain || ability == "ProtossBuild") {
+        OPP_PA_Event("Order", EventUnit(), command, 0, null, "");
+    }
+    return true;
+}
+
+bool OPP_PA_Ability (bool testConds, bool runActions) {
+    abilcmd command;
+    string ability;
+    if (!runActions || !OPP_PA_Tracking) { return true; }
+    command = EventUnitAbility();
+    ability = AbilityCommandGetAbility(command);
+    if (ability != "TransportMode" && ability != "PhasingMode") { return true; }
+    if (OPP_PA_Compact && EventUnitAbilityStage() != c_unitAbilStageExecute) { return true; }
+    OPP_PA_Event("Ability", EventUnit(), command, EventUnitAbilityStage(), null, "");
+    return true;
+}
+
+bool OPP_PA_Construct (bool testConds, bool runActions) {
+    int i;
+    if (!runActions || !OPP_PA_Tracking) { return true; }
+    for (i = 0; i < OPP_PA_Count; i += 1) {
+        if (EventUnitProgressUnit() == OPP_PA_Warps[i]) {
+            OPP_PA_Event("ConstructCancel", EventUnit(), null, c_unitProgressStageCancel, EventUnitProgressUnit(), EventUnitProgressObjectType());
+        }
+    }
+    return true;
+}
+
+bool OPP_PA_Complete (bool testConds, bool runActions) {
+    int i;
+    if (!runActions || !OPP_PA_Tracking) { return true; }
+    if (runActions && OPP_PA_Tracking && EventUnitProgressUnit() == OPP_PA_Pylon) {
+        OPP_PA_Event("ProviderComplete", EventUnit(), null, c_unitProgressStageComplete, EventUnitProgressUnit(), EventUnitProgressObjectType());
+    }
+    for (i = 0; i < OPP_PA_Count; i += 1) {
+        if (EventUnitProgressUnit() == OPP_PA_Warps[i]) {
+            OPP_PA_Event("ConstructComplete", EventUnit(), null, c_unitProgressStageComplete, EventUnitProgressUnit(), EventUnitProgressObjectType());
+            if (OPP_PA_Case == "NaturalComplete" && OPP_PA_Types[i] == "Zealot") {
+                OPP_PA_NaturalEnd = GameGetMissionTime();
+                BankValueSetFromInt(OPP_PA_Main, "Timing", "NaturalZealotTag", OPP_PA_Tags[i]);
+                BankValueSetFromFixed(OPP_PA_Main, "Timing", "NaturalStart", OPP_PA_NaturalStart);
+                BankValueSetFromFixed(OPP_PA_Main, "Timing", "NaturalComplete", OPP_PA_NaturalEnd);
+                BankSave(OPP_PA_Main);
+            }
+        }
+    }
+    return true;
+}
+
+bool OPP_PA_Behavior (bool testConds, bool runActions) {
+    string objectType;
+    if (!runActions || !OPP_PA_Tracking || OPP_PA_Compact || EventUnit() == null) { return true; }
+    objectType = UnitGetType(EventUnit());
+    if (objectType == "WarpPrismPhasing" || objectType == "WarpPrism" || objectType == "Pylon" || EventUnit() == OPP_PA_A || EventUnit() == OPP_PA_B) {
+        OPP_PA_Event("Behavior", EventUnit(), null, EventUnitBehaviorChange(), null, EventUnitBehavior());
+    }
+    return true;
+}
+
+bool OPP_PA_Died (bool testConds, bool runActions) {
+    string section;
+    if (!runActions || OPP_PA_Bank == null) { return true; }
+    // Independent of the scenario/compact trace: cleanup deaths must remain
+    // attributable, but callbacks never retain an unloaded bank handle.
+    if (OPP_PA_Deaths >= 256) { BankValueSetFromFlag(OPP_PA_Bank, "Finished", "DeathOverflow", true); }
+    else {
+        OPP_PA_Deaths += 1;
+        section = "Death" + IntToString(OPP_PA_Deaths);
+        BankValueSetFromString(OPP_PA_Bank, section, "Case", OPP_PA_Case);
+        BankValueSetFromString(OPP_PA_Bank, section, "Phase", OPP_PA_CleanupPhase);
+        BankValueSetFromFixed(OPP_PA_Bank, section, "Time", GameGetMissionTime());
+        OPP_PA_Unit(section, "Unit", EventUnit());
+        BankValueSetFromInt(OPP_PA_Bank, section, "KillingPlayer", EventUnitDamageSourcePlayer());
+        BankValueSetFromInt(OPP_PA_Bank, section, "KillingTag", 0);
+        if (EventUnitDamageSourceUnit() != null) { BankValueSetFromInt(OPP_PA_Bank, section, "KillingTag", UnitGetTag(EventUnitDamageSourceUnit())); }
+        BankValueSetFromFlag(OPP_PA_Bank, section, "Removed", EventUnitDamageDeathCheck(c_deathTypeRemove));
+        BankSave(OPP_PA_Bank);
+    }
+    if (OPP_PA_Tracking && !OPP_PA_Compact && (EventUnit() == OPP_PA_A || EventUnit() == OPP_PA_B || EventUnit() == OPP_PA_Pylon)) {
+        OPP_PA_Event("ProviderDied", EventUnit(), null, 0, null, "");
+        BankValueSetFromInt(OPP_PA_Bank, "Event" + IntToString(OPP_PA_Events), "KillingPlayer", EventUnitDamageSourcePlayer());
+        if (EventUnitDamageSourceUnit() != null) { BankValueSetFromInt(OPP_PA_Bank, "Event" + IntToString(OPP_PA_Events), "KillingTag", UnitGetTag(EventUnitDamageSourceUnit())); }
+        BankSave(OPP_PA_Bank);
+    }
+    return true;
+}
+
+void OPP_PA_Open (string fragment) {
+    OPP_PA_Fragment = "OPPBuildingCancelTest_Prism_" + fragment;
+    OPP_PA_Bank = BankLoad(OPP_PA_Fragment, 1);
+    OPP_PA_Events = 0;
+    OPP_PA_Deaths = 0;
+    OPP_PA_CleanupPhase = "";
+    OPP_PA_CleanupSection = "";
+    OPP_PA_Tracking = true;
+    BankValueSetFromString(OPP_PA_Main, "Fragments", "Bank" + IntToString(OPP_PA_Fragments), OPP_PA_Fragment);
+    OPP_PA_Fragments += 1;
+    BankValueSetFromString(OPP_PA_Bank, "Probe", "Fixture", "prism-acceptance-fragment");
+    BankValueSetFromString(OPP_PA_Bank, "Probe", "Fragment", fragment);
+    BankValueSetFromFlag(OPP_PA_Bank, "Finished", "Done", false);
+    BankValueSetFromFlag(OPP_PA_Bank, "Finished", "DeathOverflow", false);
+    BankValueSetFromFlag(OPP_PA_Bank, "Finished", "DeathClosed", false);
+    BankSave(OPP_PA_Main);
+}
+
+void OPP_PA_CloseBank () {
+    // No callback may retain/use the fragment after this terminal save.
+    OPP_PA_Tracking = false;
+    BankValueSetFromInt(OPP_PA_Bank, "Finished", "Events", OPP_PA_Events);
+    BankValueSetFromInt(OPP_PA_Bank, "Finished", "DeathEvents", OPP_PA_Deaths);
+    BankValueSetFromFlag(OPP_PA_Bank, "Finished", "DeathClosed", OPP_PA_CleanupPhase == "" && OPP_PA_CleanupSection == "");
+    BankValueSetFromFlag(OPP_PA_Bank, "Finished", "Done", true);
+    BankSave(OPP_PA_Bank);
+    // NativeLib 00000293: unloads the cache entry, not the saved disk file.
+    // Blizzard core TriggerStrings FunctionDef/Hint/lib_Ntve_00000293 and its
+    // campaign code use BankRemove(handle); handle = null after use.
+    BankRemove(OPP_PA_Bank);
+    OPP_PA_Bank = null;
+}
+
+void OPP_PA_Setup (string label, bool separate, bool second, bool pylon, bool otherOwner) {
+    int i;
+    int owner;
+    OPP_PA_Case = label;
+    OPP_PA_Count = 0;
+    OPP_PA_A = null;
+    OPP_PA_B = null;
+    OPP_PA_Pylon = null;
+    OPP_PA_Worker = null;
+    OPP_PrismFixture_ClearUI();
+    for (i = 0; i < 4; i += 1) {
+        owner = 1;
+        if (otherOwner && i >= 2) { owner = 2; }
+        UnitCreate(1, "WarpGate", 0, owner, Point(83.0 + IntToFixed(i) * 3.0, 78.0), 270.0);
+        OPP_PA_Gates[i] = UnitLastCreated();
+    }
+    // These cases never need A. Do not create/remove a live, unused source.
+    if (label != "PylonKilled" && label != "RetentionStart") {
+        UnitCreate(1, "WarpPrismPhasing", 0, 1, Point(76.0, 57.0), 270.0);
+        OPP_PA_A = UnitLastCreated();
+    }
+    if (second) {
+        owner = 1;
+        if (otherOwner) { owner = 2; }
+        if (separate) { UnitCreate(1, "WarpPrismPhasing", 0, owner, Point(100.0, 57.0), 270.0); }
+        else { UnitCreate(1, "WarpPrismPhasing", 0, owner, Point(78.0, 57.0), 270.0); }
+        OPP_PA_B = UnitLastCreated();
+    }
+    if (pylon) {
+        UnitCreate(1, "Pylon", 0, 1, Point(76.0, 61.0), 270.0);
+        OPP_PA_Pylon = UnitLastCreated();
+    }
+    Wait(0.125, c_timeGame);
+    OPP_PrismFixture_Snapshot(OPP_PA_Bank, label + "/Initial");
+}
+
+void OPP_PA_Start (int index, int command, fixed x, fixed y) {
+    BankValueSetFromFlag(OPP_PA_Bank, OPP_PA_Case, "Start" + IntToString(index), UnitIssueOrder(OPP_PA_Gates[index], OrderTargetingPoint(AbilityCommand("WarpGateTrain", command), Point(x, y)), c_orderQueueReplace));
+}
+
+void OPP_PA_Three () {
+    OPP_PA_Start(0, c_abilWarpTrainCmdTrain1, 75.0, 55.0);
+    OPP_PA_Start(1, c_abilWarpTrainCmdTrain2, 77.0, 55.0);
+    OPP_PA_Start(2, c_abilWarpTrainCmdTrain6, 76.0, 57.0);
+    Wait(0.25, c_timeGame);
+    OPP_PA_Snapshot("Before");
+}
+
+void OPP_PA_Close (unit source, string key) {
+    BankValueSetFromFlag(OPP_PA_Bank, OPP_PA_Case, key, UnitIssueOrder(source, Order(AbilityCommand("TransportMode", c_abilMorphCmdExecute)), c_orderQueueReplace));
+}
+
+void OPP_PA_Destroy (unit source, string key) {
+    int killer;
+    bool ready;
+    killer = 3 - UnitGetOwner(source);
+    ready = OPP_PA_Killers[killer] != null && UnitIsValid(OPP_PA_Killers[killer]) && UnitIsAlive(OPP_PA_Killers[killer]) && CatalogEntryIsValid(c_gameCatalogEffect, OPP_PA_DamageEffects[killer]);
+    BankValueSetFromFlag(OPP_PA_Bank, OPP_PA_Case, key + "Ready", ready);
+    BankValueSetFromString(OPP_PA_Bank, OPP_PA_Case, key + "Effect", OPP_PA_DamageEffects[killer]);
+    if (ready) { UnitDamage(OPP_PA_Killers[killer], OPP_PA_DamageEffects[killer], source, 100000.0); }
+}
+
+void OPP_PA_Correlate () {
+    // A source killed at T can emit the child's Cancel at T+0.0625. Observe
+    // after its full deferred-decision step, not at that timer's same boundary.
+    Wait(0.25, c_timeGame);
+    OPP_PA_Snapshot("Correlated");
+}
+
+void OPP_PA_CleanupCounters (string suffix) {
+    BankValueSetFromInt(OPP_PA_Bank, OPP_PA_CleanupSection, "Units" + suffix, DataTableGetInt(true, "OPPCancelPopups/UnitCancels"));
+    BankValueSetFromInt(OPP_PA_Bank, OPP_PA_CleanupSection, "Warps" + suffix, DataTableGetInt(true, "OPPCancelPopups/WarpCancels"));
+    BankValueSetFromInt(OPP_PA_Bank, OPP_PA_CleanupSection, "Prisms" + suffix, DataTableGetInt(true, "OPPCancelPopups/PrismCancels"));
+}
+
+void OPP_PA_CleanupBegin (string label, string policy) {
+    OPP_PA_Tracking = false;
+    OPP_PA_CleanupSection = OPP_PA_Case + "/" + label;
+    OPP_PA_CleanupTargets = 0;
+    OPP_PA_CleanupLive = 0;
+    BankValueSetFromString(OPP_PA_Bank, OPP_PA_CleanupSection, "Policy", policy);
+    BankValueSetFromFixed(OPP_PA_Bank, OPP_PA_CleanupSection, "Started", GameGetMissionTime());
+    BankValueSetFromFlag(OPP_PA_Bank, OPP_PA_CleanupSection, "Done", false);
+    OPP_PA_CleanupCounters("Before");
+}
+
+void OPP_PA_CleanupDamage (unit target) {
+    int killer;
+    bool ready;
+    string key;
+    if (target == null || !UnitIsValid(target) || !UnitIsAlive(target)) { return; }
+    key = "Target" + IntToString(OPP_PA_CleanupTargets);
+    OPP_PA_CleanupTargets += 1;
+    OPP_PA_Unit(OPP_PA_CleanupSection, key, target);
+    BankValueSetFromString(OPP_PA_Bank, OPP_PA_CleanupSection, key + "Phase", OPP_PA_CleanupPhase);
+    BankValueSetFromFixed(OPP_PA_Bank, OPP_PA_CleanupSection, key + "Time", GameGetMissionTime());
+    killer = 3 - UnitGetOwner(target);
+    ready = false;
+    if (killer == 1 || killer == 2) {
+        ready = OPP_PA_Killers[killer] != null && UnitIsValid(OPP_PA_Killers[killer]) && UnitIsAlive(OPP_PA_Killers[killer]) && CatalogEntryIsValid(c_gameCatalogEffect, OPP_PA_DamageEffects[killer]);
+    }
+    BankValueSetFromFlag(OPP_PA_Bank, OPP_PA_CleanupSection, key + "Ready", ready);
+    BankValueSetFromInt(OPP_PA_Bank, OPP_PA_CleanupSection, key + "AttackerTag", 0);
+    if (ready) {
+        BankValueSetFromInt(OPP_PA_Bank, OPP_PA_CleanupSection, key + "AttackerTag", UnitGetTag(OPP_PA_Killers[killer]));
+        UnitDamage(OPP_PA_Killers[killer], OPP_PA_DamageEffects[killer], target, 100000.0);
+    }
+}
+
+void OPP_PA_CleanupRemoveDead (unit target) {
+    if (target == null || !UnitIsValid(target)) { return; }
+    if (UnitIsAlive(target)) { OPP_PA_CleanupLive += 1; return; }
+    UnitRemove(target);
+}
+
+void OPP_PA_CleanupEnd () {
+    OPP_PA_CleanupCounters("After");
+    BankValueSetFromInt(OPP_PA_Bank, OPP_PA_CleanupSection, "Targets", OPP_PA_CleanupTargets);
+    BankValueSetFromInt(OPP_PA_Bank, OPP_PA_CleanupSection, "RemainingLive", OPP_PA_CleanupLive);
+    BankValueSetFromFixed(OPP_PA_Bank, OPP_PA_CleanupSection, "Finished", GameGetMissionTime());
+    BankValueSetFromFlag(OPP_PA_Bank, OPP_PA_CleanupSection, "Done", true);
+    OPP_PA_CleanupPhase = "";
+    OPP_PA_CleanupSection = "";
+    BankSave(OPP_PA_Bank);
+}
+
+void OPP_PA_Cleanup () {
+    int i;
+    OPP_PA_Snapshot("Settled");
+    BankValueSetFromFlag(OPP_PA_Bank, OPP_PA_Case, "Saved", true);
+    OPP_PA_CleanupBegin("Cleanup", "credited-children-before-providers");
+    // Actual credited deaths avoid neutral UnitRemove deaths while GameHeart's
+    // battle report is active. Kill live children while their power still exists,
+    // and let their callbacks settle before any provider/producer is destroyed.
+    OPP_PA_CleanupPhase = "children";
+    for (i = 0; i < OPP_PA_Count; i += 1) { OPP_PA_CleanupDamage(OPP_PA_Warps[i]); }
+    Wait(0.125, c_timeGame);
+    BankValueSetFromFixed(OPP_PA_Bank, OPP_PA_CleanupSection, "ChildrenDone", GameGetMissionTime());
+    for (i = 0; i < OPP_PA_Count; i += 1) { OPP_PA_CleanupRemoveDead(OPP_PA_Warps[i]); }
+    OPP_PA_CleanupPhase = "providers";
+    BankValueSetFromFixed(OPP_PA_Bank, OPP_PA_CleanupSection, "ProvidersStarted", GameGetMissionTime());
+    for (i = 0; i < 4; i += 1) { OPP_PA_CleanupDamage(OPP_PA_Gates[i]); }
+    OPP_PA_CleanupDamage(OPP_PA_A); OPP_PA_CleanupDamage(OPP_PA_B);
+    OPP_PA_CleanupDamage(OPP_PA_Pylon); OPP_PA_CleanupDamage(OPP_PA_Worker);
+    Wait(0.125, c_timeGame);
+    BankValueSetFromFixed(OPP_PA_Bank, OPP_PA_CleanupSection, "ProvidersDone", GameGetMissionTime());
+    for (i = 0; i < 4; i += 1) { OPP_PA_CleanupRemoveDead(OPP_PA_Gates[i]); }
+    OPP_PA_CleanupRemoveDead(OPP_PA_A); OPP_PA_CleanupRemoveDead(OPP_PA_B);
+    OPP_PA_CleanupRemoveDead(OPP_PA_Pylon); OPP_PA_CleanupRemoveDead(OPP_PA_Worker);
+    Wait(0.1875, c_timeGame);
+    OPP_PA_CleanupEnd();
+}
+
+void OPP_PA_Standard (string label, int action) {
+    bool cancelReady;
+    bool cancelChildLive;
+    int cancelPoll;
+    OPP_PA_Open(label);
+    OPP_PA_Setup(label, action == 2 || action == 10 || action == 17 || action == 18, action == 2 || action == 3 || action == 6 || action == 7 || action == 8 || action == 10 || action == 14 || action == 15 || action == 16 || action == 17 || action == 18, action == 4 || action == 13 || action == 20, action == 10 || action == 18);
+    if (action == 2 || action == 10 || action == 17 || action == 18) {
+        OPP_PA_Start(0, c_abilWarpTrainCmdTrain1, 75.0, 55.0);
+        OPP_PA_Start(1, c_abilWarpTrainCmdTrain2, 77.0, 55.0);
+        OPP_PA_Start(2, c_abilWarpTrainCmdTrain1, 99.0, 55.0);
+        OPP_PA_Start(3, c_abilWarpTrainCmdTrain2, 101.0, 55.0);
+        Wait(0.25, c_timeGame);
+        OPP_PA_Snapshot("Before");
+    }
+    else { OPP_PA_Three(); }
+    if (action == 5 || action == 9 || action == 19) {
+        // Cancelable is runtime read-only. The private dependency loads its
+        // explicit Cancelable=1 XML variant before any child is created.
+        // Stock Cancelable=0 / real ESC is a separate SHA-paired negative probe.
+        BankValueSetFromString(OPP_PA_Bank, label, "EvidenceMode", "real-engine-fixture-xml-cancellable-variant");
+        cancelReady = false;
+        cancelPoll = 0;
+        while (!cancelReady && cancelPoll < 16 && UnitIsValid(OPP_PA_Warps[0]) && UnitIsAlive(OPP_PA_Warps[0]) && UnitTestState(OPP_PA_Warps[0], c_unitStateUnderConstruction)) {
+            Wait(0.0625, c_timeGame);
+            cancelPoll += 1;
+            cancelReady = !UnitCheckAbilCmdState(OPP_PA_Warps[0], AbilityCommand("Warpable", c_abilWarpableCmdCancel), c_cmdStateHidden) && !UnitCheckAbilCmdState(OPP_PA_Warps[0], AbilityCommand("Warpable", c_abilWarpableCmdCancel), c_cmdStateDisabled);
+        }
+        cancelChildLive = UnitIsValid(OPP_PA_Warps[0]) && UnitIsAlive(OPP_PA_Warps[0]) && UnitTestState(OPP_PA_Warps[0], c_unitStateUnderConstruction);
+        BankValueSetFromString(OPP_PA_Bank, label, "FixtureCancelable", CatalogFieldValueGet(c_gameCatalogAbil, "Warpable", "Cancelable", 1));
+        BankValueSetFromFlag(OPP_PA_Bank, label, "FixtureCancelChildLive", cancelChildLive);
+        BankValueSetFromFlag(OPP_PA_Bank, label, "FixtureCancelHidden", !cancelChildLive || UnitCheckAbilCmdState(OPP_PA_Warps[0], AbilityCommand("Warpable", c_abilWarpableCmdCancel), c_cmdStateHidden));
+        BankValueSetFromFlag(OPP_PA_Bank, label, "FixtureCancelDisabled", !cancelChildLive || UnitCheckAbilCmdState(OPP_PA_Warps[0], AbilityCommand("Warpable", c_abilWarpableCmdCancel), c_cmdStateDisabled));
+        BankValueSetFromFlag(OPP_PA_Bank, label, "FixtureCancelReady", cancelReady);
+        BankValueSetFromInt(OPP_PA_Bank, label, "FixtureCancelPolls", cancelPoll);
+        BankValueSetFromFlag(OPP_PA_Bank, label, "DirectAccepted", cancelReady && cancelChildLive && UnitIssueOrder(OPP_PA_Warps[0], Order(AbilityCommand("Warpable", c_abilWarpableCmdCancel)), c_orderQueueReplace));
+    }
+    if (action == 7 || action == 16) { OPP_PA_Destroy(OPP_PA_B, "KillB"); }
+    if ((action > 0 && action < 11 && action != 5) || action == 12) { OPP_PA_Close(OPP_PA_A, "CloseA"); }
+    if (action == 2 || action == 6) { OPP_PA_Destroy(OPP_PA_B, "KillB"); }
+    if (action == 8 || action == 10) { OPP_PA_Close(OPP_PA_B, "CloseB"); }
+    if (action == 11 || action == 14 || action == 15 || action == 16 || action == 17 || action == 18 || action == 19) { OPP_PA_Destroy(OPP_PA_A, "KillA"); }
+    if (action == 13 || action == 20) { OPP_PA_Destroy(OPP_PA_Pylon, "KillPylon"); }
+    if (action == 15 || action == 17 || action == 18) { OPP_PA_Destroy(OPP_PA_B, "KillB"); }
+    if (action == 12) {
+        // A distinct game instant, still before deferred publication. The
+        // earlier real cancellation must survive later source destruction.
+        Wait(0.0625, c_timeGame);
+        OPP_PA_Destroy(OPP_PA_A, "KillA");
+    }
+    OPP_PA_Correlate();
+    if (label == "SingleClose" || label == "TwoOwners") { Wait(2.0, c_timeGame); }
+    if (action == 0 || action == 3 || action == 5 || action == 14 || action == 20) { Wait(5.0, c_timeGame); }
+    if (action == 4) { Wait(19.0, c_timeGame); }
+    OPP_PA_Cleanup();
+    OPP_PA_CloseBank();
+}
+
+void OPP_PA_Inventory () {
+    int entry;
+    int count;
+    int abilityIndex;
+    int item;
+    int commands;
+    int source;
+    int sources;
+    int link;
+    int links;
+    int linked;
+    string ability;
+    string sourceType;
+    string section;
+    string target;
+    count = CatalogEntryCount(c_gameCatalogAbil);
+    sources = CatalogEntryCount(c_gameCatalogUnit);
+    abilityIndex = 0;
+    for (entry = 1; entry <= count; entry += 1) {
+        if (entry % 32 == 0) { Wait(0.0625, c_timeGame); }
+        ability = CatalogEntryGet(c_gameCatalogAbil, entry);
+        if (!CatalogEntryIsValid(c_gameCatalogAbil, ability) || CatalogEntryIsDefault(c_gameCatalogAbil, ability) || AbilityClass(ability) != c_classIdCAbilWarpTrain) { continue; }
+        section = "Inventory" + IntToString(abilityIndex);
+        BankValueSetFromString(OPP_PA_Main, section, "Ability", ability);
+        commands = CatalogFieldValueCount(c_gameCatalogAbil, ability, "InfoArray", 1);
+        BankValueSetFromInt(OPP_PA_Main, section, "Commands", commands);
+        for (item = 0; item < commands; item += 1) {
+            target = CatalogFieldValueGet(c_gameCatalogAbil, ability, "InfoArray[" + IntToString(item) + "].Unit", 1);
+            BankValueSetFromString(OPP_PA_Main, section, "Target" + IntToString(item), target);
+        }
+        linked = 0;
+        for (source = 1; source <= sources; source += 1) {
+            if (source % 16 == 0) { Wait(0.0625, c_timeGame); }
+            sourceType = CatalogEntryGet(c_gameCatalogUnit, source);
+            if (!CatalogEntryIsValid(c_gameCatalogUnit, sourceType) || CatalogEntryIsDefault(c_gameCatalogUnit, sourceType)) { continue; }
+            links = CatalogFieldValueCount(c_gameCatalogUnit, sourceType, "AbilArray", 1);
+            for (link = 0; link < links; link += 1) {
+                if (CatalogFieldValueGet(c_gameCatalogUnit, sourceType, "AbilArray[" + IntToString(link) + "].Link", 1) == ability) {
+                    BankValueSetFromString(OPP_PA_Main, section, "Source" + IntToString(linked), sourceType);
+                    linked += 1;
+                }
+            }
+        }
+        BankValueSetFromInt(OPP_PA_Main, section, "Sources", linked);
+        abilityIndex += 1;
+        BankSave(OPP_PA_Main);
+    }
+    BankValueSetFromInt(OPP_PA_Main, "Inventory", "Abilities", abilityIndex);
+    BankSave(OPP_PA_Main);
+}
+
+bool OPP_Test_Run (bool testConds, bool runActions) {
+    trigger probe;
+    unit held;
+    unit heldSource;
+    unit heldGate;
+    int owner;
+    int command;
+    int commands;
+    int cycle;
+    int chunk;
+    int attempts;
+    int poll;
+    string target;
+    string label;
+    string oldTime;
+    string weapon;
+    fixed lateDuration;
+    if (!runActions) { return true; }
+    OPP_PA_Main = BankLoad("OPPBuildingCancelTest", 1);
+    BankValueSetFromString(OPP_PA_Main, "Probe", "Fixture", "prism-acceptance");
+    BankValueSetFromString(OPP_PA_Main, "Probe", "DataVariant", "fixture-xml-cancelable-1");
+    BankValueSetFromString(OPP_PA_Main, "Probe", "LoadedCancelable", CatalogFieldValueGet(c_gameCatalogAbil, "Warpable", "Cancelable", 1));
+    BankValueSetFromFlag(OPP_PA_Main, "Finished", "Done", false);
+    probe = TriggerCreate("OPP_PA_Created"); TriggerAddEventUnitCreated(probe, null, null, null);
+    probe = TriggerCreate("OPP_PA_Order"); TriggerAddEventUnitOrder(probe, null, null);
+    probe = TriggerCreate("OPP_PA_Ability"); TriggerAddEventUnitAbility(probe, null, null, c_unitAbilStageAll, false);
+    probe = TriggerCreate("OPP_PA_Construct"); TriggerAddEventUnitConstructProgress(probe, null, c_unitProgressStageCancel);
+    probe = TriggerCreate("OPP_PA_Complete"); TriggerAddEventUnitConstructProgress(probe, null, c_unitProgressStageComplete);
+    probe = TriggerCreate("OPP_PA_Behavior"); TriggerAddEventUnitBehaviorChange(probe, null, null, c_unitBehaviorChangeAny);
+    probe = TriggerCreate("OPP_PA_Died"); TriggerAddEventUnitDied(probe, null);
+    for (owner = 1; owner < 3; owner += 1) {
+        PlayerSetRace(owner, "Prot");
+        TechTreeRequirementsEnable(owner, false);
+        TechTreeRestrictionsEnable(owner, false);
+        TechTreeUpgradeAddLevel(owner, "WarpGateResearch", 1);
+        PlayerModifyPropertyInt(owner, c_playerPropMinerals, c_playerPropOperSetTo, 100000);
+        PlayerModifyPropertyInt(owner, c_playerPropVespene, c_playerPropOperSetTo, 100000);
+        PlayerModifyPropertyInt(owner, c_playerPropSuppliesMade, c_playerPropOperSetTo, 200);
+        UnitCreate(1, "Nexus", 0, owner, Point(20.0 + IntToFixed(owner) * 10.0, 25.0), 270.0);
+        UnitCreate(1, "Pylon", 0, owner, Point(88.0 + IntToFixed(owner - 1) * 3.0, 81.0), 270.0);
+        UnitCreate(1, "Marine", 0, owner, Point(12.0 + IntToFixed(owner) * 45.0, 12.0), 270.0);
+        OPP_PA_Killers[owner] = UnitLastCreated();
+        // NativeLib.galaxy:5756-5759 enumerates UnitWeaponGet from 1..Count.
+        if (UnitWeaponCount(OPP_PA_Killers[owner]) > 0) {
+            weapon = UnitWeaponGet(OPP_PA_Killers[owner], 1);
+            OPP_PA_DamageEffects[owner] = CatalogFieldValueGet(c_gameCatalogWeapon, weapon, "Effect", owner);
+            BankValueSetFromString(OPP_PA_Main, "Damage", "Weapon" + IntToString(owner), weapon);
+            BankValueSetFromString(OPP_PA_Main, "Damage", "Effect" + IntToString(owner), OPP_PA_DamageEffects[owner]);
+        }
+    }
+    Wait(8.0, c_timeGame);
+    OPP_PA_Inventory();
+    OPP_PA_Standard("SingleClose", 1);
+    OPP_PA_Standard("CloseThenLaterDeath", 12);
+    OPP_PA_Standard("SeparateCloseAndKill", 2);
+    OPP_PA_Standard("OverlapKeep", 3);
+    OPP_PA_Standard("PylonKeep", 4);
+    OPP_PA_Standard("NaturalComplete", 0);
+    OPP_PA_Standard("KilledOnly", 11);
+    OPP_PA_Standard("DirectOnly", 5);
+    OPP_PA_Standard("DirectAndClose", 9);
+    OPP_PA_Standard("MixedCloseThenKill", 6);
+    OPP_PA_Standard("MixedKillThenClose", 7);
+    OPP_PA_Standard("BothClose", 8);
+    OPP_PA_Standard("TwoOwners", 10);
+    OPP_PA_Standard("PylonKilled", 13);
+    OPP_PA_Standard("OverlapKilledKeep", 14);
+    OPP_PA_Standard("BothKilledAB", 15);
+    OPP_PA_Standard("BothKilledBA", 16);
+    OPP_PA_Standard("SeparateBothKilled", 17);
+    OPP_PA_Standard("TwoOwnersKilled", 18);
+    OPP_PA_Standard("DirectAndKill", 19);
+    OPP_PA_Standard("PylonKilledKeep", 20);
+
+    OPP_PA_Open("LatePrismClose");
+    OPP_PA_Setup("LatePrismClose", false, false, false, false);
+    OPP_PA_Three();
+    UnitCreate(1, "WarpPrismPhasing", 0, 1, Point(78.0, 57.0), 270.0); OPP_PA_B = UnitLastCreated();
+    Wait(0.125, c_timeGame); OPP_PA_Snapshot("NewSource");
+    OPP_PA_Close(OPP_PA_A, "CloseA");
+    Wait(0.125, c_timeGame); OPP_PA_Snapshot("AfterA");
+    OPP_PA_Close(OPP_PA_B, "CloseB");
+    OPP_PA_Correlate(); OPP_PA_Cleanup(); OPP_PA_CloseBank();
+
+    OPP_PA_Open("LatePylonKeep");
+    OPP_PA_Setup("LatePylonKeep", false, false, false, false); OPP_PA_Three();
+    UnitCreate(1, "Pylon", 0, 1, Point(76.0, 61.0), 270.0); OPP_PA_Pylon = UnitLastCreated();
+    Wait(0.125, c_timeGame); OPP_PA_Snapshot("NewSource");
+    OPP_PA_Close(OPP_PA_A, "CloseA"); OPP_PA_Correlate();
+    Wait(19.0, c_timeGame); OPP_PA_Cleanup(); OPP_PA_CloseBank();
+
+    OPP_PA_Open("NaturalPhasing");
+    OPP_PA_Setup("NaturalPhasing", false, false, false, false); OPP_PA_Three();
+    UnitCreate(1, "WarpPrism", 0, 1, Point(78.0, 57.0), 270.0); OPP_PA_B = UnitLastCreated();
+    BankValueSetFromFlag(OPP_PA_Bank, OPP_PA_Case, "PhaseAccepted", UnitIssueOrder(OPP_PA_B, Order(AbilityCommand("PhasingMode", c_abilMorphCmdExecute)), c_orderQueueReplace));
+    Wait(2.0, c_timeGame); OPP_PA_Snapshot("NewSource");
+    OPP_PA_Close(OPP_PA_A, "CloseA"); OPP_PA_Correlate();
+    Wait(5.0, c_timeGame); OPP_PA_Cleanup(); OPP_PA_CloseBank();
+
+    OPP_PA_Open("NaturalPylon");
+    OPP_PA_Setup("NaturalPylon", false, false, false, false);
+    UnitCreate(1, "Probe", 0, 1, Point(74.0, 63.0), 270.0); OPP_PA_Worker = UnitLastCreated();
+    BankValueSetFromFlag(OPP_PA_Bank, OPP_PA_Case, "BuildAccepted", UnitIssueOrder(OPP_PA_Worker, OrderTargetingPoint(AbilityCommand("ProtossBuild", c_abilBuildCmdBuild2), Point(76.0, 61.0)), c_orderQueueReplace));
+    attempts = 0;
+    while (OPP_PA_Pylon == null && attempts < 40) { Wait(0.125, c_timeGame); attempts += 1; }
+    attempts = 0;
+    while (OPP_PA_Pylon != null && UnitGetProgressComplete(OPP_PA_Pylon, 1) < 90.0 && attempts < 320) { Wait(0.125, c_timeGame); attempts += 1; }
+    OPP_PA_Three();
+    attempts = 0;
+    while (OPP_PA_Pylon != null && UnitTestState(OPP_PA_Pylon, c_unitStateUnderConstruction) && attempts < 80) { Wait(0.125, c_timeGame); attempts += 1; }
+    OPP_PA_Snapshot("NewSource"); OPP_PA_Close(OPP_PA_A, "CloseA"); OPP_PA_Correlate();
+    Wait(19.0, c_timeGame); OPP_PA_Cleanup(); OPP_PA_CloseBank();
+
+    commands = CatalogFieldValueCount(c_gameCatalogAbil, "WarpGateTrain", "InfoArray", 1);
+    BankValueSetFromInt(OPP_PA_Main, "Types", "Commands", commands);
+    for (command = 0; command < commands; command += 1) {
+        target = CatalogFieldValueGet(c_gameCatalogAbil, "WarpGateTrain", "InfoArray[" + IntToString(command) + "].Unit", 1);
+        if (target == "" || !CatalogEntryIsValid(c_gameCatalogUnit, target)) { continue; }
+        label = "Type" + IntToString(command);
+        OPP_PA_Open(label); OPP_PA_Setup(label, false, false, false, false);
+        BankValueSetFromString(OPP_PA_Bank, label, "ExpectedType", target);
+        BankValueSetFromInt(OPP_PA_Bank, label, "ExpectedCommand", command);
+        BankValueSetFromString(OPP_PA_Main, "Types", label, target);
+        OPP_PA_Start(0, command, 76.0, 55.0);
+        Wait(0.25, c_timeGame); OPP_PA_Snapshot("Before");
+        OPP_PA_Close(OPP_PA_A, "CloseA"); OPP_PA_Correlate(); Wait(2.0, c_timeGame); OPP_PA_Cleanup(); OPP_PA_CloseBank();
+    }
+
+    for (attempts = 0; attempts < 2; attempts += 1) {
+        label = "Moment" + IntToString(attempts);
+        OPP_PA_Open(label); OPP_PA_Setup(label, false, false, false, false);
+        OPP_PA_Start(0, c_abilWarpTrainCmdTrain1, 76.0, 55.0);
+        // UnitIssueOrder may return before Created. Both moment cases first
+        // yield until a real physical child exists; Count=0 is not progress.
+        poll = 0;
+        while (OPP_PA_Count == 0 && poll < 32) { Wait(0.0625, c_timeGame); poll += 1; }
+        lateDuration = OPP_PA_NaturalEnd - OPP_PA_NaturalStart;
+        BankValueSetFromFixed(OPP_PA_Bank, label, "NaturalDuration", lateDuration);
+        if (OPP_PA_Count > 0) { BankValueSetFromFixed(OPP_PA_Bank, label, "CreatedTime", OPP_PA_CreatedTimes[0]); }
+        if (attempts != 0 && OPP_PA_NaturalStart >= 0.0 && lateDuration > 0.0) {
+            poll = 0;
+            while (OPP_PA_Count > 0 && UnitIsAlive(OPP_PA_Warps[0]) && UnitTestState(OPP_PA_Warps[0], c_unitStateUnderConstruction) && GameGetMissionTime() - OPP_PA_CreatedTimes[0] < lateDuration * 0.8 && poll < 256) {
+                Wait(0.0625, c_timeGame); poll += 1;
+            }
+        }
+        OPP_PA_Snapshot("Before"); OPP_PA_Close(OPP_PA_A, "CloseA");
+        OPP_PA_Correlate(); OPP_PA_Cleanup(); OPP_PA_CloseBank();
+    }
+
+    for (attempts = 0; attempts < 2; attempts += 1) {
+        label = "FullRows";
+        if (attempts == 1) { label += "Killed"; }
+        OPP_PA_Open(label); OPP_PA_Setup(label, false, false, false, false); OPP_PA_Three();
+        OPP_PrismFixture_BlockRows(); OPP_PA_Snapshot("Blocked");
+        if (attempts == 0) { OPP_PA_Close(OPP_PA_A, "CloseA"); }
+        else { OPP_PA_Destroy(OPP_PA_A, "KillA"); }
+        OPP_PA_Correlate();
+        OPP_PrismFixture_Drain(); OPP_PA_Snapshot("Drained"); Wait(2.0, c_timeGame); OPP_PA_Cleanup(); OPP_PA_CloseBank();
+
+        label = "FullQueue";
+        if (attempts == 1) { label += "Killed"; }
+        OPP_PA_Open(label); OPP_PA_Setup(label, false, false, false, false);
+        OPP_PA_Start(0, c_abilWarpTrainCmdTrain1, 75.0, 55.0);
+        OPP_PA_Start(1, c_abilWarpTrainCmdTrain1, 77.0, 55.0);
+        OPP_PA_Start(2, c_abilWarpTrainCmdTrain1, 76.0, 57.0);
+        Wait(0.25, c_timeGame); OPP_PA_Snapshot("Before");
+        OPP_PrismFixture_FullQueue(); OPP_PA_Snapshot("Blocked");
+        if (attempts == 0) { OPP_PA_Close(OPP_PA_A, "CloseA"); }
+        else { OPP_PA_Destroy(OPP_PA_A, "KillA"); }
+        OPP_PA_Correlate();
+        OPP_PrismFixture_DrainQueue(); OPP_PA_Snapshot("Drained");
+        Wait(2.0, c_timeGame); OPP_PA_Cleanup(); OPP_PA_CloseBank();
+    }
+
+    // The held player-2 attempt stays real and under construction throughout
+    // 129 other complete physical cycles; only its fixture duration is changed.
+    OPP_PA_Compact = true;
+    OPP_PA_Open("RetentionStart");
+    OPP_PA_Setup("RetentionStart", true, true, false, true);
+    oldTime = CatalogFieldValueGet(c_gameCatalogAbil, "WarpGateTrain", "InfoArray[0].Time", 2);
+    CatalogFieldValueSet(c_gameCatalogAbil, "WarpGateTrain", "InfoArray[0].Time", 2, "1000");
+    OPP_PA_Start(2, c_abilWarpTrainCmdTrain1, 99.0, 55.0);
+    Wait(0.125, c_timeGame); OPP_PA_Snapshot("Held");
+    held = OPP_PA_Warps[0]; heldSource = OPP_PA_B; heldGate = OPP_PA_Gates[2];
+    BankValueSetFromInt(OPP_PA_Main, "Retention", "HeldTag", UnitGetTag(held));
+    BankValueSetFromFlag(OPP_PA_Bank, OPP_PA_Case, "Saved", true);
+    // A was never created; keep the held child, B and its real producer while
+    // disposing of only the three unused gates with actual credited deaths.
+    OPP_PA_CleanupBegin("Preparation", "credited-unused-gates");
+    OPP_PA_CleanupPhase = "retention-preparation";
+    OPP_PA_CleanupDamage(OPP_PA_Gates[0]); OPP_PA_CleanupDamage(OPP_PA_Gates[1]); OPP_PA_CleanupDamage(OPP_PA_Gates[3]);
+    Wait(0.125, c_timeGame);
+    OPP_PA_CleanupRemoveDead(OPP_PA_Gates[0]); OPP_PA_CleanupRemoveDead(OPP_PA_Gates[1]); OPP_PA_CleanupRemoveDead(OPP_PA_Gates[3]);
+    Wait(0.1875, c_timeGame);
+    BankValueSetFromFlag(OPP_PA_Bank, OPP_PA_CleanupSection, "HeldAlive", UnitIsValid(held) && UnitIsAlive(held));
+    BankValueSetFromFlag(OPP_PA_Bank, OPP_PA_CleanupSection, "HeldConstructing", UnitIsValid(held) && UnitTestState(held, c_unitStateUnderConstruction));
+    OPP_PA_CleanupEnd();
+    OPP_PA_CloseBank();
+    for (cycle = 0; cycle < 129; cycle += 1) {
+        chunk = cycle / 8;
+        if (cycle % 8 == 0) { OPP_PA_Open("Retention" + IntToString(chunk)); }
+        OPP_PA_Tracking = true;
+        label = "Cycle" + IntToString(cycle);
+        OPP_PA_Setup(label, false, false, false, false);
+        OPP_PA_Start(0, c_abilWarpTrainCmdTrain1, 76.0, 55.0);
+        Wait(0.0625, c_timeGame); OPP_PA_Snapshot("Before");
+        OPP_PA_Close(OPP_PA_A, "CloseA"); OPP_PA_Correlate(); OPP_PA_Cleanup();
+        if (cycle % 8 == 7 || cycle == 128) {
+            BankValueSetFromInt(OPP_PA_Bank, "Finished", "StartCycle", chunk * 8);
+            BankValueSetFromInt(OPP_PA_Bank, "Finished", "EndCycleExclusive", cycle + 1);
+            OPP_PA_CloseBank();
+        }
+    }
+    OPP_PA_Open("RetentionHeld"); OPP_PA_Case = "RetentionHeld";
+    OPP_PA_A = heldSource; OPP_PA_B = null; OPP_PA_Pylon = null;
+    OPP_PA_Worker = null;
+    OPP_PA_Gates[0] = heldGate; OPP_PA_Gates[1] = null; OPP_PA_Gates[2] = null; OPP_PA_Gates[3] = null;
+    OPP_PA_Count = 1; OPP_PA_Warps[0] = held; OPP_PA_Tags[0] = UnitGetTag(held);
+    OPP_PA_Owners[0] = 2; OPP_PA_Types[0] = "Zealot"; OPP_PA_Positions[0] = UnitGetPosition(held);
+    OPP_PrismFixture_ClearUI(); OPP_PA_Snapshot("Before");
+    OPP_PA_Close(heldSource, "CloseA"); OPP_PA_Correlate();
+    OPP_PA_Cleanup(); OPP_PA_CloseBank();
+    CatalogFieldValueSet(c_gameCatalogAbil, "WarpGateTrain", "InfoArray[0].Time", 2, oldTime);
+    Wait(0.75, c_timeGame);
+    OPP_PrismFixture_Snapshot(OPP_PA_Main, "Finished");
+    BankValueSetFromInt(OPP_PA_Main, "Finished", "Fragments", OPP_PA_Fragments);
+    BankValueSetFromFlag(OPP_PA_Main, "Finished", "Done", true);
+    BankSave(OPP_PA_Main);
+    Wait(2.0, c_timeGame); GameOver(1, c_gameOverDefeat, true, false);
+    return true;
+}

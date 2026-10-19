@@ -1,0 +1,488 @@
+// Acceptance only. Production APIs are instrumented solely in the private mod.
+include "LibC0DEC0DE_h"
+void OPP_AddonFixture_Snapshot (bank output, string section);
+void OPP_AddonFixture_ReversePair (unit child, unit parent, string ability, bool progressFirst);
+bank OPP_Test_Bank;
+bank OPP_Addon_Main;
+string OPP_Test_Case = "setup";
+int OPP_Test_Sequence = 0;
+unit OPP_Test_LastAddon;
+unit OPP_Test_LastConstruction;
+
+void OPP_Test_Unit (string section, string key, unit u) {
+    BankValueSetFromFlag(OPP_Test_Bank, section, key + "Present", u != null);
+    if (u == null) { return; }
+    BankValueSetFromString(OPP_Test_Bank, section, key + "Type", UnitGetType(u));
+    BankValueSetFromInt(OPP_Test_Bank, section, key + "Tag", UnitGetTag(u));
+    BankValueSetFromInt(OPP_Test_Bank, section, key + "Owner", UnitGetOwner(u));
+    BankValueSetFromFlag(OPP_Test_Bank, section, key + "Alive", UnitIsAlive(u));
+    BankValueSetFromFlag(OPP_Test_Bank, section, key + "Constructing", UnitTestState(u, c_unitStateUnderConstruction));
+}
+void OPP_Test_Record (string label, unit u, unit child, string ability, int command, string objectType) {
+    string section;
+    OPP_Test_Sequence += 1;
+    section = "Event" + IntToString(OPP_Test_Sequence);
+    BankValueSetFromString(OPP_Test_Bank, section, "Case", OPP_Test_Case);
+    BankValueSetFromString(OPP_Test_Bank, section, "Label", label);
+    BankValueSetFromFixed(OPP_Test_Bank, section, "Time", GameGetMissionTime());
+    BankValueSetFromInt(OPP_Test_Bank, section, "GameSpeed", GameGetSpeedValue());
+    BankValueSetFromFixed(OPP_Test_Bank, section, "GameRate", GameGetSpeed());
+    BankValueSetFromInt(OPP_Test_Bank, section, "UnitTag", UnitGetTag(u));
+    BankValueSetFromInt(OPP_Test_Bank, section, "ProgressTag", UnitGetTag(child));
+    BankValueSetFromString(OPP_Test_Bank, section, "Ability", ability);
+    BankValueSetFromInt(OPP_Test_Bank, section, "Command", command);
+    BankValueSetFromString(OPP_Test_Bank, section, "Object", objectType);
+}
+void OPP_Test_Snapshot (string label) {
+    int row;
+    int control;
+    string key;
+    string section;
+    section = OPP_Test_Case + "/" + label;
+    BankValueSetFromFixed(OPP_Test_Bank, section, "Time", GameGetMissionTime());
+    BankValueSetFromInt(OPP_Test_Bank, section, "GameSpeed", GameGetSpeedValue());
+    BankValueSetFromFixed(OPP_Test_Bank, section, "GameRate", GameGetSpeed());
+    BankValueSetFromInt(OPP_Test_Bank, section, "Init", DataTableGetInt(true, "OPPCancelPopups/InitializationCount"));
+    BankValueSetFromFlag(OPP_Test_Bank, section, "UIReady", DataTableGetBool(true, "OPPCancelPopups/UIReady"));
+    BankValueSetFromInt(OPP_Test_Bank, section, "Buildings", DataTableGetInt(true, "OPPCancelPopups/BuildingCancels"));
+    BankValueSetFromInt(OPP_Test_Bank, section, "Units", DataTableGetInt(true, "OPPCancelPopups/UnitCancels"));
+    for (row = 0; row < 3; row += 1) {
+        key = "Row" + IntToString(row);
+        control = DataTableGetInt(true, "OPPCancelPopups/Panel" + IntToString(row));
+        BankValueSetFromFlag(OPP_Test_Bank, section, key + "Visible", DialogControlIsVisible(control, 14));
+        BankValueSetFromFlag(OPP_Test_Bank, section, key + "Player1", DialogControlIsVisible(control, 1));
+        BankValueSetFromFlag(OPP_Test_Bank, section, key + "Player2", DialogControlIsVisible(control, 2));
+        if (DialogControlIsVisible(control, 14)) {
+            control = DataTableGetInt(true, "OPPCancelPopups/Name" + IntToString(row));
+            BankValueSetFromText(OPP_Test_Bank, section, key + "Name", DialogControlGetPropertyAsText(control, c_triggerControlPropertyText, 14));
+            control = DataTableGetInt(true, "OPPCancelPopups/Status" + IntToString(row));
+            BankValueSetFromText(OPP_Test_Bank, section, key + "Status", DialogControlGetPropertyAsText(control, c_triggerControlPropertyText, 14));
+        }
+    }
+    OPP_AddonFixture_Snapshot(OPP_Test_Bank, section);
+}
+bool OPP_Test_Created (bool testConds, bool runActions) {
+    unit child;
+    string kind;
+    if (!runActions) { return true; }
+    child = EventUnitCreatedUnit();
+    kind = UnitGetType(child);
+    if (kind == "BarracksTechLab" || kind == "FactoryTechLab" || kind == "StarportTechLab" || kind == "BarracksReactor" || kind == "FactoryReactor" || kind == "StarportReactor") {
+        OPP_Test_LastAddon = child;
+        OPP_Test_Record("Created", EventUnit(), child, EventUnitCreatedAbil(), 0, kind);
+    }
+    return true;
+}
+bool OPP_Test_Construct (bool testConds, bool runActions) {
+    if (!runActions) { return true; }
+    OPP_Test_Record("ConstructCancel", EventUnit(), EventUnitProgressUnit(), "", 0, EventUnitProgressObjectType());
+    return true;
+}
+bool OPP_Test_Started (bool testConds, bool runActions) {
+    if (!runActions) { return true; }
+    OPP_Test_LastConstruction = EventUnitProgressUnit();
+    OPP_Test_Record("ConstructStart", EventUnit(), EventUnitProgressUnit(), "", 0, EventUnitProgressObjectType());
+    return true;
+}
+bool OPP_Test_Complete (bool testConds, bool runActions) {
+    if (!runActions) { return true; }
+    OPP_Test_Record("ConstructComplete", EventUnit(), EventUnitProgressUnit(), "", 0, EventUnitProgressObjectType());
+    return true;
+}
+bool OPP_Test_Order (bool testConds, bool runActions) {
+    abilcmd command;
+    string ability;
+    int index;
+    if (!runActions) { return true; }
+    command = OrderGetAbilityCommand(EventUnitOrder());
+    ability = AbilityCommandGetAbility(command);
+    index = AbilityCommandGetCommand(command);
+    if ((ability == "BuildInProgress" && index == c_abilBuildableCmdCancel) || (AbilityClass(ability) == c_classIdCAbilBuild && index == c_abilBuildCmdHalt)) {
+        OPP_Test_Record("Order", EventUnit(), null, ability, index, "");
+    }
+    return true;
+}
+
+// The original v68 group matrix is repeated here with acceptance instrumentation.
+// Groups are selected by the map; every cancellation must come from real UI ESC.
+unit[6] OPP_Group_Parents;
+unit[6] OPP_Group_Children;
+int OPP_Group_Count = 0;
+
+string OPP_Group_Type (int index, bool mixedFacilities) {
+    if (!mixedFacilities) { return "Starport"; }
+    if (index < 2) { return "Barracks"; }
+    if (index < 4) { return "Factory"; }
+    return "Starport";
+}
+
+int OPP_Group_Remaining () {
+    int i;
+    int remaining;
+    remaining = 0;
+    for (i = 0; i < OPP_Group_Count; i += 1) {
+        if (OPP_Group_Children[i] != null && UnitIsAlive(OPP_Group_Children[i])) { remaining += 1; }
+    }
+    return remaining;
+}
+
+void OPP_Group_Snapshot (string label) {
+    int i;
+    string key;
+    for (i = 0; i < OPP_Group_Count; i += 1) {
+        key = "Child" + IntToString(i);
+        OPP_Test_Unit(OPP_Test_Case + "/" + label, key, OPP_Group_Children[i]);
+        BankValueSetFromFlag(OPP_Test_Bank, OPP_Test_Case + "/" + label, "ParentSelected" + IntToString(i), UnitIsSelected(OPP_Group_Parents[i], 1));
+        BankValueSetFromFlag(OPP_Test_Bank, OPP_Test_Case + "/" + label, "ChildSelected" + IntToString(i), UnitIsSelected(OPP_Group_Children[i], 1));
+    }
+    BankValueSetFromInt(OPP_Test_Bank, OPP_Test_Case + "/" + label, "Remaining", OPP_Group_Remaining());
+    OPP_Test_Snapshot(label);
+}
+
+bool OPP_Group_Run (string label, int count, int layout, bool reactors, bool selectChildren) {
+    unitgroup selected;
+    string parentType;
+    string ability;
+    int i;
+    int command;
+    int attempts;
+    int originalSpeed;
+    bool started;
+    OPP_Test_Case = label;
+    OPP_Group_Count = count;
+    selected = UnitGroupEmpty();
+    BankValueSetFromInt(OPP_Test_Bank, label, "Count", count);
+    BankValueSetFromInt(OPP_Test_Bank, label, "Layout", layout);
+    BankValueSetFromFlag(OPP_Test_Bank, label, "Reactors", reactors);
+    BankValueSetFromFlag(OPP_Test_Bank, label, "SelectChildren", selectChildren);
+    for (i = 0; i < count; i += 1) {
+        parentType = "Starport";
+        if (layout == 1) {
+            parentType = "Barracks";
+            if (i == 1) { parentType = "Factory"; }
+            if (i == 2) { parentType = "Starport"; }
+        }
+        if (layout == 2) {
+            parentType = "Factory";
+            if (i == 1) { parentType = "Starport"; }
+        }
+        if (layout == 3) { parentType = "Factory"; }
+        if (layout == 4) { parentType = OPP_Group_Type(i, true); }
+        ability = parentType + "AddOns";
+        command = c_abilBuildCmdBuild1;
+        if (reactors || (layout == 3 && i == 1)) { command = c_abilBuildCmdBuild2; }
+        UnitCreate(1, parentType, 0, 1, Point(65.0 + IntToFixed(i % 3) * 10.0, 40.0 + IntToFixed(i / 3) * 10.0), 270.0);
+        OPP_Group_Parents[i] = UnitLastCreated();
+        OPP_Test_LastAddon = null;
+        started = UnitIssueOrder(OPP_Group_Parents[i], Order(AbilityCommand(ability, command)), c_orderQueueReplace);
+        BankValueSetFromFlag(OPP_Test_Bank, label, "Started" + IntToString(i), started);
+        Wait(0.5, c_timeGame);
+        OPP_Group_Children[i] = OPP_Test_LastAddon;
+        OPP_Test_Unit(label, "Parent" + IntToString(i), OPP_Group_Parents[i]);
+        OPP_Test_Unit(label, "OriginalChild" + IntToString(i), OPP_Group_Children[i]);
+        BankValueSetFromText(OPP_Test_Bank, label, "OriginalChildName" + IntToString(i), UnitTypeGetName(UnitGetType(OPP_Group_Children[i])));
+        BankValueSetFromString(OPP_Test_Bank, label, "OriginalChildIcon" + IntToString(i), CatalogFieldValueGet(c_gameCatalogActor, UnitGetType(OPP_Group_Children[i]), "UnitIcon", 1));
+        if (selectChildren) { UnitGroupAdd(selected, OPP_Group_Children[i]); }
+        else { UnitGroupAdd(selected, OPP_Group_Parents[i]); }
+    }
+    UnitGroupSelect(UnitGroupSelected(1), 1, false);
+    UnitGroupSelect(selected, 1, true);
+    CameraPan(1, Point(76.0, 45.0), 0.0, 0.0, 0.0, false);
+    // Only this real keyboard phase is slowed. Popup timers retain their
+    // production five game seconds; expiry/negative/retention run restored.
+    // natives.galaxy:1815,1864-1866; NativeLib saves/restores this same value.
+    originalSpeed = GameGetSpeedValue();
+    BankValueSetFromInt(OPP_Test_Bank, label, "OriginalSpeed", originalSpeed);
+    GameSetSpeedValue(c_gameSpeedSlower);
+    Wait(0.5, c_timeGame);
+    OPP_Group_Snapshot("Ready");
+    BankValueSetFromString(OPP_Test_Bank, "Pending", "Case", label);
+    BankValueSetFromInt(OPP_Test_Bank, "Pending", "Remaining", OPP_Group_Remaining());
+    BankValueSetFromFlag(OPP_Test_Bank, "Pending", "Ready", true);
+    BankValueSetFromFixed(OPP_Test_Bank, "Pending", "Time", GameGetMissionTime());
+    BankValueSetFromInt(OPP_Test_Bank, "Pending", "GameSpeed", GameGetSpeedValue());
+    BankValueSetFromFixed(OPP_Test_Bank, "Pending", "GameRate", GameGetSpeed());
+    BankSave(OPP_Test_Bank);
+    attempts = 0;
+    while (OPP_Group_Remaining() > 0 && attempts < 720) {
+        Wait(0.25, c_timeGame);
+        attempts += 1;
+        BankValueSetFromInt(OPP_Test_Bank, "Pending", "Remaining", OPP_Group_Remaining());
+        BankValueSetFromFixed(OPP_Test_Bank, "Pending", "Time", GameGetMissionTime());
+        BankValueSetFromInt(OPP_Test_Bank, "Pending", "GameSpeed", GameGetSpeedValue());
+        BankValueSetFromFixed(OPP_Test_Bank, "Pending", "GameRate", GameGetSpeed());
+        BankSave(OPP_Test_Bank);
+    }
+    BankValueSetFromFlag(OPP_Test_Bank, "Pending", "Ready", false);
+    BankValueSetFromFlag(OPP_Test_Bank, label, "TimedOut", OPP_Group_Remaining() > 0);
+    Wait(0.5, c_timeGame);
+    OPP_Group_Snapshot("After");
+    GameSetSpeedValue(originalSpeed);
+    BankValueSetFromInt(OPP_Test_Bank, label, "RestoredSpeed", GameGetSpeedValue());
+    BankValueSetFromFixed(OPP_Test_Bank, label, "RestoredTime", GameGetMissionTime());
+    BankSave(OPP_Test_Bank);
+    if (OPP_Group_Remaining() > 0) { return false; }
+    Wait(6.0, c_timeGame);
+    OPP_Group_Snapshot("Expired");
+    OPP_Test_Case = "cleanup";
+    UnitGroupSelect(selected, 1, false);
+    UnitGroupClear(selected);
+    for (i = 0; i < count; i += 1) { UnitRemove(OPP_Group_Parents[i]); }
+    return true;
+}
+
+unit OPP_Addon_Start (unit parent, string ability, int command, string label) {
+    unit child;
+    OPP_Test_Case = label;
+    OPP_Test_LastAddon = null;
+    BankValueSetFromInt(OPP_Test_Bank, label, "ParentTag", UnitGetTag(parent));
+    BankValueSetFromString(OPP_Test_Bank, label, "Ability", ability);
+    BankValueSetFromFlag(OPP_Test_Bank, label, "Start", UnitIssueOrder(parent, Order(AbilityCommand(ability, command)), c_orderQueueReplace));
+    Wait(0.25, c_timeGame);
+    child = OPP_Test_LastAddon;
+    OPP_Test_Unit(label, "Child", child);
+    BankValueSetFromString(OPP_Test_Bank, label, "Icon", CatalogFieldValueGet(c_gameCatalogActor, UnitGetType(child), "UnitIcon", 1));
+    return child;
+}
+
+void OPP_Addon_Route (unit parent, string ability, int command, string label, bool childRoute, bool retention) {
+    unit child;
+    child = OPP_Addon_Start(parent, ability, command, label);
+    BankValueSetFromFlag(OPP_Test_Bank, label, "ChildRoute", childRoute);
+    BankValueSetFromInt(OPP_Test_Bank, label, "BeforeBuildings", DataTableGetInt(true, "OPPCancelPopups/BuildingCancels"));
+    if (!retention) { OPP_Test_Snapshot("Before"); }
+    if (childRoute) {
+        BankValueSetFromFlag(OPP_Test_Bank, label, "Cancel", UnitIssueOrder(child, Order(AbilityCommand("BuildInProgress", c_abilBuildableCmdCancel)), c_orderQueueReplace));
+    }
+    else {
+        BankValueSetFromFlag(OPP_Test_Bank, label, "Cancel", UnitIssueOrder(parent, Order(AbilityCommand(ability, c_abilBuildCmdHalt)), c_orderQueueReplace));
+    }
+    Wait(0.25, c_timeGame);
+    BankValueSetFromFlag(OPP_Test_Bank, label, "ChildAliveAfter", UnitIsAlive(child));
+    BankValueSetFromInt(OPP_Test_Bank, label, "AfterBuildings", DataTableGetInt(true, "OPPCancelPopups/BuildingCancels"));
+    if (!retention) {
+        OPP_Test_Snapshot("After");
+        Wait(5.25, c_timeGame);
+        OPP_Test_Snapshot("Expired");
+    }
+    BankSave(OPP_Test_Bank);
+}
+
+void OPP_Addon_Negatives () {
+    unit parent;
+    unit child;
+    unit worker;
+    UnitCreate(1, "Barracks", 0, 1, Point(65.0, 25.0), 270.0);
+    parent = UnitLastCreated();
+    OPP_Test_Case = "NegativeEmptyHalt";
+    OPP_Test_Snapshot("Before");
+    UnitIssueOrder(parent, Order(AbilityCommand("BarracksAddOns", c_abilBuildCmdHalt)), c_orderQueueReplace);
+    Wait(0.25, c_timeGame);
+    OPP_Test_Snapshot("After");
+    child = OPP_Addon_Start(parent, "BarracksAddOns", c_abilBuildCmdBuild1, "NegativeChildDeath");
+    OPP_Test_Snapshot("Before");
+    UnitKill(child);
+    Wait(0.25, c_timeGame);
+    BankValueSetFromFlag(OPP_Test_Bank, OPP_Test_Case, "ChildAliveAfter", UnitIsAlive(child));
+    OPP_Test_Snapshot("After");
+    child = OPP_Addon_Start(parent, "BarracksAddOns", c_abilBuildCmdBuild1, "NegativeParentDeath");
+    OPP_Test_Snapshot("Before");
+    UnitKill(parent);
+    Wait(0.25, c_timeGame);
+    BankValueSetFromFlag(OPP_Test_Bank, OPP_Test_Case, "ParentAliveAfter", UnitIsAlive(parent));
+    OPP_Test_Snapshot("After");
+    UnitRemove(child);
+    UnitRemove(parent);
+
+    // Completion uses a fixture-only shorter duration, restored before retention.
+    CatalogFieldValueSet(c_gameCatalogAbil, "StarportAddOns", "InfoArray[0].Time", 1, "1");
+    UnitCreate(1, "Starport", 0, 1, Point(65.0, 25.0), 270.0);
+    parent = UnitLastCreated();
+    child = OPP_Addon_Start(parent, "StarportAddOns", c_abilBuildCmdBuild1, "NegativeComplete");
+    OPP_Test_Snapshot("Before");
+    Wait(2.0, c_timeGame);
+    BankValueSetFromFlag(OPP_Test_Bank, OPP_Test_Case, "ChildAliveAfter", UnitIsAlive(child));
+    BankValueSetFromFlag(OPP_Test_Bank, OPP_Test_Case, "ChildConstructingAfter", UnitTestState(child, c_unitStateUnderConstruction));
+    OPP_Test_Snapshot("After");
+    OPP_Test_Case = "NegativeRejectedCancel";
+    OPP_Test_Snapshot("Before");
+    BankValueSetFromFlag(OPP_Test_Bank, OPP_Test_Case, "Accepted", UnitIssueOrder(parent, Order(AbilityCommand("StarportAddOns", c_abilBuildCmdHalt)), c_orderQueueReplace));
+    UnitIssueOrder(child, Order(AbilityCommand("BuildInProgress", c_abilBuildableCmdCancel)), c_orderQueueReplace);
+    Wait(0.25, c_timeGame);
+    BankValueSetFromFlag(OPP_Test_Bank, OPP_Test_Case, "ChildAliveAfter", UnitIsAlive(child));
+    OPP_Test_Snapshot("After");
+    // Lift a genuinely completed parent/addon pair. A rejected lift during
+    // addon construction would not exercise relocation and is not evidence.
+    OPP_Test_Case = "NegativeLift";
+    OPP_Test_Unit(OPP_Test_Case, "Parent", parent);
+    OPP_Test_Unit(OPP_Test_Case, "Child", child);
+    OPP_Test_Snapshot("Before");
+    BankValueSetFromFlag(OPP_Test_Bank, OPP_Test_Case, "LiftAccepted", UnitIssueOrder(parent, Order(AbilityCommand("StarportLiftOff", c_abilMorphCmdExecute)), c_orderQueueReplace));
+    Wait(2.0, c_timeGame);
+    BankValueSetFromString(OPP_Test_Bank, OPP_Test_Case, "ParentTypeAfter", UnitGetType(parent));
+    BankValueSetFromFlag(OPP_Test_Bank, OPP_Test_Case, "ChildAliveAfter", UnitIsAlive(child));
+    BankValueSetFromFlag(OPP_Test_Bank, OPP_Test_Case, "ChildConstructingAfter", UnitTestState(child, c_unitStateUnderConstruction));
+    OPP_Test_Snapshot("After");
+    UnitRemove(child);
+    UnitRemove(parent);
+    CatalogFieldValueSet(c_gameCatalogAbil, "StarportAddOns", "InfoArray[0].Time", 1, "600");
+
+    OPP_Test_Case = "NegativeSCVHalt";
+    UnitCreate(1, "SCV", 0, 1, Point(40.0, 80.0), 270.0);
+    worker = UnitLastCreated();
+    OPP_Test_Snapshot("Before");
+    BankValueSetFromFlag(OPP_Test_Bank, OPP_Test_Case, "Build", UnitIssueOrder(worker, OrderTargetingPoint(AbilityCommand("TerranBuild", c_abilBuildCmdBuild2), Point(42.0, 80.0)), c_orderQueueReplace));
+    Wait(2.0, c_timeGame);
+    OPP_Test_Unit(OPP_Test_Case, "Construction", OPP_Test_LastConstruction);
+    BankValueSetFromFlag(OPP_Test_Bank, OPP_Test_Case, "Halt", UnitIssueOrder(worker, Order(AbilityCommand("TerranBuild", c_abilBuildCmdHalt)), c_orderQueueReplace));
+    Wait(0.25, c_timeGame);
+    OPP_Test_Snapshot("After");
+    UnitRemove(worker);
+}
+
+void OPP_Addon_Retention () {
+    unit heldParent;
+    unit heldChild;
+    unit cyclingParent;
+    int cycle;
+    int chunk;
+    int mainSequence;
+    string name;
+    UnitCreate(1, "Starport", 0, 1, Point(65.0, 25.0), 270.0);
+    heldParent = UnitLastCreated();
+    heldChild = OPP_Addon_Start(heldParent, "StarportAddOns", c_abilBuildCmdBuild2, "RetentionHeld");
+    OPP_Test_Snapshot("Held");
+    mainSequence = OPP_Test_Sequence;
+    UnitCreate(1, "Factory", 0, 1, Point(80.0, 25.0), 270.0);
+    cyclingParent = UnitLastCreated();
+    for (chunk = 0; chunk < 4; chunk += 1) {
+        // Closed fragments avoid SC2 bank key limits. The main manifest lists
+        // every expected chunk; a scalar Done never replaces missing traces.
+        name = "OPPBuildingCancelTest" + "_Retention" + IntToString(chunk);
+        OPP_Test_Bank = BankLoad(name, 1);
+        OPP_Test_Sequence = 0;
+        BankValueSetFromInt(OPP_Test_Bank, "Probe", "Chunk", chunk);
+        BankValueSetFromString(OPP_Test_Bank, "Probe", "BankName", name);
+        for (cycle = chunk * 40; cycle < (chunk + 1) * 40 && cycle < 129; cycle += 1) {
+            OPP_Addon_Route(cyclingParent, "FactoryAddOns", c_abilBuildCmdBuild1, "Cycle" + IntToString(cycle), cycle % 2 == 0, true);
+        }
+        BankValueSetFromInt(OPP_Test_Bank, "Finished", "Events", OPP_Test_Sequence);
+        BankValueSetFromInt(OPP_Test_Bank, "Finished", "NextCycle", cycle);
+        BankValueSetFromFlag(OPP_Test_Bank, "Finished", "Done", true);
+        BankSave(OPP_Test_Bank);
+        BankValueSetFromString(OPP_Addon_Main, "RetentionHeld", "Chunk" + IntToString(chunk), name);
+        BankSave(OPP_Addon_Main);
+    }
+    OPP_Test_Bank = OPP_Addon_Main;
+    OPP_Test_Sequence = mainSequence;
+    OPP_Test_Case = "RetentionHeld";
+    BankValueSetFromInt(OPP_Test_Bank, OPP_Test_Case, "Cycles", 129);
+    BankValueSetFromFlag(OPP_Test_Bank, OPP_Test_Case, "StillConstructing", UnitIsAlive(heldChild) && UnitTestState(heldChild, c_unitStateUnderConstruction));
+    OPP_Test_Snapshot("Before");
+    BankValueSetFromFlag(OPP_Test_Bank, OPP_Test_Case, "Cancel", UnitIssueOrder(heldParent, Order(AbilityCommand("StarportAddOns", c_abilBuildCmdHalt)), c_orderQueueReplace));
+    Wait(0.25, c_timeGame);
+    OPP_Test_Snapshot("After");
+    BankValueSetFromFlag(OPP_Test_Bank, OPP_Test_Case, "ChildAliveAfter", UnitIsAlive(heldChild));
+    Wait(5.25, c_timeGame);
+    OPP_Test_Snapshot("Expired");
+    OPP_Test_Case = "cleanup";
+    UnitRemove(heldParent);
+    UnitRemove(cyclingParent);
+}
+
+bool OPP_Test_Run (bool testConds, bool runActions) {
+    trigger probe;
+    unit parent;
+    unit child;
+    string[3] families;
+    string ability;
+    string label;
+    int i;
+    int command;
+    bool completed;
+    if (!runActions) { return true; }
+    OPP_Test_Bank = BankLoad("OPPBuildingCancelTest", 1);
+    OPP_Addon_Main = OPP_Test_Bank;
+    BankValueSetFromString(OPP_Test_Bank, "Probe", "Fixture", "addon-acceptance");
+    probe = TriggerCreate("OPP_Test_Order");
+    TriggerAddEventUnitOrder(probe, null, null);
+    probe = TriggerCreate("OPP_Test_Construct");
+    TriggerAddEventUnitConstructProgress(probe, null, c_unitProgressStageCancel);
+    probe = TriggerCreate("OPP_Test_Started");
+    TriggerAddEventUnitConstructProgress(probe, null, c_unitProgressStageStart);
+    probe = TriggerCreate("OPP_Test_Complete");
+    TriggerAddEventUnitConstructProgress(probe, null, c_unitProgressStageComplete);
+    probe = TriggerCreate("OPP_Test_Created");
+    TriggerAddEventUnitCreated(probe, null, null, null);
+    PlayerSetRace(1, "Terr");
+    UnitCreate(1, "CommandCenter", 0, 1, Point(25.0, 25.0), 270.0);
+    UnitCreate(1, "Nexus", 0, 2, Point(105.0, 105.0), 270.0);
+    TechTreeRequirementsEnable(1, false);
+    TechTreeRestrictionsEnable(1, false);
+    PlayerModifyPropertyInt(1, c_playerPropMinerals, c_playerPropOperSetTo, 100000);
+    PlayerModifyPropertyInt(1, c_playerPropVespene, c_playerPropOperSetTo, 100000);
+    families[0] = "Barracks";
+    families[1] = "Factory";
+    families[2] = "Starport";
+    for (i = 0; i < 3; i += 1) {
+        ability = families[i] + "AddOns";
+        for (command = 0; command < 2; command += 1) {
+            BankValueSetFromFlag(OPP_Test_Bank, "Setup", ability + IntToString(command), CatalogFieldValueSet(c_gameCatalogAbil, ability, "InfoArray[" + IntToString(command) + "].Time", 1, "600"));
+        }
+    }
+    Wait(8.0, c_timeGame);
+    completed = OPP_Group_Run("SingleStarportTechLabParent", 1, 0, false, false);
+    if (completed) { completed = OPP_Group_Run("TwoStarportsTechLabParent", 2, 0, false, false); }
+    if (completed) { completed = OPP_Group_Run("TwoStarportsTechLabChild", 2, 0, false, true); }
+    if (completed) { completed = OPP_Group_Run("BarracksFactoryTechLabParent", 2, 1, false, false); }
+    if (completed) { completed = OPP_Group_Run("FactoryStarportTechLabParent", 2, 2, false, false); }
+    if (completed) { completed = OPP_Group_Run("ThreeFacilitiesTechLabParent", 3, 1, false, false); }
+    if (completed) { completed = OPP_Group_Run("ThreeFacilitiesTechLabChild", 3, 1, false, true); }
+    if (completed) { completed = OPP_Group_Run("TwoFactoriesMixedParent", 2, 3, false, false); }
+    if (completed) { completed = OPP_Group_Run("TwoFactoriesMixedChild", 2, 3, false, true); }
+    if (completed) { completed = OPP_Group_Run("SixTechLabParent", 6, 4, false, false); }
+    if (completed) { completed = OPP_Group_Run("SixTechLabChild", 6, 4, false, true); }
+    if (completed) { completed = OPP_Group_Run("SingleStarportReactorParent", 1, 0, true, false); }
+    if (completed) { completed = OPP_Group_Run("SingleStarportReactorChild", 1, 0, true, true); }
+    if (completed) { completed = OPP_Group_Run("TwoStarportsReactorParent", 2, 0, true, false); }
+    if (completed) { completed = OPP_Group_Run("TwoStarportsReactorChild", 2, 0, true, true); }
+    if (completed) { completed = OPP_Group_Run("SixReactorParent", 6, 4, true, false); }
+    if (completed) { completed = OPP_Group_Run("SixReactorChild", 6, 4, true, true); }
+    if (completed) {
+        for (i = 0; i < 3; i += 1) {
+            ability = families[i] + "AddOns";
+            for (command = 0; command < 2; command += 1) {
+                UnitCreate(1, families[i], 0, 1, Point(65.0, 25.0), 270.0);
+                parent = UnitLastCreated();
+                label = families[i] + IntToString(command);
+                OPP_Addon_Route(parent, ability, command, label + "Parent", false, false);
+                OPP_Addon_Route(parent, ability, command, label + "Child", true, false);
+                OPP_Addon_Route(parent, ability, command, label + "Repeat", false, false);
+                UnitRemove(parent);
+            }
+        }
+        OPP_Addon_Negatives();
+        OPP_Addon_Retention();
+        // Explicitly scoped pairing boundaries: separate from the 197 real
+        // child cancellations and their real order/ConstructCancel evidence.
+        for (i = 0; i < 2; i += 1) {
+            UnitCreate(1, "Factory", 0, 1, Point(65.0, 25.0), 270.0);
+            parent = UnitLastCreated();
+            child = OPP_Addon_Start(parent, "FactoryAddOns", c_abilBuildCmdBuild1, "Boundary" + IntToString(i));
+            OPP_Test_Snapshot("Before");
+            OPP_AddonFixture_ReversePair(child, parent, "FactoryAddOns", i == 0);
+            OPP_Test_Snapshot("After");
+            UnitRemove(child);
+            UnitRemove(parent);
+            Wait(5.25, c_timeGame);
+        }
+    }
+    OPP_Test_Case = "Finished";
+    OPP_Test_Snapshot("Final");
+    BankValueSetFromInt(OPP_Test_Bank, "Finished", "Events", OPP_Test_Sequence);
+    BankValueSetFromFlag(OPP_Test_Bank, "Finished", "Done", completed);
+    BankSave(OPP_Test_Bank);
+    Wait(2.0, c_timeGame);
+    GameOver(1, c_gameOverDefeat, true, false);
+    return true;
+}

@@ -1,0 +1,256 @@
+// Actual engine events only. No foreign counter/trigger state is written.
+include "LibC0DEC0DE_h"
+void OPP_BRFixture_Snapshot (bank output, string section);
+bank OPP_BR_Bank;
+string OPP_BR_Case = "setup";
+int OPP_BR_Events = 0;
+bool OPP_BR_Tracking = false;
+unit[4] OPP_BR_Killers;
+string[4] OPP_BR_Effects;
+unit OPP_BR_Child;
+unit OPP_BR_Source;
+unit OPP_BR_Gate;
+unit OPP_BR_KeepTarget;
+unit OPP_BR_RemoveTarget;
+int OPP_BR_RemoveTag;
+int OPP_BR_RemoveOwner;
+string OPP_BR_RemoveType;
+
+void OPP_BR_Unit (string section, string prefix, unit subject) {
+    BankValueSetFromFlag(OPP_BR_Bank, section, prefix + "Present", subject != null);
+    if (subject == null) { return; }
+    BankValueSetFromFlag(OPP_BR_Bank, section, prefix + "Valid", UnitIsValid(subject));
+    BankValueSetFromInt(OPP_BR_Bank, section, prefix + "Tag", UnitGetTag(subject));
+    BankValueSetFromString(OPP_BR_Bank, section, prefix + "Type", UnitGetType(subject));
+    BankValueSetFromInt(OPP_BR_Bank, section, prefix + "Owner", UnitGetOwner(subject));
+    BankValueSetFromFlag(OPP_BR_Bank, section, prefix + "Alive", UnitIsValid(subject) && UnitIsAlive(subject));
+    BankValueSetFromFlag(OPP_BR_Bank, section, prefix + "Constructing", UnitIsValid(subject) && UnitTestState(subject, c_unitStateUnderConstruction));
+}
+
+string OPP_BR_Event (string label, unit subject, unit progress) {
+    string section;
+    OPP_BR_Events += 1;
+    section = "Event" + IntToString(OPP_BR_Events);
+    BankValueSetFromString(OPP_BR_Bank, section, "Case", OPP_BR_Case);
+    BankValueSetFromString(OPP_BR_Bank, section, "Label", label);
+    BankValueSetFromFixed(OPP_BR_Bank, section, "Time", GameGetMissionTime());
+    OPP_BR_Unit(section, "Unit", subject); OPP_BR_Unit(section, "Progress", progress);
+    return section;
+}
+
+bool OPP_BR_Died (bool testConds, bool runActions) {
+    string section;
+    if (!runActions || !OPP_BR_Tracking) { return true; }
+    section = OPP_BR_Event("Died", EventUnit(), null);
+    BankValueSetFromInt(OPP_BR_Bank, section, "KillingPlayer", EventUnitDamageSourcePlayer());
+    BankValueSetFromInt(OPP_BR_Bank, section, "KillingTag", 0);
+    if (EventUnitDamageSourceUnit() != null) { BankValueSetFromInt(OPP_BR_Bank, section, "KillingTag", UnitGetTag(EventUnitDamageSourceUnit())); }
+    BankValueSetFromFlag(OPP_BR_Bank, section, "Removed", EventUnitDamageDeathCheck(c_deathTypeRemove));
+    BankValueSetFromFixed(OPP_BR_Bank, section, "DeathSupply", UnitGetPropertyFixed(EventUnit(), c_unitPropSuppliesUsed, c_unitPropNormal));
+    BankSave(OPP_BR_Bank);
+    return true;
+}
+
+bool OPP_BR_Removed (bool testConds, bool runActions) {
+    string section;
+    bool valid;
+    if (!runActions || !OPP_BR_Tracking || OPP_BR_RemoveTarget == null || EventUnit() != OPP_BR_RemoveTarget) { return true; }
+    // v174 proved UnitRemove emits UnitRemoved, not UnitDied. Bind this actual
+    // callback to the captured live target handle; never query invalid metadata.
+    section = OPP_BR_Event("Removed", null, null);
+    valid = UnitIsValid(EventUnit());
+    BankValueSetFromFlag(OPP_BR_Bank, section, "EventUnitPresent", EventUnit() != null);
+    BankValueSetFromFlag(OPP_BR_Bank, section, "EventMatchesTarget", EventUnit() == OPP_BR_RemoveTarget);
+    BankValueSetFromFlag(OPP_BR_Bank, section, "EventUnitValid", valid);
+    BankValueSetFromFlag(OPP_BR_Bank, section, "EventUnitAlive", valid && UnitIsAlive(EventUnit()));
+    BankValueSetFromInt(OPP_BR_Bank, section, "EventUnitTag", 0);
+    if (valid) { BankValueSetFromInt(OPP_BR_Bank, section, "EventUnitTag", UnitGetTag(EventUnit())); }
+    BankValueSetFromInt(OPP_BR_Bank, section, "RemovedTargetTag", OPP_BR_RemoveTag);
+    BankValueSetFromInt(OPP_BR_Bank, section, "RemovedTargetOwner", OPP_BR_RemoveOwner);
+    BankValueSetFromString(OPP_BR_Bank, section, "RemovedTargetType", OPP_BR_RemoveType);
+    BankSave(OPP_BR_Bank);
+    return true;
+}
+
+bool OPP_BR_Damaged (bool testConds, bool runActions) {
+    string section;
+    if (!runActions || !OPP_BR_Tracking || OPP_BR_Case != "NaturalComplete" || EventUnit() != OPP_BR_KeepTarget) { return true; }
+    section = OPP_BR_Event("KeepBattleDamage", EventUnit(), null);
+    BankValueSetFromInt(OPP_BR_Bank, section, "KillingPlayer", EventUnitDamageSourcePlayer());
+    BankValueSetFromInt(OPP_BR_Bank, section, "KillingTag", UnitGetTag(EventUnitDamageSourceUnit()));
+    BankValueSetFromFixed(OPP_BR_Bank, section, "Absorbed", EventUnitDamageAbsorbed());
+    BankSave(OPP_BR_Bank);
+    return true;
+}
+
+bool OPP_BR_Created (bool testConds, bool runActions) {
+    string section;
+    string ability;
+    if (!runActions || !OPP_BR_Tracking) { return true; }
+    ability = EventUnitCreatedAbil();
+    if (ability == "" || AbilityClass(ability) != c_classIdCAbilWarpTrain) { return true; }
+    OPP_BR_Child = EventUnitCreatedUnit();
+    section = OPP_BR_Event("Created", OPP_BR_Child, EventUnit());
+    BankValueSetFromString(OPP_BR_Bank, section, "Ability", EventUnitCreatedAbil());
+    BankSave(OPP_BR_Bank);
+    return true;
+}
+
+bool OPP_BR_Construct (bool testConds, bool runActions) {
+    string section;
+    if (!runActions || !OPP_BR_Tracking || EventUnitProgressUnit() != OPP_BR_Child) { return true; }
+    section = OPP_BR_Event("ConstructCancel", EventUnit(), EventUnitProgressUnit());
+    BankValueSetFromString(OPP_BR_Bank, section, "Type", EventUnitProgressObjectType());
+    BankSave(OPP_BR_Bank);
+    return true;
+}
+
+bool OPP_BR_Complete (bool testConds, bool runActions) {
+    if (runActions && OPP_BR_Tracking && EventUnitProgressUnit() == OPP_BR_Child) {
+        OPP_BR_Event("ConstructComplete", EventUnit(), EventUnitProgressUnit()); BankSave(OPP_BR_Bank);
+    }
+    return true;
+}
+
+bool OPP_BR_Order (bool testConds, bool runActions) {
+    abilcmd command;
+    string ability;
+    string section;
+    if (!runActions || !OPP_BR_Tracking) { return true; }
+    command = OrderGetAbilityCommand(EventUnitOrder()); ability = AbilityCommandGetAbility(command);
+    if (ability != "TransportMode" && ability != "WarpGateTrain") { return true; }
+    section = OPP_BR_Event("Order", EventUnit(), null);
+    BankValueSetFromString(OPP_BR_Bank, section, "Ability", ability);
+    BankValueSetFromInt(OPP_BR_Bank, section, "Command", AbilityCommandGetCommand(command));
+    BankSave(OPP_BR_Bank);
+    return true;
+}
+
+void OPP_BR_Target (string prefix, unit target) {
+    OPP_BR_Unit(OPP_BR_Case, prefix, target);
+    BankValueSetFromInt(OPP_BR_Bank, OPP_BR_Case, prefix + "Minerals", UnitTypeGetCost(UnitGetType(target), c_unitCostMinerals));
+    BankValueSetFromInt(OPP_BR_Bank, OPP_BR_Case, prefix + "Gas", UnitTypeGetCost(UnitGetType(target), c_unitCostVespene));
+    BankValueSetFromFixed(OPP_BR_Bank, OPP_BR_Case, prefix + "Supply", UnitGetPropertyFixed(target, c_unitPropSuppliesUsed, c_unitPropNormal));
+}
+
+void OPP_BR_Damage (unit target, int killer) {
+    BankValueSetFromInt(OPP_BR_Bank, OPP_BR_Case, "AttackerTag", UnitGetTag(OPP_BR_Killers[killer]));
+    BankValueSetFromInt(OPP_BR_Bank, OPP_BR_Case, "AttackerOwner", killer);
+    BankValueSetFromString(OPP_BR_Bank, OPP_BR_Case, "DamageEffect", OPP_BR_Effects[killer]);
+    UnitDamage(OPP_BR_Killers[killer], OPP_BR_Effects[killer], target, 100000.0);
+}
+
+void OPP_BR_DeathCase (string label, string objectType, int owner, int killer, bool remove) {
+    unit target;
+    OPP_BR_Case = label; OPP_BR_Child = null; OPP_BR_RemoveTarget = null;
+    UnitCreate(1, objectType, 0, owner, Point(80.0, 50.0), 270.0); target = UnitLastCreated();
+    Wait(0.0625, c_timeGame); OPP_BR_Target("Target", target);
+    OPP_BRFixture_Snapshot(OPP_BR_Bank, label + "/Before");
+    if (remove) {
+        OPP_BR_RemoveTarget = target; OPP_BR_RemoveTag = UnitGetTag(target);
+        OPP_BR_RemoveOwner = UnitGetOwner(target); OPP_BR_RemoveType = UnitGetType(target);
+        UnitRemove(target);
+    }
+    else { OPP_BR_Damage(target, killer); }
+    Wait(0.25, c_timeGame);
+    OPP_BRFixture_Snapshot(OPP_BR_Bank, label + "/After");
+    BankValueSetFromFlag(OPP_BR_Bank, label + "/After", "TargetValid", UnitIsValid(target));
+    BankValueSetFromFlag(OPP_BR_Bank, label + "/After", "TargetAlive", UnitIsValid(target) && UnitIsAlive(target));
+    BankValueSetFromFlag(OPP_BR_Bank, label, "Done", true); BankSave(OPP_BR_Bank);
+}
+
+void OPP_BR_WarpCase (string label, int owner, bool kill, bool complete) {
+    fixed x;
+    fixed gateX;
+    OPP_BR_Case = label; OPP_BR_Child = null;
+    x = 76.0; if (owner == 2) { x = 100.0; }
+    gateX = 78.0 + IntToFixed(owner) * 7.0;
+    if (complete) { gateX = 95.0; }
+    UnitCreate(1, "WarpGate", 0, owner, Point(gateX, 78.0), 270.0); OPP_BR_Gate = UnitLastCreated();
+    UnitCreate(1, "WarpPrismPhasing", 0, owner, Point(x, 57.0), 270.0); OPP_BR_Source = UnitLastCreated();
+    Wait(0.125, c_timeGame);
+    BankValueSetFromFlag(OPP_BR_Bank, label, "StartAccepted", UnitIssueOrder(OPP_BR_Gate, OrderTargetingPoint(AbilityCommand("WarpGateTrain", c_abilWarpTrainCmdTrain1), Point(x, 55.0)), c_orderQueueReplace));
+    Wait(0.25, c_timeGame);
+    BankValueSetFromFlag(OPP_BR_Bank, label, "ChildCreated", OPP_BR_Child != null);
+    if (OPP_BR_Child != null) {
+        OPP_BR_Target("Target", OPP_BR_Child);
+        BankValueSetFromFlag(OPP_BR_Bank, label, "FromSource", UnitIsAlive(OPP_BR_Source) && PowerIsProvidedBy(owner, UnitGetPosition(OPP_BR_Child), "PowerSource", OPP_BR_Source, 1));
+    }
+    OPP_BR_Target("Source", OPP_BR_Source); OPP_BR_Unit(label, "Gate", OPP_BR_Gate);
+    BankValueSetFromInt(OPP_BR_Bank, label, "GatePower", PowerLevel(owner, UnitGetPosition(OPP_BR_Gate), "PowerSource"));
+    if (complete) {
+        OPP_BR_Target("KeepAlive", OPP_BR_KeepTarget);
+        BankValueSetFromInt(OPP_BR_Bank, label, "KeepAttackerTag", UnitGetTag(OPP_BR_Killers[1]));
+        // Genuine nonlethal damage restarts the normal BattleReport timer.
+        // No timer/counter/trigger state is written by the fixture.
+        UnitDamage(OPP_BR_Killers[1], OPP_BR_Effects[1], OPP_BR_KeepTarget, 0.0);
+        Wait(0.0625, c_timeGame);
+    }
+    OPP_BRFixture_Snapshot(OPP_BR_Bank, label + "/Before");
+    if (complete) {
+        Wait(2.75, c_timeGame);
+        UnitDamage(OPP_BR_Killers[1], OPP_BR_Effects[1], OPP_BR_KeepTarget, 0.0);
+        Wait(2.75, c_timeGame);
+    }
+    else if (kill) { OPP_BR_Damage(OPP_BR_Source, 3 - owner); Wait(0.25, c_timeGame); }
+    else {
+        BankValueSetFromFlag(OPP_BR_Bank, label, "CloseAccepted", UnitIssueOrder(OPP_BR_Source, Order(AbilityCommand("TransportMode", c_abilMorphCmdExecute)), c_orderQueueReplace));
+        Wait(0.25, c_timeGame);
+    }
+    OPP_BRFixture_Snapshot(OPP_BR_Bank, label + "/After");
+    OPP_BR_Unit(label + "/After", "Target", OPP_BR_Child);
+    BankValueSetFromFlag(OPP_BR_Bank, label, "Done", true); BankSave(OPP_BR_Bank);
+}
+
+bool OPP_Test_Run (bool testConds, bool runActions) {
+    int owner;
+    string weapon;
+    trigger event;
+    if (!runActions) { return true; }
+    OPP_BR_Bank = BankLoad("OPPBuildingCancelTest", 1);
+    BankValueSetFromString(OPP_BR_Bank, "Probe", "Fixture", "obspp-battle-report-acceptance");
+    BankValueSetFromFlag(OPP_BR_Bank, "Finished", "Done", false);
+    event = TriggerCreate("OPP_BR_Died"); TriggerAddEventUnitDied(event, null);
+    event = TriggerCreate("OPP_BR_Removed"); TriggerAddEventUnitRemoved(event, null);
+    event = TriggerCreate("OPP_BR_Damaged"); TriggerAddEventUnitDamaged(event, null, c_unitDamageTypeAny, c_unitDamageEither, null);
+    event = TriggerCreate("OPP_BR_Created"); TriggerAddEventUnitCreated(event, null, null, null);
+    event = TriggerCreate("OPP_BR_Construct"); TriggerAddEventUnitConstructProgress(event, null, c_unitProgressStageCancel);
+    event = TriggerCreate("OPP_BR_Complete"); TriggerAddEventUnitConstructProgress(event, null, c_unitProgressStageComplete);
+    event = TriggerCreate("OPP_BR_Order"); TriggerAddEventUnitOrder(event, null, null);
+    for (owner = 1; owner <= 3; owner += 1) {
+        if (owner <= 2) {
+            PlayerSetRace(owner, "Prot"); TechTreeRequirementsEnable(owner, false); TechTreeRestrictionsEnable(owner, false);
+            TechTreeUpgradeAddLevel(owner, "WarpGateResearch", 1);
+            PlayerModifyPropertyInt(owner, c_playerPropMinerals, c_playerPropOperSetTo, 100000);
+            PlayerModifyPropertyInt(owner, c_playerPropVespene, c_playerPropOperSetTo, 100000);
+            PlayerModifyPropertyInt(owner, c_playerPropSuppliesMade, c_playerPropOperSetTo, 200);
+            UnitCreate(1, "Nexus", 0, owner, Point(20.0 + IntToFixed(owner) * 10.0, 25.0), 270.0);
+            if (owner == 2) { OPP_BR_KeepTarget = UnitLastCreated(); }
+            // Permanent producer power is far from the child warp points.
+            UnitCreate(1, "Pylon", 0, owner, Point(88.0 + IntToFixed(owner - 1) * 3.0, 81.0), 270.0);
+        }
+        UnitCreate(1, "Marine", 0, owner, Point(12.0 + IntToFixed(owner) * 25.0, 12.0), 270.0); OPP_BR_Killers[owner] = UnitLastCreated();
+        if (UnitWeaponCount(OPP_BR_Killers[owner]) > 0) {
+            weapon = UnitWeaponGet(OPP_BR_Killers[owner], 1);
+            OPP_BR_Effects[owner] = CatalogFieldValueGet(c_gameCatalogWeapon, weapon, "Effect", owner);
+        }
+    }
+    Wait(8.0, c_timeGame); OPP_BR_Tracking = true;
+    OPP_BR_DeathCase("Combat1", "Stalker", 2, 1, false);
+    OPP_BR_DeathCase("Combat2", "Stalker", 1, 2, false);
+    OPP_BR_WarpCase("Warp1", 1, false, false);
+    OPP_BR_WarpCase("Warp2", 2, true, false);
+    OPP_BR_DeathCase("Baneling1", "Baneling", 1, 2, false);
+    OPP_BR_DeathCase("Baneling2", "Baneling", 2, 1, false);
+    OPP_BR_DeathCase("Remove1", "Marine", 1, 0, true);
+    OPP_BR_DeathCase("Remove2", "Marine", 2, 0, true);
+    OPP_BR_DeathCase("Invalid1", "Marine", 1, 3, false);
+    OPP_BR_DeathCase("Invalid2", "Marine", 2, 3, false);
+    OPP_BR_WarpCase("NaturalComplete", 2, false, true);
+    OPP_BR_Tracking = false;
+    BankValueSetFromInt(OPP_BR_Bank, "Finished", "Events", OPP_BR_Events);
+    BankValueSetFromInt(OPP_BR_Bank, "Finished", "Cases", 11);
+    BankValueSetFromFlag(OPP_BR_Bank, "Finished", "Done", true); BankSave(OPP_BR_Bank);
+    Wait(2.0, c_timeGame); GameOver(1, c_gameOverDefeat, true, false);
+    return true;
+}

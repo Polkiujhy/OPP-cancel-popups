@@ -1,0 +1,406 @@
+// Diagnostic fixture only. Production library is unchanged. No balance edits ship.
+bank OPP_Test_Bank;
+const bool OPP_Test_Full = true;
+string OPP_Test_Case = "setup";
+int OPP_Test_Sequence = 0;
+bool OPP_Test_WarpTracking = false;
+unit[16] OPP_Test_WarpUnits;
+int OPP_Test_WarpCount = 0;
+unit OPP_Test_LastAddon;
+
+void OPP_Test_Unit (string section, string key, unit u) {
+    BankValueSetFromFlag(OPP_Test_Bank, section, key + "Present", u != null);
+    if (u == null) { return; }
+    BankValueSetFromString(OPP_Test_Bank, section, key + "Type", UnitGetType(u));
+    BankValueSetFromInt(OPP_Test_Bank, section, key + "Tag", UnitGetTag(u));
+    BankValueSetFromInt(OPP_Test_Bank, section, key + "Owner", UnitGetOwner(u));
+    BankValueSetFromFlag(OPP_Test_Bank, section, key + "Alive", UnitIsAlive(u));
+    BankValueSetFromFlag(OPP_Test_Bank, section, key + "Constructing", UnitTestState(u, c_unitStateUnderConstruction));
+}
+
+void OPP_Test_Record (string label, unit u, abilcmd command, int stage, unit progress, unit other, string objectType) {
+    string section;
+    string ability;
+    int abilityClass;
+    int i;
+    int count;
+    OPP_Test_Sequence += 1;
+    section = "Event" + IntToString(OPP_Test_Sequence);
+    BankValueSetFromString(OPP_Test_Bank, section, "Case", OPP_Test_Case);
+    BankValueSetFromString(OPP_Test_Bank, section, "Label", label);
+    BankValueSetFromFixed(OPP_Test_Bank, section, "Time", GameGetMissionTime());
+    BankValueSetFromInt(OPP_Test_Bank, section, "Tick", CurrentSynchronousGameTimeGet());
+    OPP_Test_Unit(section, "Unit", u);
+    OPP_Test_Unit(section, "Progress", progress);
+    OPP_Test_Unit(section, "Other", other);
+    if (command != null) {
+        ability = AbilityCommandGetAbility(command);
+        abilityClass = AbilityClass(ability);
+        BankValueSetFromString(OPP_Test_Bank, section, "Ability", ability);
+        BankValueSetFromInt(OPP_Test_Bank, section, "Class", abilityClass);
+        BankValueSetFromInt(OPP_Test_Bank, section, "Command", AbilityCommandGetCommand(command));
+        if (abilityClass == c_classIdCAbilMorph && u != null) {
+            count = CatalogFieldValueCount(c_gameCatalogAbil, ability, "InfoArray", UnitGetOwner(u));
+            BankValueSetFromInt(OPP_Test_Bank, section, "MorphStages", count);
+            for (i = 0; i < count; i += 1) {
+                BankValueSetFromString(OPP_Test_Bank, section, "MorphTarget" + IntToString(i), CatalogFieldValueGet(c_gameCatalogAbil, ability, "InfoArray[" + IntToString(i) + "].Unit", UnitGetOwner(u)));
+            }
+        }
+    }
+    BankValueSetFromInt(OPP_Test_Bank, section, "Stage", stage);
+    BankValueSetFromString(OPP_Test_Bank, section, "Object", objectType);
+    BankValueSetFromInt(OPP_Test_Bank, section, "Buildings", DataTableGetInt(true, "OPPCancelPopups/BuildingCancels"));
+    BankValueSetFromInt(OPP_Test_Bank, section, "Units", DataTableGetInt(true, "OPPCancelPopups/UnitCancels"));
+    BankSave(OPP_Test_Bank);
+}
+
+void OPP_Test_Snapshot (string label) {
+    string section;
+    string key;
+    int row;
+    int control;
+    section = OPP_Test_Case + "/" + label;
+    BankValueSetFromFixed(OPP_Test_Bank, section, "Time", GameGetMissionTime());
+    BankValueSetFromInt(OPP_Test_Bank, section, "Init", DataTableGetInt(true, "OPPCancelPopups/InitializationCount"));
+    BankValueSetFromFlag(OPP_Test_Bank, section, "UIReady", DataTableGetBool(true, "OPPCancelPopups/UIReady"));
+    BankValueSetFromInt(OPP_Test_Bank, section, "Buildings", DataTableGetInt(true, "OPPCancelPopups/BuildingCancels"));
+    BankValueSetFromInt(OPP_Test_Bank, section, "Units", DataTableGetInt(true, "OPPCancelPopups/UnitCancels"));
+    BankValueSetFromInt(OPP_Test_Bank, section, "Displayed", DataTableGetInt(true, "OPPCancelPopups/Displayed"));
+    for (row = 0; row < 3; row += 1) {
+        key = "Row" + IntToString(row);
+        control = DataTableGetInt(true, "OPPCancelPopups/Panel" + IntToString(row));
+        if (control != 0) {
+            BankValueSetFromFlag(OPP_Test_Bank, section, key + "Visible", DialogControlIsVisible(control, 14));
+            BankValueSetFromFlag(OPP_Test_Bank, section, key + "Player1", DialogControlIsVisible(control, 1));
+            BankValueSetFromFlag(OPP_Test_Bank, section, key + "Player2", DialogControlIsVisible(control, 2));
+            if (DialogControlIsVisible(control, 14)) {
+                control = DataTableGetInt(true, "OPPCancelPopups/Name" + IntToString(row));
+                BankValueSetFromText(OPP_Test_Bank, section, key + "Name", DialogControlGetPropertyAsText(control, c_triggerControlPropertyText, 14));
+                control = DataTableGetInt(true, "OPPCancelPopups/Status" + IntToString(row));
+                BankValueSetFromText(OPP_Test_Bank, section, key + "Status", DialogControlGetPropertyAsText(control, c_triggerControlPropertyText, 14));
+            }
+        }
+    }
+    BankSave(OPP_Test_Bank);
+}
+
+bool OPP_Test_Order (bool testConds, bool runActions) {
+    if (!runActions) { return true; }
+    OPP_Test_Record("Order", EventUnit(), OrderGetAbilityCommand(EventUnitOrder()), 0, null, null, "");
+    return true;
+}
+bool OPP_Test_Ability (bool testConds, bool runActions) {
+    if (!runActions) { return true; }
+    OPP_Test_Record("Ability", EventUnit(), EventUnitAbility(), EventUnitAbilityStage(), null, EventUnitAbilityOtherUnit(), "");
+    return true;
+}
+bool OPP_Test_Construct (bool testConds, bool runActions) {
+    if (!runActions) { return true; }
+    OPP_Test_Record("ConstructCancel", EventUnit(), null, 1, EventUnitProgressUnit(), null, EventUnitProgressObjectType());
+    return true;
+}
+bool OPP_Test_Train (bool testConds, bool runActions) {
+    if (!runActions) { return true; }
+    OPP_Test_Record("TrainCancel", EventUnit(), null, 1, EventUnitProgressUnit(), null, EventUnitProgressObjectType());
+    return true;
+}
+bool OPP_Test_Created (bool testConds, bool runActions) {
+    unit u;
+    string kind;
+    if (!runActions) { return true; }
+    u = EventUnitCreatedUnit();
+    kind = UnitGetType(u);
+    if (kind == "BarracksTechLab" || kind == "FactoryTechLab" || kind == "StarportTechLab" || kind == "BarracksReactor" || kind == "FactoryReactor" || kind == "StarportReactor") {
+        OPP_Test_LastAddon = u;
+    }
+    if (OPP_Test_WarpTracking && OPP_Test_WarpCount < 16 && (kind == "Zealot" || kind == "Stalker" || kind == "Sentry")) {
+        OPP_Test_WarpUnits[OPP_Test_WarpCount] = u;
+        OPP_Test_WarpCount += 1;
+    }
+    OPP_Test_Record("Created", u, null, 0, EventUnit(), null, EventUnitCreatedAbil());
+    return true;
+}
+bool OPP_Test_Died (bool testConds, bool runActions) {
+    if (!runActions) { return true; }
+    OPP_Test_Record("Died", EventUnit(), null, 0, null, null, "");
+    return true;
+}
+
+void OPP_Test_Morph (string label, string sourceType, string ability, bool twice) {
+    unit u;
+    int attempt;
+    int count;
+    int item;
+    int[6] states;
+    bool accepted;
+    OPP_Test_Case = label;
+    UnitCreate(1, sourceType, 0, 1, Point(35.0, 65.0), 270.0);
+    u = UnitLastCreated();
+    if (sourceType == "Gateway") {
+        UnitIssueOrder(u, OrderSetAutoCast(AbilityCommand("UpgradeToWarpGate", c_abilMorphCmdExecute), false), c_orderQueueReplace);
+        if (UnitAbilityCheck(u, "MorphBuildingGatewayWarpGateFree", false)) {
+            UnitIssueOrder(u, OrderSetAutoCast(AbilityCommand("MorphBuildingGatewayWarpGateFree", c_abilMorphCmdExecute), false), c_orderQueueReplace);
+        }
+    }
+    Wait(0.25, c_timeGame);
+    BankValueSetFromFlag(OPP_Test_Bank, label, "StartEnabled", UnitAbilityCheck(u, ability, true));
+    BankValueSetFromFlag(OPP_Test_Bank, label, "StartDisabled", UnitCheckAbilCmdState(u, AbilityCommand(ability, c_abilMorphCmdExecute), c_cmdStateDisabled));
+    if (sourceType == "Gateway" || sourceType == "WarpGate") {
+        count = CatalogFieldValueCount(c_gameCatalogUnit, sourceType, "AbilArray", 1);
+        for (item = 0; item < count; item += 1) {
+            BankValueSetFromString(OPP_Test_Bank, label, "Abil" + IntToString(item), CatalogFieldValueGet(c_gameCatalogUnit, sourceType, "AbilArray[" + IntToString(item) + "].Link", 1));
+        }
+        states[0] = c_cmdStateHidden;
+        states[1] = c_cmdStateCooldown;
+        states[2] = c_cmdStateRecharging;
+        states[3] = c_cmdStateNoFood;
+        states[4] = c_cmdStateCantSpend;
+        states[5] = c_cmdStateNoEnergy;
+        for (item = 0; item < 6; item += 1) {
+            BankValueSetFromFlag(OPP_Test_Bank, label, "State" + IntToString(states[item]), UnitCheckAbilCmdState(u, AbilityCommand(ability, c_abilMorphCmdExecute), states[item]));
+        }
+    }
+    count = 1;
+    if (twice) { count = 2; }
+    OPP_Test_Snapshot("Before");
+    for (attempt = 0; attempt < count; attempt += 1) {
+        accepted = UnitIssueOrder(u, Order(AbilityCommand(ability, c_abilMorphCmdExecute)), c_orderQueueReplace);
+        BankValueSetFromFlag(OPP_Test_Bank, label, "Start" + IntToString(attempt), accepted);
+        Wait(0.75, c_timeGame);
+        BankValueSetFromFlag(OPP_Test_Bank, label, "Executing" + IntToString(attempt), UnitCheckAbilCmdState(u, AbilityCommand(ability, c_abilMorphCmdExecute), c_cmdStateExecuting));
+        OPP_Test_Unit(label, "During" + IntToString(attempt), u);
+        accepted = UnitIssueOrder(u, Order(AbilityCommand(ability, c_abilMorphCmdCancel)), c_orderQueueReplace);
+        BankValueSetFromFlag(OPP_Test_Bank, label, "Cancel" + IntToString(attempt), accepted);
+        Wait(0.25, c_timeGame);
+        OPP_Test_Unit(label, "After" + IntToString(attempt), u);
+        OPP_Test_Snapshot("After" + IntToString(attempt));
+    }
+    OPP_Test_Case = "cleanup";
+    UnitRemove(u);
+}
+
+void OPP_Test_Addon (string sourceType, string ability, int command) {
+    unit parent;
+    unit child;
+    bool accepted;
+    string label;
+    label = sourceType + "Addon" + IntToString(command);
+    OPP_Test_Case = label;
+    UnitCreate(1, sourceType, 0, 1, Point(65.0, 25.0), 270.0);
+    parent = UnitLastCreated();
+    OPP_Test_LastAddon = null;
+    accepted = UnitIssueOrder(parent, Order(AbilityCommand(ability, command)), c_orderQueueReplace);
+    BankValueSetFromFlag(OPP_Test_Bank, label, "StartParentRoute", accepted);
+    Wait(0.75, c_timeGame);
+    child = OPP_Test_LastAddon;
+    OPP_Test_Unit(label, "NativeLookupWhileBuilding", UnitAddOnChild(parent, 0));
+    OPP_Test_Unit(label, "Parent", parent);
+    OPP_Test_Unit(label, "ChildBeforeParentRoute", child);
+    OPP_Test_Unit(label, "ParentViaChild", UnitAddOnParent(child));
+    OPP_Test_Snapshot("BeforeParentRoute");
+    accepted = UnitIssueOrder(parent, Order(AbilityCommand(ability, c_abilBuildCmdHalt)), c_orderQueueReplace);
+    BankValueSetFromFlag(OPP_Test_Bank, label, "CancelParentRoute", accepted);
+    OPP_Test_Unit(label, "ChildAfterParentRoute", UnitAddOnChild(parent, 0));
+    Wait(0.25, c_timeGame);
+    OPP_Test_Unit(label, "SavedChildAfterParentRoute", child);
+    OPP_Test_Snapshot("AfterParentRoute");
+    OPP_Test_LastAddon = null;
+    accepted = UnitIssueOrder(parent, Order(AbilityCommand(ability, command)), c_orderQueueReplace);
+    BankValueSetFromFlag(OPP_Test_Bank, label, "StartChildRoute", accepted);
+    Wait(0.75, c_timeGame);
+    child = OPP_Test_LastAddon;
+    OPP_Test_Unit(label, "ChildBeforeChildRoute", child);
+    accepted = UnitIssueOrder(child, Order(AbilityCommand("BuildInProgress", c_abilBuildableCmdCancel)), c_orderQueueReplace);
+    BankValueSetFromFlag(OPP_Test_Bank, label, "CancelChildRoute", accepted);
+    Wait(0.25, c_timeGame);
+    OPP_Test_Snapshot("AfterChildRoute");
+    OPP_Test_Case = "cleanup";
+    UnitRemove(parent);
+}
+
+void OPP_Test_BlockRows () {
+    UnitCreate(1, "Pylon", c_unitCreateConstruct, 1, Point(45.0, 25.0), 270.0);
+    UnitIssueOrder(UnitLastCreated(), Order(AbilityCommand("BuildInProgress", c_abilBuildableCmdCancel)), c_orderQueueReplace);
+    UnitCreate(1, "SupplyDepot", c_unitCreateConstruct, 1, Point(45.0, 30.0), 270.0);
+    UnitIssueOrder(UnitLastCreated(), Order(AbilityCommand("BuildInProgress", c_abilBuildableCmdCancel)), c_orderQueueReplace);
+    UnitCreate(1, "SpawningPool", c_unitCreateConstruct, 1, Point(45.0, 35.0), 270.0);
+    UnitIssueOrder(UnitLastCreated(), Order(AbilityCommand("BuildInProgress", c_abilBuildableCmdCancel)), c_orderQueueReplace);
+}
+
+void OPP_Test_Air (unit stargate, string label, int command, bool busy) {
+    int i;
+    bool accepted;
+    OPP_Test_Case = label;
+    OPP_Test_Snapshot("Before");
+    for (i = 0; i < 5; i += 1) {
+        accepted = UnitIssueOrder(stargate, Order(AbilityCommand("StargateTrain", command)), c_orderQueueAddToEnd);
+        BankValueSetFromFlag(OPP_Test_Bank, label, "Start" + IntToString(i), accepted);
+    }
+    Wait(0.5, c_timeGame);
+    if (busy) { OPP_Test_BlockRows(); }
+    for (i = 0; i < 5; i += 1) {
+        accepted = UnitIssueOrder(stargate, Order(AbilityCommand("que5", c_abilQueueCmdCancelLast)), c_orderQueueReplace);
+        BankValueSetFromFlag(OPP_Test_Bank, label, "Cancel" + IntToString(i), accepted);
+    }
+    Wait(0.25, c_timeGame);
+    OPP_Test_Snapshot("Immediate");
+    Wait(5.25, c_timeGame);
+    OPP_Test_Snapshot("NextRows");
+    Wait(5.25, c_timeGame);
+    OPP_Test_Snapshot("LastRows");
+    Wait(5.25, c_timeGame);
+}
+
+void OPP_Test_WarpSnapshot (string label) {
+    int i;
+    string section;
+    section = OPP_Test_Case + "/" + label;
+    BankValueSetFromInt(OPP_Test_Bank, section, "WarpCount", OPP_Test_WarpCount);
+    for (i = 0; i < OPP_Test_WarpCount; i += 1) {
+        OPP_Test_Unit(section, "Warp" + IntToString(i), OPP_Test_WarpUnits[i]);
+    }
+    OPP_Test_Snapshot(label);
+}
+
+void OPP_Test_Prism (string label, int action, bool alternatePower) {
+    unit[3] gates;
+    unit prism;
+    unit pylon;
+    int i;
+    int command;
+    bool accepted;
+    OPP_Test_Case = label;
+    OPP_Test_WarpCount = 0;
+    OPP_Test_WarpTracking = true;
+    pylon = null;
+    if (alternatePower) {
+        UnitCreate(1, "Pylon", 0, 1, Point(88.0, 61.0), 270.0);
+        pylon = UnitLastCreated();
+    }
+    for (i = 0; i < 3; i += 1) {
+        UnitCreate(1, "WarpGate", 0, 1, Point(84.0 + IntToFixed(i) * 4.0, 78.0), 270.0);
+        gates[i] = UnitLastCreated();
+    }
+    UnitCreate(1, "WarpPrismPhasing", 0, 1, Point(88.0, 58.0), 270.0);
+    prism = UnitLastCreated();
+    Wait(1.0, c_timeGame);
+    OPP_Test_Snapshot("Before");
+    for (i = 0; i < 3; i += 1) {
+        command = i;
+        if (i == 2) { command = c_abilWarpTrainCmdTrain6; }
+        accepted = UnitIssueOrder(gates[i], OrderTargetingPoint(AbilityCommand("WarpGateTrain", command), Point(86.0 + IntToFixed(i) * 2.0, 57.0)), c_orderQueueReplace);
+        BankValueSetFromFlag(OPP_Test_Bank, label, "Start" + IntToString(i), accepted);
+    }
+    Wait(0.25, c_timeGame);
+    OPP_Test_WarpSnapshot("During");
+    if (action == 1) {
+        accepted = UnitIssueOrder(prism, Order(AbilityCommand("TransportMode", c_abilMorphCmdExecute)), c_orderQueueReplace);
+        BankValueSetFromFlag(OPP_Test_Bank, label, "Close", accepted);
+    }
+    if (action == 2) { UnitKill(prism); }
+    Wait(3.0, c_timeGame);
+    OPP_Test_WarpSnapshot("After3");
+    Wait(16.0, c_timeGame);
+    OPP_Test_WarpSnapshot("After19");
+    OPP_Test_WarpTracking = false;
+    OPP_Test_Case = "cleanup";
+    for (i = 0; i < OPP_Test_WarpCount; i += 1) { UnitRemove(OPP_Test_WarpUnits[i]); }
+    for (i = 0; i < 3; i += 1) { UnitRemove(gates[i]); }
+    UnitRemove(prism);
+    if (pylon != null) { UnitRemove(pylon); }
+}
+
+bool OPP_Test_Run (bool testConds, bool runActions) {
+    trigger probe;
+    unit stargate;
+    unit naturalMorph;
+    unit killedMorph;
+    if (!runActions) { return true; }
+    OPP_Test_Bank = BankLoad("OPPBuildingCancelTest", 1);
+    probe = TriggerCreate("OPP_Test_Order");
+    TriggerAddEventUnitOrder(probe, null, null);
+    probe = TriggerCreate("OPP_Test_Ability");
+    TriggerAddEventUnitAbility(probe, null, null, c_unitAbilStageAll, false);
+    probe = TriggerCreate("OPP_Test_Construct");
+    TriggerAddEventUnitConstructProgress(probe, null, c_unitProgressStageCancel);
+    probe = TriggerCreate("OPP_Test_Train");
+    TriggerAddEventUnitTrainProgress(probe, null, c_unitProgressStageCancel);
+    probe = TriggerCreate("OPP_Test_Created");
+    TriggerAddEventUnitCreated(probe, null, null, null);
+    probe = TriggerCreate("OPP_Test_Died");
+    TriggerAddEventUnitDied(probe, null);
+    UnitCreate(1, "CommandCenter", 0, 1, Point(25.0, 25.0), 270.0);
+    UnitCreate(1, "Nexus", 0, 2, Point(105.0, 105.0), 270.0);
+    TechTreeRequirementsEnable(1, false);
+    TechTreeRestrictionsEnable(1, false);
+    TechTreeUpgradeAddLevel(1, "WarpGateResearch", 1);
+    PlayerModifyPropertyInt(1, c_playerPropMinerals, c_playerPropOperSetTo, 100000);
+    PlayerModifyPropertyInt(1, c_playerPropVespene, c_playerPropOperSetTo, 100000);
+    PlayerModifyPropertyInt(1, c_playerPropSuppliesMade, c_playerPropOperSetTo, 200);
+    UnitCreate(1, "Pylon", 0, 1, Point(85.0, 31.0), 270.0);
+    UnitCreate(1, "Pylon", 0, 1, Point(88.0, 81.0), 270.0);
+    UnitCreate(1, "Pylon", 0, 1, Point(35.0, 61.0), 270.0);
+    UnitCreate(1, "Stargate", 0, 1, Point(85.0, 25.0), 270.0);
+    stargate = UnitLastCreated();
+    Wait(8.0, c_timeGame);
+    OPP_Test_Snapshot("Ready");
+    OPP_Test_Case = "MorphNatural";
+    UnitCreate(1, "CommandCenter", 0, 1, Point(20.0, 45.0), 270.0);
+    naturalMorph = UnitLastCreated();
+    BankValueSetFromFlag(OPP_Test_Bank, OPP_Test_Case, "Start", UnitIssueOrder(naturalMorph, Order(AbilityCommand("UpgradeToOrbital", c_abilMorphCmdExecute)), c_orderQueueReplace));
+    OPP_Test_Unit(OPP_Test_Case, "Natural", naturalMorph);
+    OPP_Test_Case = "MorphKilled";
+    UnitCreate(1, "Roach", 0, 1, Point(30.0, 50.0), 270.0);
+    killedMorph = UnitLastCreated();
+    OPP_Test_Snapshot("Before");
+    BankValueSetFromFlag(OPP_Test_Bank, OPP_Test_Case, "Start", UnitIssueOrder(killedMorph, Order(AbilityCommand("MorphToRavager", c_abilMorphCmdExecute)), c_orderQueueReplace));
+    Wait(0.75, c_timeGame);
+    OPP_Test_Unit(OPP_Test_Case, "During", killedMorph);
+    UnitKill(killedMorph);
+    Wait(0.25, c_timeGame);
+    OPP_Test_Snapshot("After");
+    if (OPP_Test_Full) {
+    OPP_Test_Morph("Lair", "Hatchery", "UpgradeToLair", true);
+    OPP_Test_Morph("Hive", "Lair", "UpgradeToHive", false);
+    OPP_Test_Morph("GreaterSpire", "Spire", "UpgradeToGreaterSpire", false);
+    OPP_Test_Morph("Ravager", "Roach", "MorphToRavager", false);
+    OPP_Test_Morph("Lurker", "Hydralisk", "MorphToLurker", false);
+    OPP_Test_Morph("Baneling", "Zergling", "MorphToBaneling", false);
+    OPP_Test_Morph("BroodLord", "Corruptor", "MorphToBroodLord", false);
+    OPP_Test_Morph("Overseer", "Overlord", "MorphToOverseer", false);
+    OPP_Test_Morph("Dropperlord", "Overlord", "MorphToTransportOverlord", false);
+    OPP_Test_Morph("Planetary", "CommandCenter", "UpgradeToPlanetaryFortress", false);
+    OPP_Test_Morph("Orbital", "CommandCenter", "UpgradeToOrbital", true);
+    }
+    OPP_Test_Morph("ToWarpGate", "Gateway", "UpgradeToWarpGate", false);
+    OPP_Test_Morph("ToGateway", "WarpGate", "MorphBackToGateway", false);
+    OPP_Test_Addon("Barracks", "BarracksAddOns", c_abilBuildCmdBuild1);
+    OPP_Test_Addon("Barracks", "BarracksAddOns", c_abilBuildCmdBuild2);
+    OPP_Test_Addon("Factory", "FactoryAddOns", c_abilBuildCmdBuild1);
+    OPP_Test_Addon("Factory", "FactoryAddOns", c_abilBuildCmdBuild2);
+    OPP_Test_Addon("Starport", "StarportAddOns", c_abilBuildCmdBuild1);
+    OPP_Test_Addon("Starport", "StarportAddOns", c_abilBuildCmdBuild2);
+    Wait(12.0, c_timeGame);
+    if (OPP_Test_Full) {
+    OPP_Test_Air(stargate, "OracleFree", c_abilTrainCmdTrain9, false);
+    OPP_Test_Air(stargate, "OracleBusy", c_abilTrainCmdTrain9, true);
+    OPP_Test_Air(stargate, "VoidFree", c_abilTrainCmdTrain5, false);
+    OPP_Test_Air(stargate, "VoidBusy", c_abilTrainCmdTrain5, true);
+    OPP_Test_Air(stargate, "PhoenixFree", c_abilTrainCmdTrain1, false);
+    OPP_Test_Air(stargate, "PhoenixBusy", c_abilTrainCmdTrain1, true);
+    }
+    OPP_Test_Prism("PrismClose", 1, false);
+    OPP_Test_Prism("PrismComplete", 0, false);
+    OPP_Test_Prism("PrismAlternate", 1, true);
+    OPP_Test_Prism("PrismKilled", 2, false);
+    OPP_Test_Case = "MorphNatural";
+    OPP_Test_Unit(OPP_Test_Case, "Settled", naturalMorph);
+    OPP_Test_Snapshot("Settled");
+    OPP_Test_Case = "Finished";
+    OPP_Test_Snapshot("Final");
+    BankValueSetFromFlag(OPP_Test_Bank, "Finished", "Done", true);
+    BankSave(OPP_Test_Bank);
+    Wait(2.0, c_timeGame);
+    GameOver(1, c_gameOverDefeat, true, false);
+    return true;
+}

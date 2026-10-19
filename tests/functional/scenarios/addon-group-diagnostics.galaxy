@@ -1,0 +1,170 @@
+// Shared event/UI helpers are embedded by stage_popup_test.py.
+// Groups are selected by the map; every cancellation must come from real UI ESC.
+unit[6] OPP_Group_Parents;
+unit[6] OPP_Group_Children;
+int OPP_Group_Count = 0;
+
+string OPP_Group_Type (int index, bool mixedFacilities) {
+    if (!mixedFacilities) { return "Starport"; }
+    if (index < 2) { return "Barracks"; }
+    if (index < 4) { return "Factory"; }
+    return "Starport";
+}
+
+int OPP_Group_Remaining () {
+    int i;
+    int remaining;
+    remaining = 0;
+    for (i = 0; i < OPP_Group_Count; i += 1) {
+        if (OPP_Group_Children[i] != null && UnitIsAlive(OPP_Group_Children[i])) { remaining += 1; }
+    }
+    return remaining;
+}
+
+void OPP_Group_Snapshot (string label) {
+    int i;
+    string key;
+    for (i = 0; i < OPP_Group_Count; i += 1) {
+        key = "Child" + IntToString(i);
+        OPP_Test_Unit(OPP_Test_Case + "/" + label, key, OPP_Group_Children[i]);
+        BankValueSetFromFlag(OPP_Test_Bank, OPP_Test_Case + "/" + label, "ParentSelected" + IntToString(i), UnitIsSelected(OPP_Group_Parents[i], 1));
+        BankValueSetFromFlag(OPP_Test_Bank, OPP_Test_Case + "/" + label, "ChildSelected" + IntToString(i), UnitIsSelected(OPP_Group_Children[i], 1));
+    }
+    BankValueSetFromInt(OPP_Test_Bank, OPP_Test_Case + "/" + label, "Remaining", OPP_Group_Remaining());
+    OPP_Test_Snapshot(label);
+}
+
+bool OPP_Group_Run (string label, int count, int layout, bool reactors, bool selectChildren) {
+    unitgroup selected;
+    string parentType;
+    string ability;
+    int i;
+    int command;
+    int attempts;
+    bool started;
+    OPP_Test_Case = label;
+    OPP_Group_Count = count;
+    selected = UnitGroupEmpty();
+    BankValueSetFromInt(OPP_Test_Bank, label, "Count", count);
+    BankValueSetFromInt(OPP_Test_Bank, label, "Layout", layout);
+    BankValueSetFromFlag(OPP_Test_Bank, label, "Reactors", reactors);
+    BankValueSetFromFlag(OPP_Test_Bank, label, "SelectChildren", selectChildren);
+    for (i = 0; i < count; i += 1) {
+        parentType = "Starport";
+        if (layout == 1) {
+            parentType = "Barracks";
+            if (i == 1) { parentType = "Factory"; }
+            if (i == 2) { parentType = "Starport"; }
+        }
+        if (layout == 2) {
+            parentType = "Factory";
+            if (i == 1) { parentType = "Starport"; }
+        }
+        if (layout == 3) { parentType = "Factory"; }
+        if (layout == 4) { parentType = OPP_Group_Type(i, true); }
+        ability = parentType + "AddOns";
+        command = c_abilBuildCmdBuild1;
+        if (reactors || (layout == 3 && i == 1)) { command = c_abilBuildCmdBuild2; }
+        UnitCreate(1, parentType, 0, 1, Point(65.0 + IntToFixed(i % 3) * 10.0, 40.0 + IntToFixed(i / 3) * 10.0), 270.0);
+        OPP_Group_Parents[i] = UnitLastCreated();
+        OPP_Test_LastAddon = null;
+        started = UnitIssueOrder(OPP_Group_Parents[i], Order(AbilityCommand(ability, command)), c_orderQueueReplace);
+        BankValueSetFromFlag(OPP_Test_Bank, label, "Started" + IntToString(i), started);
+        Wait(0.5, c_timeGame);
+        OPP_Group_Children[i] = OPP_Test_LastAddon;
+        OPP_Test_Unit(label, "Parent" + IntToString(i), OPP_Group_Parents[i]);
+        OPP_Test_Unit(label, "OriginalChild" + IntToString(i), OPP_Group_Children[i]);
+        BankValueSetFromText(OPP_Test_Bank, label, "OriginalChildName" + IntToString(i), UnitTypeGetName(UnitGetType(OPP_Group_Children[i])));
+        if (selectChildren) { UnitGroupAdd(selected, OPP_Group_Children[i]); }
+        else { UnitGroupAdd(selected, OPP_Group_Parents[i]); }
+    }
+    UnitGroupSelect(UnitGroupSelected(1), 1, false);
+    UnitGroupSelect(selected, 1, true);
+    CameraPan(1, Point(76.0, 45.0), 0.0, 0.0, 0.0, false);
+    Wait(0.5, c_timeGame);
+    OPP_Group_Snapshot("Ready");
+    BankValueSetFromString(OPP_Test_Bank, "Pending", "Case", label);
+    BankValueSetFromInt(OPP_Test_Bank, "Pending", "Remaining", OPP_Group_Remaining());
+    BankValueSetFromFlag(OPP_Test_Bank, "Pending", "Ready", true);
+    BankSave(OPP_Test_Bank);
+    attempts = 0;
+    while (OPP_Group_Remaining() > 0 && attempts < 720) {
+        Wait(0.25, c_timeGame);
+        attempts += 1;
+        BankValueSetFromInt(OPP_Test_Bank, "Pending", "Remaining", OPP_Group_Remaining());
+        BankSave(OPP_Test_Bank);
+    }
+    BankValueSetFromFlag(OPP_Test_Bank, "Pending", "Ready", false);
+    BankValueSetFromFlag(OPP_Test_Bank, label, "TimedOut", OPP_Group_Remaining() > 0);
+    Wait(0.5, c_timeGame);
+    OPP_Group_Snapshot("After");
+    if (OPP_Group_Remaining() > 0) { return false; }
+    Wait(6.0, c_timeGame);
+    OPP_Group_Snapshot("Expired");
+    OPP_Test_Case = "cleanup";
+    UnitGroupSelect(selected, 1, false);
+    UnitGroupClear(selected);
+    for (i = 0; i < count; i += 1) { UnitRemove(OPP_Group_Parents[i]); }
+    return true;
+}
+
+bool OPP_Test_Run (bool testConds, bool runActions) {
+    trigger probe;
+    string[3] abilities;
+    int i;
+    int command;
+    bool completed;
+    if (!runActions) { return true; }
+    OPP_Test_Bank = BankLoad("OPPBuildingCancelTest", 1);
+    probe = TriggerCreate("OPP_Test_Order");
+    TriggerAddEventUnitOrder(probe, null, null);
+    probe = TriggerCreate("OPP_Test_Ability");
+    TriggerAddEventUnitAbility(probe, null, null, c_unitAbilStageAll, false);
+    probe = TriggerCreate("OPP_Test_Construct");
+    TriggerAddEventUnitConstructProgress(probe, null, c_unitProgressStageCancel);
+    probe = TriggerCreate("OPP_Test_Created");
+    TriggerAddEventUnitCreated(probe, null, null, null);
+    probe = TriggerCreate("OPP_Test_Died");
+    TriggerAddEventUnitDied(probe, null);
+    PlayerSetRace(1, "Terr");
+    UnitCreate(1, "CommandCenter", 0, 1, Point(25.0, 25.0), 270.0);
+    UnitCreate(1, "Nexus", 0, 2, Point(105.0, 105.0), 270.0);
+    TechTreeRequirementsEnable(1, false);
+    TechTreeRestrictionsEnable(1, false);
+    PlayerModifyPropertyInt(1, c_playerPropMinerals, c_playerPropOperSetTo, 100000);
+    PlayerModifyPropertyInt(1, c_playerPropVespene, c_playerPropOperSetTo, 100000);
+    abilities[0] = "BarracksAddOns";
+    abilities[1] = "FactoryAddOns";
+    abilities[2] = "StarportAddOns";
+    for (i = 0; i < 3; i += 1) {
+        for (command = 0; command < 2; command += 1) {
+            // More time for real keyboard input; only the private test map changes.
+            BankValueSetFromFlag(OPP_Test_Bank, "Setup", abilities[i] + IntToString(command), CatalogFieldValueSet(c_gameCatalogAbil, abilities[i], "InfoArray[" + IntToString(command) + "].Time", 1, "600"));
+        }
+    }
+    Wait(8.0, c_timeGame);
+    completed = OPP_Group_Run("SingleStarportTechLabParent", 1, 0, false, false);
+    if (completed) { completed = OPP_Group_Run("TwoStarportsTechLabParent", 2, 0, false, false); }
+    if (completed) { completed = OPP_Group_Run("TwoStarportsTechLabChild", 2, 0, false, true); }
+    if (completed) { completed = OPP_Group_Run("BarracksFactoryTechLabParent", 2, 1, false, false); }
+    if (completed) { completed = OPP_Group_Run("FactoryStarportTechLabParent", 2, 2, false, false); }
+    if (completed) { completed = OPP_Group_Run("ThreeFacilitiesTechLabParent", 3, 1, false, false); }
+    if (completed) { completed = OPP_Group_Run("ThreeFacilitiesTechLabChild", 3, 1, false, true); }
+    if (completed) { completed = OPP_Group_Run("TwoFactoriesMixedParent", 2, 3, false, false); }
+    if (completed) { completed = OPP_Group_Run("TwoFactoriesMixedChild", 2, 3, false, true); }
+    if (completed) { completed = OPP_Group_Run("SixTechLabParent", 6, 4, false, false); }
+    if (completed) { completed = OPP_Group_Run("SixTechLabChild", 6, 4, false, true); }
+    if (completed) { completed = OPP_Group_Run("SingleStarportReactorParent", 1, 0, true, false); }
+    if (completed) { completed = OPP_Group_Run("SingleStarportReactorChild", 1, 0, true, true); }
+    if (completed) { completed = OPP_Group_Run("TwoStarportsReactorParent", 2, 0, true, false); }
+    if (completed) { completed = OPP_Group_Run("TwoStarportsReactorChild", 2, 0, true, true); }
+    if (completed) { completed = OPP_Group_Run("SixReactorParent", 6, 4, true, false); }
+    if (completed) { completed = OPP_Group_Run("SixReactorChild", 6, 4, true, true); }
+    OPP_Test_Case = "Finished";
+    OPP_Test_Snapshot("Final");
+    BankValueSetFromFlag(OPP_Test_Bank, "Finished", "Done", completed);
+    BankSave(OPP_Test_Bank);
+    Wait(2.0, c_timeGame);
+    GameOver(1, c_gameOverDefeat, true, false);
+    return true;
+}

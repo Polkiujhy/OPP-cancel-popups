@@ -1,0 +1,338 @@
+// Planning probe only: observe native power/provider timing; no popup adapter.
+// Entrypoint is OPP_Test_Run, embedded unchanged by the test-map stager.
+bank OPP_Power_Bank;
+string OPP_Power_Case = "setup";
+int OPP_Power_Sequence = 0;
+bool OPP_Power_Tracking = false;
+unit OPP_Power_A;
+unit OPP_Power_B;
+unit OPP_Power_Pylon;
+unit[4] OPP_Power_Gates;
+unit[12] OPP_Power_Warps;
+point[12] OPP_Power_Positions;
+int[12] OPP_Power_Tags;
+int[12] OPP_Power_Owners;
+int[12] OPP_Power_ProducerTags;
+string[12] OPP_Power_Types;
+string[12] OPP_Power_WarpCases;
+int OPP_Power_Count = 0;
+
+void OPP_Power_Unit (string section, string key, unit u) {
+    BankValueSetFromFlag(OPP_Power_Bank, section, key + "Present", u != null);
+    if (u == null) { return; }
+    BankValueSetFromInt(OPP_Power_Bank, section, key + "Tag", UnitGetTag(u));
+    BankValueSetFromInt(OPP_Power_Bank, section, key + "Owner", UnitGetOwner(u));
+    BankValueSetFromString(OPP_Power_Bank, section, key + "Type", UnitGetType(u));
+    BankValueSetFromFlag(OPP_Power_Bank, section, key + "Alive", UnitIsAlive(u));
+    BankValueSetFromFlag(OPP_Power_Bank, section, key + "Constructing", UnitTestState(u, c_unitStateUnderConstruction));
+}
+
+void OPP_Power_Provider (string section, string key, int owner, point pos, unit provider) {
+    int level;
+    bool supplied;
+    for (level = 0; level < 3; level += 1) {
+        supplied = false;
+        if (provider != null && UnitIsAlive(provider) && (UnitGetType(provider) == "WarpPrismPhasing" || UnitGetType(provider) == "WarpPrism" || UnitGetType(provider) == "Pylon")) {
+            supplied = PowerIsProvidedBy(owner, pos, "PowerSource", provider, level);
+        }
+        BankValueSetFromFlag(OPP_Power_Bank, section, key + "Level" + IntToString(level), supplied);
+    }
+}
+
+void OPP_Power_Record (string label, unit subject, abilcmd command, int stage, unit progress, string detail) {
+    string section;
+    string key;
+    int i;
+    OPP_Power_Sequence += 1;
+    section = "Event" + IntToString(OPP_Power_Sequence);
+    BankValueSetFromString(OPP_Power_Bank, section, "Case", OPP_Power_Case);
+    BankValueSetFromString(OPP_Power_Bank, section, "Label", label);
+    BankValueSetFromString(OPP_Power_Bank, section, "Detail", detail);
+    BankValueSetFromFixed(OPP_Power_Bank, section, "Time", GameGetMissionTime());
+    BankValueSetFromInt(OPP_Power_Bank, section, "Stage", stage);
+    BankValueSetFromInt(OPP_Power_Bank, section, "WarpCount", OPP_Power_Count);
+    BankValueSetFromInt(OPP_Power_Bank, section, "UnitCancels", DataTableGetInt(true, "OPPCancelPopups/UnitCancels"));
+    OPP_Power_Unit(section, "Subject", subject);
+    OPP_Power_Unit(section, "Progress", progress);
+    OPP_Power_Unit(section, "A", OPP_Power_A);
+    OPP_Power_Unit(section, "B", OPP_Power_B);
+    OPP_Power_Unit(section, "Pylon", OPP_Power_Pylon);
+    if (command != null) {
+        BankValueSetFromString(OPP_Power_Bank, section, "Ability", AbilityCommandGetAbility(command));
+        BankValueSetFromInt(OPP_Power_Bank, section, "Command", AbilityCommandGetCommand(command));
+    }
+    for (i = 0; i < OPP_Power_Count; i += 1) {
+        key = "Warp" + IntToString(i);
+        OPP_Power_Unit(section, key, OPP_Power_Warps[i]);
+        // These remain meaningful after the cancelled unit loses live fields.
+        BankValueSetFromInt(OPP_Power_Bank, section, key + "StartedTag", OPP_Power_Tags[i]);
+        BankValueSetFromInt(OPP_Power_Bank, section, key + "StartedOwner", OPP_Power_Owners[i]);
+        BankValueSetFromInt(OPP_Power_Bank, section, key + "ProducerTag", OPP_Power_ProducerTags[i]);
+        BankValueSetFromString(OPP_Power_Bank, section, key + "StartedType", OPP_Power_Types[i]);
+        BankValueSetFromString(OPP_Power_Bank, section, key + "StartedCase", OPP_Power_WarpCases[i]);
+        BankValueSetFromFixed(OPP_Power_Bank, section, key + "X", PointGetX(OPP_Power_Positions[i]));
+        BankValueSetFromFixed(OPP_Power_Bank, section, key + "Y", PointGetY(OPP_Power_Positions[i]));
+        BankValueSetFromInt(OPP_Power_Bank, section, key + "Power", PowerLevel(OPP_Power_Owners[i], OPP_Power_Positions[i], "PowerSource"));
+        OPP_Power_Provider(section, key + "FromA", OPP_Power_Owners[i], OPP_Power_Positions[i], OPP_Power_A);
+        OPP_Power_Provider(section, key + "FromB", OPP_Power_Owners[i], OPP_Power_Positions[i], OPP_Power_B);
+        OPP_Power_Provider(section, key + "FromPylon", OPP_Power_Owners[i], OPP_Power_Positions[i], OPP_Power_Pylon);
+        OPP_Power_Provider(section, key + "FromSubject", OPP_Power_Owners[i], OPP_Power_Positions[i], subject);
+    }
+    BankSave(OPP_Power_Bank);
+}
+
+bool OPP_Power_Relevant (unit u) {
+    int i;
+    if (!OPP_Power_Tracking || u == null) { return false; }
+    if (u == OPP_Power_A || u == OPP_Power_B || u == OPP_Power_Pylon) { return true; }
+    if (UnitGetType(u) == "WarpPrismPhasing" || UnitGetType(u) == "WarpPrism" || UnitGetType(u) == "Pylon") { return true; }
+    for (i = 0; i < OPP_Power_Count; i += 1) {
+        if (u == OPP_Power_Warps[i]) { return true; }
+    }
+    return false;
+}
+
+bool OPP_Power_Created (bool testConds, bool runActions) {
+    unit u;
+    string objectType;
+    int slot;
+    if (!runActions || !OPP_Power_Tracking) { return true; }
+    u = EventUnitCreatedUnit();
+    if (u == null) { return true; }
+    objectType = UnitGetType(u);
+    if (objectType == "WarpPrismPhasing" || objectType == "Pylon") {
+        OPP_Power_Record("ProviderCreated", u, null, 0, EventUnit(), EventUnitCreatedAbil());
+        return true;
+    }
+    if (EventUnitCreatedAbil() != "WarpGateTrain") { return true; }
+    if (objectType != "Zealot" && objectType != "Stalker" && objectType != "Sentry") { return true; }
+    if (OPP_Power_Count >= 12) {
+        BankValueSetFromFlag(OPP_Power_Bank, "Finished", "WarpOverflow", true);
+        return true;
+    }
+    slot = OPP_Power_Count;
+    OPP_Power_Count += 1;
+    OPP_Power_Warps[slot] = u;
+    OPP_Power_Positions[slot] = UnitGetPosition(u);
+    OPP_Power_Tags[slot] = UnitGetTag(u);
+    OPP_Power_Owners[slot] = UnitGetOwner(u);
+    OPP_Power_ProducerTags[slot] = UnitGetTag(EventUnit());
+    OPP_Power_Types[slot] = objectType;
+    OPP_Power_WarpCases[slot] = OPP_Power_Case;
+    OPP_Power_Record("Created", u, null, 0, EventUnit(), EventUnitCreatedAbil());
+    return true;
+}
+
+bool OPP_Power_Order (bool testConds, bool runActions) {
+    abilcmd command;
+    if (!runActions || !OPP_Power_Tracking) { return true; }
+    command = OrderGetAbilityCommand(EventUnitOrder());
+    if (AbilityCommandGetAbility(command) != "TransportMode") { return true; }
+    OPP_Power_Record("Order", EventUnit(), command, 0, null, "");
+    return true;
+}
+
+bool OPP_Power_Ability (bool testConds, bool runActions) {
+    abilcmd command;
+    if (!runActions || !OPP_Power_Tracking) { return true; }
+    command = EventUnitAbility();
+    if (AbilityCommandGetAbility(command) != "TransportMode") { return true; }
+    OPP_Power_Record("Ability", EventUnit(), command, EventUnitAbilityStage(), null, "");
+    return true;
+}
+
+bool OPP_Power_Behavior (bool testConds, bool runActions) {
+    if (!runActions || !OPP_Power_Relevant(EventUnit())) { return true; }
+    OPP_Power_Record("BehaviorChange", EventUnit(), null, EventUnitBehaviorChange(), null, EventUnitBehavior());
+    return true;
+}
+
+bool OPP_Power_Construct (bool testConds, bool runActions) {
+    int i;
+    if (!runActions || !OPP_Power_Tracking) { return true; }
+    for (i = 0; i < OPP_Power_Count; i += 1) {
+        if (EventUnitProgressUnit() == OPP_Power_Warps[i]) {
+            OPP_Power_Record("ConstructCancel", EventUnit(), null, c_unitProgressStageCancel, EventUnitProgressUnit(), EventUnitProgressObjectType());
+            return true;
+        }
+    }
+    return true;
+}
+
+bool OPP_Power_Died (bool testConds, bool runActions) {
+    if (!runActions || !OPP_Power_Relevant(EventUnit())) { return true; }
+    OPP_Power_Record("Died", EventUnit(), null, 0, null, "");
+    return true;
+}
+
+void OPP_Power_Begin (string label, bool separate, bool second, bool pylon) {
+    int i;
+    OPP_Power_Case = label;
+    OPP_Power_Count = 0;
+    OPP_Power_A = null;
+    OPP_Power_B = null;
+    OPP_Power_Pylon = null;
+    OPP_Power_Tracking = true;
+    for (i = 0; i < 4; i += 1) {
+        UnitCreate(1, "WarpGate", 0, 1, Point(83.0 + IntToFixed(i) * 3.0, 78.0), 270.0);
+        OPP_Power_Gates[i] = UnitLastCreated();
+    }
+    UnitCreate(1, "WarpPrismPhasing", 0, 1, Point(76.0, 57.0), 270.0);
+    OPP_Power_A = UnitLastCreated();
+    if (second) {
+        if (separate) { UnitCreate(1, "WarpPrismPhasing", 0, 1, Point(100.0, 57.0), 270.0); }
+        else { UnitCreate(1, "WarpPrismPhasing", 0, 1, Point(78.0, 57.0), 270.0); }
+        OPP_Power_B = UnitLastCreated();
+    }
+    if (pylon) {
+        UnitCreate(1, "Pylon", 0, 1, Point(76.0, 61.0), 270.0);
+        OPP_Power_Pylon = UnitLastCreated();
+    }
+    Wait(1.0, c_timeGame);
+    OPP_Power_Record("Ready", null, null, 0, null, "");
+}
+
+void OPP_Power_Start (int index, int command, fixed x, fixed y) {
+    bool accepted;
+    accepted = UnitIssueOrder(OPP_Power_Gates[index], OrderTargetingPoint(AbilityCommand("WarpGateTrain", command), Point(x, y)), c_orderQueueReplace);
+    BankValueSetFromFlag(OPP_Power_Bank, OPP_Power_Case, "Start" + IntToString(index), accepted);
+}
+
+void OPP_Power_StartThree () {
+    OPP_Power_Start(0, c_abilWarpTrainCmdTrain1, 75.0, 55.0);
+    OPP_Power_Start(1, c_abilWarpTrainCmdTrain2, 77.0, 55.0);
+    OPP_Power_Start(2, c_abilWarpTrainCmdTrain6, 76.0, 57.0);
+    Wait(0.25, c_timeGame);
+    OPP_Power_Record("BeforeClose", null, null, 0, null, "");
+}
+
+void OPP_Power_Close (unit prism, string key) {
+    bool accepted;
+    accepted = UnitIssueOrder(prism, Order(AbilityCommand("TransportMode", c_abilMorphCmdExecute)), c_orderQueueReplace);
+    BankValueSetFromFlag(OPP_Power_Bank, OPP_Power_Case, key, accepted);
+}
+
+void OPP_Power_Cleanup () {
+    int i;
+    OPP_Power_Record("Settled", null, null, 0, null, "");
+    OPP_Power_Tracking = false;
+    for (i = 0; i < OPP_Power_Count; i += 1) { UnitRemove(OPP_Power_Warps[i]); }
+    for (i = 0; i < 4; i += 1) { UnitRemove(OPP_Power_Gates[i]); }
+    if (OPP_Power_A != null) { UnitRemove(OPP_Power_A); }
+    if (OPP_Power_B != null) { UnitRemove(OPP_Power_B); }
+    if (OPP_Power_Pylon != null) { UnitRemove(OPP_Power_Pylon); }
+    Wait(0.125, c_timeGame);
+}
+
+bool OPP_Test_Run (bool testConds, bool runActions) {
+    trigger probe;
+    if (!runActions) { return true; }
+    OPP_Power_Bank = BankLoad("OPPBuildingCancelTest", 1);
+    BankValueSetFromString(OPP_Power_Bank, "Probe", "Fixture", "prism-power-diagnostics");
+    BankValueSetFromFlag(OPP_Power_Bank, "Finished", "Done", false);
+    BankValueSetFromFlag(OPP_Power_Bank, "Finished", "WarpOverflow", false);
+    probe = TriggerCreate("OPP_Power_Created");
+    TriggerAddEventUnitCreated(probe, null, null, null);
+    probe = TriggerCreate("OPP_Power_Order");
+    TriggerAddEventUnitOrder(probe, null, null);
+    probe = TriggerCreate("OPP_Power_Ability");
+    TriggerAddEventUnitAbility(probe, null, null, c_unitAbilStageAll, false);
+    probe = TriggerCreate("OPP_Power_Behavior");
+    TriggerAddEventUnitBehaviorChange(probe, null, null, c_unitBehaviorChangeAny);
+    probe = TriggerCreate("OPP_Power_Construct");
+    TriggerAddEventUnitConstructProgress(probe, null, c_unitProgressStageCancel);
+    probe = TriggerCreate("OPP_Power_Died");
+    TriggerAddEventUnitDied(probe, null);
+    PlayerSetRace(1, "Prot");
+    UnitCreate(1, "Nexus", 0, 1, Point(25.0, 25.0), 270.0);
+    UnitCreate(1, "Nexus", 0, 2, Point(105.0, 105.0), 270.0);
+    TechTreeRequirementsEnable(1, false);
+    TechTreeRestrictionsEnable(1, false);
+    TechTreeUpgradeAddLevel(1, "WarpGateResearch", 1);
+    PlayerModifyPropertyInt(1, c_playerPropMinerals, c_playerPropOperSetTo, 100000);
+    PlayerModifyPropertyInt(1, c_playerPropVespene, c_playerPropOperSetTo, 100000);
+    PlayerModifyPropertyInt(1, c_playerPropSuppliesMade, c_playerPropOperSetTo, 200);
+    UnitCreate(1, "Pylon", 0, 1, Point(88.0, 81.0), 270.0);
+    OPP_Morph_Inventory();
+    Wait(8.0, c_timeGame);
+
+    OPP_Power_Begin("SingleClose", false, false, false);
+    OPP_Power_StartThree();
+    OPP_Power_Close(OPP_Power_A, "CloseA");
+    OPP_Power_Record("AfterCloseNow", OPP_Power_A, null, 0, null, "");
+    Wait(2.0, c_timeGame);
+    OPP_Power_Cleanup();
+
+    OPP_Power_Begin("SeparateCloseAndKill", true, true, false);
+    OPP_Power_Start(0, c_abilWarpTrainCmdTrain1, 75.0, 55.0);
+    OPP_Power_Start(1, c_abilWarpTrainCmdTrain2, 77.0, 55.0);
+    OPP_Power_Start(2, c_abilWarpTrainCmdTrain1, 99.0, 55.0);
+    OPP_Power_Start(3, c_abilWarpTrainCmdTrain2, 101.0, 55.0);
+    Wait(0.25, c_timeGame);
+    OPP_Power_Record("BeforeClose", null, null, 0, null, "");
+    // No Wait between these actions: unrelated loss in the same game step.
+    OPP_Power_Close(OPP_Power_A, "CloseA");
+    UnitKill(OPP_Power_B);
+    OPP_Power_Record("AfterCloseAndKillNow", null, null, 0, null, "");
+    Wait(2.0, c_timeGame);
+    OPP_Power_Cleanup();
+
+    OPP_Power_Begin("OverlapKeep", false, true, false);
+    // Both points are within both fields; each must retain power from B.
+    OPP_Power_Start(0, c_abilWarpTrainCmdTrain1, 76.0, 55.0);
+    OPP_Power_Start(1, c_abilWarpTrainCmdTrain2, 78.0, 55.0);
+    Wait(0.25, c_timeGame);
+    OPP_Power_Record("BeforeClose", null, null, 0, null, "");
+    OPP_Power_Close(OPP_Power_A, "CloseA");
+    OPP_Power_Record("AfterCloseNow", OPP_Power_A, null, 0, null, "");
+    Wait(5.0, c_timeGame);
+    OPP_Power_Cleanup();
+
+    OPP_Power_Begin("PylonKeep", false, false, true);
+    OPP_Power_StartThree();
+    OPP_Power_Close(OPP_Power_A, "CloseA");
+    OPP_Power_Record("AfterCloseNow", OPP_Power_A, null, 0, null, "");
+    Wait(19.0, c_timeGame);
+    OPP_Power_Cleanup();
+
+    OPP_Power_Begin("LatePrismClose", false, false, false);
+    OPP_Power_Start(0, c_abilWarpTrainCmdTrain1, 76.0, 55.0);
+    OPP_Power_Start(1, c_abilWarpTrainCmdTrain2, 78.0, 55.0);
+    Wait(0.25, c_timeGame);
+    OPP_Power_Record("BeforeLateSource", null, null, 0, null, "");
+    UnitCreate(1, "WarpPrismPhasing", 0, 1, Point(78.0, 57.0), 270.0);
+    OPP_Power_B = UnitLastCreated();
+    Wait(0.125, c_timeGame);
+    OPP_Power_Record("AfterLateSource", OPP_Power_B, null, 0, null, "");
+    OPP_Power_Record("BeforeClose", OPP_Power_A, null, 0, null, "");
+    OPP_Power_Close(OPP_Power_A, "CloseA");
+    OPP_Power_Record("AfterCloseANow", OPP_Power_A, null, 0, null, "");
+    Wait(0.125, c_timeGame);
+    OPP_Power_Record("BeforeCloseB", OPP_Power_B, null, 0, null, "");
+    OPP_Power_Close(OPP_Power_B, "CloseB");
+    OPP_Power_Record("AfterCloseBNow", OPP_Power_B, null, 0, null, "");
+    Wait(2.0, c_timeGame);
+    OPP_Power_Cleanup();
+
+    OPP_Power_Begin("LatePylonKeep", false, false, false);
+    OPP_Power_StartThree();
+    OPP_Power_Record("BeforeLateSource", null, null, 0, null, "");
+    UnitCreate(1, "Pylon", 0, 1, Point(76.0, 61.0), 270.0);
+    OPP_Power_Pylon = UnitLastCreated();
+    Wait(0.125, c_timeGame);
+    OPP_Power_Record("AfterLateSource", OPP_Power_Pylon, null, 0, null, "");
+    OPP_Power_Record("BeforeClose", OPP_Power_A, null, 0, null, "");
+    OPP_Power_Close(OPP_Power_A, "CloseA");
+    OPP_Power_Record("AfterCloseNow", OPP_Power_A, null, 0, null, "");
+    Wait(19.0, c_timeGame);
+    OPP_Power_Cleanup();
+
+    OPP_Power_Case = "Finished";
+    BankValueSetFromInt(OPP_Power_Bank, "Finished", "Events", OPP_Power_Sequence);
+    BankValueSetFromFixed(OPP_Power_Bank, "Finished", "Time", GameGetMissionTime());
+    BankValueSetFromFlag(OPP_Power_Bank, "Finished", "Done", true);
+    BankSave(OPP_Power_Bank);
+    Wait(2.0, c_timeGame);
+    GameOver(1, c_gameOverDefeat, true, false);
+    return true;
+}

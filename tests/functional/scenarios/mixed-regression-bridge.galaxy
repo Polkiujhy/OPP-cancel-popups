@@ -1,0 +1,47 @@
+// Read-only instrumentation appended only to the private acceptance dependency.
+void OPP_MixedFixture_Snapshot (bank output, string section, unit facility) {
+    int row;
+    int slot;
+    int count;
+    bool visible;
+    string key;
+    OPP_QueueFixture_Snapshot(output, section, true);
+    BankValueSetFromInt(output, section, "Buildings", DataTableGetInt(true, "OPPCancelPopups/BuildingCancels"));
+    BankValueSetFromInt(output, section, "Research", DataTableGetInt(true, "OPPCancelPopups/ResearchOwn"));
+    BankValueSetFromInt(output, section, "Preserved", DataTableGetInt(true, "OPPCancelPopups/ResearchPreserved"));
+    BankValueSetFromInt(output, section, "Morphs", DataTableGetInt(true, "OPPCancelPopups/MorphCancels"));
+    BankValueSetFromInt(output, section, "Prisms", DataTableGetInt(true, "OPPCancelPopups/PrismCancels"));
+    BankValueSetFromInt(output, section, "Warps", DataTableGetInt(true, "OPPCancelPopups/WarpCancels"));
+    BankValueSetFromFlag(output, section, "GHActive", libGHLo_gv_upgradeNotifications.lv_active);
+    count = 0;
+    for (slot = 0; slot <= libGHLo_gv_upgradeNotificationsMaxUISlots; slot += 1) {
+        if (facility == null || libGHLo_gv_upgradeNotifications.lv_slotFacility[slot] != facility) { continue; }
+        key = "GH" + IntToString(count);
+        BankValueSetFromInt(output, section, key + "Slot", slot);
+        BankValueSetFromInt(output, section, key + "Status", libGHLo_gv_upgradeNotifications.lv_slotStatus[slot]);
+        visible = libGHLo_gv_upgradeNotifications.lv_itemPanel[slot] != c_invalidDialogControlId && DialogControlIsVisible(libGHLo_gv_upgradeNotifications.lv_itemPanel[slot], OPP_UI_ViewerId);
+        BankValueSetFromFlag(output, section, key + "Visible", visible);
+        BankValueSetFromText(output, section, key + "Name", StringToText(""));
+        BankValueSetFromText(output, section, key + "Label", StringToText(""));
+        if (libGHLo_gv_upgradeNotifications.lv_active && visible) {
+            if (libGHLo_gv_upgradeNotifications.lv_itemName[slot] != c_invalidDialogControlId) {
+                BankValueSetFromText(output, section, key + "Name", DialogControlGetPropertyAsText(libGHLo_gv_upgradeNotifications.lv_itemName[slot], c_triggerControlPropertyText, OPP_UI_ViewerId));
+            }
+            if (libGHLo_gv_upgradeNotifications.lv_itemTimerStatus[slot] != c_invalidDialogControlId) {
+                BankValueSetFromText(output, section, key + "Label", DialogControlGetPropertyAsText(libGHLo_gv_upgradeNotifications.lv_itemTimerStatus[slot], c_triggerControlPropertyText, OPP_UI_ViewerId));
+            }
+        }
+        BankValueSetFromFixed(output, section, key + "Remaining", TimerGetRemaining(libGHLo_gv_upgradeNotifications.lv_timerDestruction[slot]));
+        count += 1;
+    }
+    BankValueSetFromInt(output, section, "GHMatches", count);
+    for (row = 0; row < OPP_UI_ROWS; row += 1) {
+        key = "Row" + IntToString(row);
+        BankValueSetFromString(output, section, key + "Icon", "");
+        visible = OPP_UI_Panel[row] != c_invalidDialogControlId && DialogControlIsVisible(OPP_UI_Panel[row], OPP_UI_ViewerId);
+        if (OPP_UI_Ready && visible && OPP_UI_Busy[row] && OPP_UI_RowCount[row] > 0 && OPP_UI_Icon[row] != c_invalidDialogControlId) {
+            BankValueSetFromString(output, section, key + "Icon", DialogControlGetPropertyAsString(OPP_UI_Icon[row], c_triggerControlPropertyImage, OPP_UI_ViewerId));
+        }
+    }
+    BankSave(output);
+}

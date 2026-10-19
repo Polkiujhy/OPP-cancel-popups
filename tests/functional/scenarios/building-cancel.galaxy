@@ -1,0 +1,214 @@
+// Event probes are confined to the test map.
+include "LibGHLo_h"
+int OPP_Test_EventCount = 0;
+bank OPP_Test_Bank;
+bool OPP_Test_ResearchProgress (bool testConds, bool runActions) {
+    string section;
+    if (!runActions) { return true; }
+    OPP_Test_EventCount += 1;
+    section = "ResearchProgress" + IntToString(OPP_Test_EventCount);
+    BankValueSetFromString(OPP_Test_Bank, section, "Upgrade", EventUnitProgressObjectType());
+    if (UnitIsAlive(EventUnit()) && UnitQueueItemCount(EventUnit(), 1) > 0) {
+        BankValueSetFromString(OPP_Test_Bank, section, "CurrentQueueItem", UnitQueueItemGet(EventUnit(), 1, 1));
+    }
+    BankSave(OPP_Test_Bank);
+    return true;
+}
+bool OPP_Test_Ability (bool testConds, bool runActions) {
+    bank result;
+    string section;
+    if (!runActions) { return true; }
+    result = OPP_Test_Bank;
+    OPP_Test_EventCount += 1;
+    section = "Ability" + IntToString(OPP_Test_EventCount);
+    BankValueSetFromInt(result, section, "Stage", EventUnitAbilityStage());
+    BankValueSetFromString(result, section, "Unit", UnitGetType(EventUnit()));
+    BankSave(result);
+    return true;
+}
+bool OPP_Test_Progress (bool testConds, bool runActions) {
+    bank result;
+    string section;
+    if (!runActions) { return true; }
+    result = OPP_Test_Bank;
+    OPP_Test_EventCount += 1;
+    section = "Progress" + IntToString(OPP_Test_EventCount);
+    BankValueSetFromString(result, section, "Unit", UnitGetType(EventUnit()));
+    BankValueSetFromString(result, section, "Object", EventUnitProgressObjectType());
+    BankValueSetFromFlag(result, section, "Alive", UnitIsAlive(EventUnit()));
+    BankValueSetFromString(result, section, "ProgressUnit", UnitGetType(EventUnitProgressUnit()));
+    BankValueSetFromInt(result, section, "ProgressTag", UnitGetTag(EventUnitProgressUnit()));
+    BankValueSetFromInt(result, section, "ProgressOwner", UnitGetOwner(EventUnitProgressUnit()));
+    BankValueSetFromFlag(result, section, "ProgressAlive", UnitIsAlive(EventUnitProgressUnit()));
+    BankSave(result);
+    return true;
+}
+bool OPP_Test_Order (bool testConds, bool runActions) {
+    bank result;
+    string section;
+    if (!runActions) { return true; }
+    result = OPP_Test_Bank;
+    OPP_Test_EventCount += 1;
+    section = "Order" + IntToString(OPP_Test_EventCount);
+    BankValueSetFromString(result, section, "Unit", UnitGetType(EventUnit()));
+    BankValueSetFromInt(result, section, "Tag", UnitGetTag(EventUnit()));
+    BankValueSetFromFlag(result, section, "Alive", UnitIsAlive(EventUnit()));
+    BankSave(result);
+    return true;
+}
+// Explicit test fixture, never packaged in the production mod.
+void OPP_Test_Snapshot (bank result, string section) {
+    int row;
+    int id;
+    string path;
+    BankValueSetFromInt(result, section, "InitializationCount", DataTableGetInt(true, "OPPCancelPopups/InitializationCount"));
+    BankValueSetFromFlag(result, section, "UIReady", DataTableGetBool(true, "OPPCancelPopups/UIReady"));
+    BankValueSetFromInt(result, section, "ObserverId", DataTableGetInt(true, "OPPCancelPopups/ObserverId"));
+    BankValueSetFromInt(result, section, "BuildingCancels", DataTableGetInt(true, "OPPCancelPopups/BuildingCancels"));
+    BankValueSetFromInt(result, section, "Displayed", DataTableGetInt(true, "OPPCancelPopups/Displayed"));
+    BankValueSetFromFlag(result, section, "ResearchAdapter", DataTableGetBool(true, "OPPCancelPopups/ResearchAdapter"));
+    BankValueSetFromInt(result, section, "ResearchOwn", DataTableGetInt(true, "OPPCancelPopups/ResearchOwn"));
+    BankValueSetFromInt(result, section, "ResearchPreserved", DataTableGetInt(true, "OPPCancelPopups/ResearchPreserved"));
+    BankValueSetFromInt(result, section, "ActivePlayers", PlayerGroupCount(PlayerGroupActive()));
+    for (row = 0; row < c_maxPlayers; row += 1) {
+        if (PlayerGroupHasPlayer(PlayerGroupActive(), row)) {
+            BankValueSetFromFlag(result, section, "ActivePlayer" + IntToString(row), true);
+        }
+    }
+    BankValueSetFromFlag(result, section, "GameHeartActive", libGHLo_gv_upgradeNotifications.lv_active);
+    BankValueSetFromInt(result, section, "GameHeartLastSlot", libGHLo_gv_upgradeNotifications.lv_slotLastUsed);
+    BankValueSetFromFixed(result, section, "GameTime", GameGetMissionTime());
+    BankSave(result);
+}
+
+bool OPP_Test_Run (bool testConds, bool runActions) {
+    bank result;
+    trigger probe;
+    unit building;
+    string objectType;
+    int race;
+    bool issued;
+    unit[5] burst;
+    int i;
+    if (!runActions) { return true; }
+    result = OPP_Test_Bank;
+    OPP_Test_Bank = BankLoad("OPPBuildingCancelTest", 1);
+    result = OPP_Test_Bank;
+    probe = TriggerCreate("OPP_Test_Ability");
+    TriggerAddEventUnitAbility(probe, null, AbilityCommand("BuildInProgress", c_abilBuildableCmdCancel), c_unitAbilStageAll, false);
+    probe = TriggerCreate("OPP_Test_Progress");
+    TriggerAddEventUnitConstructProgress(probe, null, c_unitProgressStageCancel);
+    probe = TriggerCreate("OPP_Test_Order");
+    TriggerAddEventUnitOrder(probe, null, AbilityCommand("BuildInProgress", c_abilBuildableCmdCancel));
+    probe = TriggerCreate("OPP_Test_ResearchProgress");
+    TriggerAddEventUnitResearchProgress(probe, null, c_unitProgressStageCancel);
+    // Keep two sides alive; omit AI, economy changes and victory conditions.
+    UnitCreate(1, "CommandCenter", 0, 1, Point(30.0, 30.0), 270.0);
+    UnitCreate(1, "Nexus", 0, 2, Point(90.0, 90.0), 270.0);
+    Wait(8.0, c_timeGame);
+    OPP_Test_Snapshot(result, "Before");
+    for (race = 0; race < 3; race += 1) {
+        objectType = "SupplyDepot";
+        if (race == 1) { objectType = "Pylon"; }
+        if (race == 2) { objectType = "SpawningPool"; }
+        UnitCreate(1, objectType, c_unitCreateConstruct, 1, Point(40.0 + IntToFixed(race) * 6.0, 40.0), 270.0);
+        building = UnitLastCreated();
+        Wait(2.0, c_timeGame);
+        issued = UnitIssueOrder(building, Order(AbilityCommand("BuildInProgress", c_abilBuildableCmdCancel)), c_orderQueueReplace);
+        BankValueSetFromFlag(result, objectType, "CancelOrderAccepted", issued);
+        Wait(0.5, c_timeGame);
+        OPP_Test_Snapshot(result, objectType);
+        Wait(7.0, c_timeGame);
+    }
+    UnitCreate(1, "Pylon", c_unitCreateConstruct, 1, Point(65.0, 40.0), 270.0);
+    building = UnitLastCreated();
+    Wait(1.0, c_timeGame);
+    UnitKill(building);
+    Wait(1.0, c_timeGame);
+    OPP_Test_Snapshot(result, "Destroyed");
+    UnitCreate(1, "Pylon", 0, 1, Point(70.0, 40.0), 270.0);
+    Wait(7.0, c_timeGame);
+    OPP_Test_Snapshot(result, "Finished");
+    // Resources belong only to this isolated fixture, never the production mod.
+    PlayerModifyPropertyInt(1, c_playerPropMinerals, c_playerPropOperSetTo, 1000);
+    PlayerModifyPropertyInt(1, c_playerPropVespene, c_playerPropOperSetTo, 1000);
+    UnitCreate(1, "EngineeringBay", 0, 1, Point(75.0, 40.0), 270.0);
+    building = UnitLastCreated();
+    issued = UnitIssueOrder(building, Order(AbilityCommand("EngineeringBayResearch", c_abilResearchCmdResearch3)), c_orderQueueReplace);
+    BankValueSetFromFlag(result, "ResearchCancel", "StartAccepted", issued);
+    Wait(3.0, c_timeGame);
+    BankValueSetFromString(result, "ResearchCancel", "QueueItem", UnitQueueItemGet(building, 1, 1));
+    issued = UnitIssueOrder(building, Order(AbilityCommand("que5", c_abilQueueCmdCancelLast)), c_orderQueueReplace);
+    BankValueSetFromFlag(result, "ResearchCancel", "CancelAccepted", issued);
+    Wait(1.0, c_timeGame);
+    OPP_Test_Snapshot(result, "ResearchCancel");
+    Wait(6.0, c_timeGame);
+    for (i = 0; i < 5; i += 1) {
+        UnitCreate(1, "Pylon", c_unitCreateConstruct, 1 + i % 2, Point(40.0 + IntToFixed(i) * 5.0, 60.0), 270.0);
+        burst[i] = UnitLastCreated();
+    }
+    Wait(1.0, c_timeGame);
+    for (i = 0; i < 5; i += 1) {
+        UnitIssueOrder(burst[i], Order(AbilityCommand("BuildInProgress", c_abilBuildableCmdCancel)), c_orderQueueReplace);
+    }
+    Wait(0.5, c_timeGame);
+    OPP_Test_Snapshot(result, "BurstImmediate");
+    Wait(5.0, c_timeGame);
+    OPP_Test_Snapshot(result, "BurstQueued");
+    // Accelerate only this fixture's research to exercise GameHeart's visible
+    // near-completion notification, then cancel through the real queue order.
+    UnitCreate(1, "EngineeringBay", 0, 1, Point(80.0, 40.0), 270.0);
+    building = UnitLastCreated();
+    issued = UnitIssueOrder(building, Order(AbilityCommand("EngineeringBayResearch", c_abilResearchCmdResearch3)), c_orderQueueReplace);
+    BankValueSetFromFlag(result, "ResearchVisible", "StartAccepted", issued);
+    Wait(1.0, c_timeGame);
+    UnitSetProgressComplete(building, 1, 95);
+    Wait(1.0, c_timeGame);
+    BankValueSetFromFixed(result, "ResearchVisible", "Remaining", UnitQueueItemTime(building, c_unitQueueTimeRemaining, 1));
+    issued = UnitIssueOrder(building, Order(AbilityCommand("que5", c_abilQueueCmdCancelLast)), c_orderQueueReplace);
+    BankValueSetFromFlag(result, "ResearchVisible", "CancelAccepted", issued);
+    Wait(0.5, c_timeGame);
+    OPP_Test_Snapshot(result, "ResearchVisible");
+    Wait(6.0, c_timeGame);
+    UnitCreate(1, "EngineeringBay", 0, 1, Point(85.0, 40.0), 270.0);
+    building = UnitLastCreated();
+    issued = UnitIssueOrder(building, Order(AbilityCommand("EngineeringBayResearch", c_abilResearchCmdResearch3)), c_orderQueueReplace);
+    BankValueSetFromFlag(result, "QueuedResearch", "FirstAccepted", issued);
+    issued = UnitIssueOrder(building, Order(AbilityCommand("EngineeringBayResearch", c_abilResearchCmdResearch7)), c_orderQueueAddToEnd);
+    BankValueSetFromFlag(result, "QueuedResearch", "SecondAccepted", issued);
+    Wait(2.0, c_timeGame);
+    OPP_Test_Snapshot(result, "BeforeQueuedCancel");
+    issued = UnitIssueOrder(building, Order(AbilityCommand("que5", c_abilQueueCmdCancelLast)), c_orderQueueReplace);
+    BankValueSetFromFlag(result, "QueuedResearch", "CancelAccepted", issued);
+    Wait(0.5, c_timeGame);
+    BankValueSetFromString(result, "QueuedResearch", "RemainingUpgrade", UnitQueueItemGet(building, 1, 1));
+    OPP_Test_Snapshot(result, "QueuedResearch");
+    // Destruction of a hidden research entry must not become a cancellation.
+    UnitKill(building);
+    Wait(0.5, c_timeGame);
+    OPP_Test_Snapshot(result, "ResearchDestroyedHidden");
+    UnitCreate(1, "EngineeringBay", 0, 1, Point(90.0, 40.0), 270.0);
+    building = UnitLastCreated();
+    UnitIssueOrder(building, Order(AbilityCommand("EngineeringBayResearch", c_abilResearchCmdResearch3)), c_orderQueueReplace);
+    Wait(1.0, c_timeGame);
+    UnitSetProgressComplete(building, 1, 95);
+    Wait(1.0, c_timeGame);
+    UnitKill(building);
+    Wait(0.5, c_timeGame);
+    OPP_Test_Snapshot(result, "ResearchDestroyedVisible");
+    Wait(6.0, c_timeGame);
+    OPP_Test_Snapshot(result, "DeniedExpired");
+    UnitCreate(1, "EngineeringBay", 0, 1, Point(95.0, 40.0), 270.0);
+    building = UnitLastCreated();
+    UnitIssueOrder(building, Order(AbilityCommand("EngineeringBayResearch", c_abilResearchCmdResearch3)), c_orderQueueReplace);
+    Wait(1.0, c_timeGame);
+    UnitSetProgressComplete(building, 1, 95);
+    // Let the remaining seven seconds finish through the normal game loop.
+    Wait(10.0, c_timeGame);
+    BankValueSetFromInt(result, "ResearchCompleted", "CompletedUpgradeLevel", TechTreeUpgradeCount(1, "TerranInfantryWeaponsLevel1", c_techCountCompleteOnly));
+    OPP_Test_Snapshot(result, "ResearchCompleted");
+    // End only this explicit fixture, allowing a replay/observer session.
+    Wait(5.0, c_timeGame);
+    GameOver(1, c_gameOverDefeat, true, false);
+    return true;
+}

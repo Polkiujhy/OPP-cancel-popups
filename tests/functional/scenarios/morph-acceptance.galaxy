@@ -1,0 +1,569 @@
+// Full acceptance fixture. Expected source links are generated from the frozen
+// pre-production matrix, never from the production resolver under test.
+include "LibC0DEC0DE_h"
+void OPP_MorphFixture_Snapshot (bank output, string section, string target);
+void OPP_MorphFixture_Resolve (bank output, string section, string ability, int owner);
+void OPP_MorphFixture_ClearUI ();
+void OPP_MorphFixture_FullUI (string target, string icon, int kind);
+void OPP_MorphFixture_DrainBlockers (string target);
+void OPP_MorphFixture_Boundary (unit subject, string ability, bool engineFirst, bool restartBetween);
+// OPP_MA_ExpectedInit and expected arrays are prepended by the stager.
+bank OPP_MA_Bank;
+bank OPP_MA_Main;
+string OPP_MA_Case = "Setup";
+string OPP_MA_Ability;
+string OPP_MA_Target;
+unit OPP_MA_Subject;
+unitgroup OPP_MA_Created;
+bool OPP_MA_CollectCreated = false;
+bool OPP_MA_Track = false;
+bool OPP_MA_Attempted = false;
+bool OPP_MA_FullQueue = false;
+int OPP_MA_Mode = 0;
+int OPP_MA_Events = 0;
+int OPP_MA_Executes = 0;
+int OPP_MA_Cancels = 0;
+int OPP_MA_Completes = 0;
+int OPP_MA_Orders = 0;
+bool OPP_MA_ParallelRunning = false;
+unit[3] OPP_MA_ParallelSubjects;
+unit[2] OPP_MA_PowerUnits;
+bool OPP_MA_IsolateScenery = false;
+
+void OPP_MA_PowerSnapshot (string section) {
+    int index;
+    string key;
+    unit subject;
+    BankValueSetFromFixed(OPP_MA_Main, section, "Time", GameGetMissionTime());
+    for (index = 0; index < 2; index += 1) {
+        key = "Pylon" + IntToString(index + 1);
+        subject = OPP_MA_PowerUnits[index];
+        BankValueSetFromFlag(OPP_MA_Main, section, key + "Alive", subject != null && UnitIsAlive(subject));
+        if (subject != null) {
+            BankValueSetFromInt(OPP_MA_Main, section, key + "Tag", UnitGetTag(subject));
+            BankValueSetFromInt(OPP_MA_Main, section, key + "Owner", UnitGetOwner(subject));
+            BankValueSetFromString(OPP_MA_Main, section, key + "Type", UnitGetType(subject));
+            BankValueSetFromFixed(OPP_MA_Main, section, key + "X", PointGetX(UnitGetPosition(subject)));
+            BankValueSetFromFixed(OPP_MA_Main, section, key + "Y", PointGetY(UnitGetPosition(subject)));
+        }
+    }
+    BankSave(OPP_MA_Main);
+}
+
+string OPP_MA_Icon (string target, string ability, int owner) {
+    string key;
+    string entry;
+    key = "OPPMorphFixture/Icon/" + ability + "/" + target + "/";
+    entry = DataTableGetString(true, key + "Entry");
+    if (entry == "") { return ""; }
+    // This exact catalog reference is frozen from independent local XML
+    // evidence. There is no copy of the production resolver in this fixture.
+    return CatalogFieldValueGet(DataTableGetInt(true, key + "Catalog"), entry, DataTableGetString(true, key + "Field"), owner);
+}
+
+void OPP_MA_Record (string label, unit subject, string ability, int command, int stage) {
+    string section;
+    if (!OPP_MA_Track) { return; }
+    OPP_MA_Events += 1;
+    section = "Event" + IntToString(OPP_MA_Events);
+    BankValueSetFromString(OPP_MA_Bank, section, "Case", OPP_MA_Case);
+    BankValueSetFromString(OPP_MA_Bank, section, "Label", label);
+    BankValueSetFromString(OPP_MA_Bank, section, "Ability", ability);
+    BankValueSetFromInt(OPP_MA_Bank, section, "Command", command);
+    BankValueSetFromInt(OPP_MA_Bank, section, "Stage", stage);
+    BankValueSetFromInt(OPP_MA_Bank, section, "Tag", UnitGetTag(subject));
+    BankValueSetFromInt(OPP_MA_Bank, section, "Owner", UnitGetOwner(subject));
+    BankValueSetFromFlag(OPP_MA_Bank, section, "Alive", UnitIsAlive(subject));
+    BankValueSetFromFixed(OPP_MA_Bank, section, "Time", GameGetMissionTime());
+}
+
+bool OPP_MA_ParallelEvent (unit subject, abilcmd command, int stage, bool orderEvent) {
+    int index;
+    string label;
+    string counter;
+    string previousCase;
+    if (!OPP_MA_ParallelRunning || AbilityCommandGetAbility(command) != "UpgradeToLair") { return false; }
+    for (index = 0; index < 3; index += 1) {
+        if (OPP_MA_ParallelSubjects[index] != subject) { continue; }
+        label = "Parallel" + IntToString(index);
+        counter = "";
+        if (orderEvent && AbilityCommandGetCommand(command) == c_abilMorphCmdCancel) { counter = "CancelOrders"; }
+        if (!orderEvent && AbilityCommandGetCommand(command) == c_abilMorphCmdExecute) {
+            if (stage == c_unitAbilStageExecute) { counter = "ExecuteEvents"; }
+            if (stage == c_unitAbilStageCancel) { counter = "CancelEvents"; }
+            if (stage == c_unitAbilStageComplete) { counter = "CompleteEvents"; }
+        }
+        if (counter != "") {
+            previousCase = OPP_MA_Case;
+            OPP_MA_Case = label;
+            if (orderEvent) { OPP_MA_Record("Order", subject, "UpgradeToLair", c_abilMorphCmdCancel, 0); }
+            else { OPP_MA_Record("Ability", subject, "UpgradeToLair", c_abilMorphCmdExecute, stage); }
+            OPP_MA_Case = previousCase;
+            BankValueSetFromInt(OPP_MA_Bank, label, counter, BankValueGetAsInt(OPP_MA_Bank, label, counter) + 1);
+        }
+        return true;
+    }
+    return false;
+}
+
+bool OPP_MA_CreatedEvent (bool testConds, bool runActions) {
+    if (runActions && OPP_MA_CollectCreated) { UnitGroupAdd(OPP_MA_Created, EventUnitCreatedUnit()); }
+    return true;
+}
+
+bool OPP_MA_AbilityEvent (bool testConds, bool runActions) {
+    abilcmd command;
+    int stage;
+    if (!runActions || !OPP_MA_Track) { return true; }
+    command = EventUnitAbility();
+    if (OPP_MA_ParallelEvent(EventUnit(), command, EventUnitAbilityStage(), false)) { return true; }
+    if (EventUnit() != OPP_MA_Subject) { return true; }
+    if (AbilityCommandGetAbility(command) != OPP_MA_Ability || AbilityCommandGetCommand(command) != c_abilMorphCmdExecute) { return true; }
+    stage = EventUnitAbilityStage();
+    if (stage != c_unitAbilStageExecute && stage != c_unitAbilStageCancel && stage != c_unitAbilStageComplete && stage != c_unitAbilStagePreempt) { return true; }
+    OPP_MA_Record("Ability", EventUnit(), OPP_MA_Ability, c_abilMorphCmdExecute, stage);
+    if (stage == c_unitAbilStageComplete) { OPP_MA_Completes += 1; }
+    if (stage == c_unitAbilStageCancel) { OPP_MA_Cancels += 1; }
+    if (stage == c_unitAbilStageExecute) {
+        OPP_MA_Executes += 1;
+        if (!OPP_MA_Attempted && (OPP_MA_Mode == 1 || OPP_MA_Mode == 8)) {
+            OPP_MA_Attempted = true;
+            BankValueSetFromFlag(OPP_MA_Bank, OPP_MA_Case, "EarliestExecuteCancel", true);
+            BankValueSetFromFixed(OPP_MA_Bank, OPP_MA_Case, "ExecuteCancelTime", GameGetMissionTime());
+            if (UnitAbilityExists(OPP_MA_Subject, OPP_MA_Ability)) {
+                BankValueSetFromFlag(OPP_MA_Bank, OPP_MA_Case, "AtExecuteCancelHidden", UnitCheckAbilCmdState(OPP_MA_Subject, AbilityCommand(OPP_MA_Ability, c_abilMorphCmdCancel), c_cmdStateHidden));
+                BankValueSetFromFlag(OPP_MA_Bank, OPP_MA_Case, "AtExecuteCancelDisabled", UnitCheckAbilCmdState(OPP_MA_Subject, AbilityCommand(OPP_MA_Ability, c_abilMorphCmdCancel), c_cmdStateDisabled));
+            }
+            BankValueSetFromFlag(OPP_MA_Bank, OPP_MA_Case, "CancelAccepted", UnitIssueOrder(OPP_MA_Subject, Order(AbilityCommand(OPP_MA_Ability, c_abilMorphCmdCancel)), c_orderQueueReplace));
+        }
+    }
+    return true;
+}
+
+bool OPP_MA_OrderEvent (bool testConds, bool runActions) {
+    abilcmd command;
+    if (!runActions || !OPP_MA_Track) { return true; }
+    command = OrderGetAbilityCommand(EventUnitOrder());
+    if (OPP_MA_ParallelEvent(EventUnit(), command, 0, true)) { return true; }
+    if (EventUnit() != OPP_MA_Subject) { return true; }
+    if (AbilityCommandGetAbility(command) == OPP_MA_Ability && AbilityCommandGetCommand(command) == c_abilMorphCmdCancel) {
+        OPP_MA_Orders += 1;
+        OPP_MA_Record("Order", EventUnit(), OPP_MA_Ability, c_abilMorphCmdCancel, 0);
+    }
+    return true;
+}
+
+void OPP_MA_Cleanup () {
+    unit subject;
+    OPP_MA_Track = false;
+    OPP_MA_CollectCreated = false;
+    while (UnitGroupCount(OPP_MA_Created, c_unitCountAll) > 0) {
+        subject = UnitGroupUnit(OPP_MA_Created, 1);
+        UnitGroupRemove(OPP_MA_Created, subject);
+        UnitRemove(subject);
+    }
+    OPP_MA_Subject = null;
+}
+
+void OPP_MA_Metadata (string label, string source, string ability, string target, int owner) {
+    int kind;
+    OPP_MA_Case = label;
+    OPP_MA_Ability = ability;
+    OPP_MA_Target = target;
+    OPP_MA_Attempted = false;
+    OPP_MA_Executes = 0;
+    OPP_MA_Cancels = 0;
+    OPP_MA_Completes = 0;
+    OPP_MA_Orders = 0;
+    kind = 2;
+    if (UnitTypeTestAttribute(target, c_unitAttributeStructure)) { kind = 0; }
+    BankValueSetFromString(OPP_MA_Bank, label, "Source", source);
+    BankValueSetFromString(OPP_MA_Bank, label, "Ability", ability);
+    BankValueSetFromString(OPP_MA_Bank, label, "Target", target);
+    BankValueSetFromInt(OPP_MA_Bank, label, "Kind", kind);
+    BankValueSetFromInt(OPP_MA_Bank, label, "Owner", owner);
+    BankValueSetFromText(OPP_MA_Bank, label, "ExpectedName", UnitTypeGetName(target));
+    BankValueSetFromString(OPP_MA_Bank, label, "ExpectedIcon", OPP_MA_Icon(target, ability, owner));
+    BankValueSetFromString(OPP_MA_Bank, label, "ExpectedAsset", DataTableGetString(true, "OPPMorphFixture/Icon/" + ability + "/" + target + "/Asset"));
+    BankValueSetFromString(OPP_MA_Bank, label, "IconOracle", DataTableGetString(true, "OPPMorphFixture/Icon/" + ability + "/" + target + "/Reference"));
+    OPP_MorphFixture_Resolve(OPP_MA_Bank, label, ability, owner);
+    BankValueSetFromInt(OPP_MA_Bank, label, "BeforeMorphs", DataTableGetInt(true, "OPPCancelPopups/MorphCancels"));
+    BankValueSetFromInt(OPP_MA_Bank, label, "BeforeBuildings", DataTableGetInt(true, "OPPCancelPopups/BuildingCancels"));
+    BankValueSetFromInt(OPP_MA_Bank, label, "BeforeUnits", DataTableGetInt(true, "OPPCancelPopups/UnitCancels"));
+}
+
+void OPP_MA_SaveCase (bool snapshot) {
+    BankValueSetFromInt(OPP_MA_Bank, OPP_MA_Case, "ExecuteEvents", OPP_MA_Executes);
+    BankValueSetFromInt(OPP_MA_Bank, OPP_MA_Case, "CancelEvents", OPP_MA_Cancels);
+    BankValueSetFromInt(OPP_MA_Bank, OPP_MA_Case, "CompleteEvents", OPP_MA_Completes);
+    BankValueSetFromInt(OPP_MA_Bank, OPP_MA_Case, "CancelOrders", OPP_MA_Orders);
+    BankValueSetFromInt(OPP_MA_Bank, OPP_MA_Case, "AfterMorphs", DataTableGetInt(true, "OPPCancelPopups/MorphCancels"));
+    BankValueSetFromInt(OPP_MA_Bank, OPP_MA_Case, "AfterBuildings", DataTableGetInt(true, "OPPCancelPopups/BuildingCancels"));
+    BankValueSetFromInt(OPP_MA_Bank, OPP_MA_Case, "AfterUnits", DataTableGetInt(true, "OPPCancelPopups/UnitCancels"));
+    BankValueSetFromInt(OPP_MA_Bank, OPP_MA_Case, "ResolverErrors", DataTableGetInt(true, "OPPCancelPopups/MorphResolverErrors"));
+    BankValueSetFromFlag(OPP_MA_Bank, OPP_MA_Case, "AliveAfter", OPP_MA_Subject != null && UnitIsAlive(OPP_MA_Subject));
+    if (OPP_MA_Subject != null && UnitIsAlive(OPP_MA_Subject)) { BankValueSetFromString(OPP_MA_Bank, OPP_MA_Case, "TypeAfter", UnitGetType(OPP_MA_Subject)); }
+    if (snapshot) { OPP_MorphFixture_Snapshot(OPP_MA_Bank, OPP_MA_Case + "/After", OPP_MA_Target); }
+    BankValueSetFromFlag(OPP_MA_Bank, OPP_MA_Case, "Saved", true);
+    BankValueSetFromFixed(OPP_MA_Bank, OPP_MA_Case, "SavedTime", GameGetMissionTime());
+    BankSave(OPP_MA_Bank);
+}
+
+unit OPP_MA_Run (string label, string source, string ability, string target, int owner, unit reuse, int mode, bool snapshot, bool keep) {
+    unitgroup created;
+    point origin;
+    string race;
+    string otherAbility;
+    int i;
+    int kind;
+    fixed elapsed;
+    fixed observationLimit;
+    bool accepted;
+    OPP_MA_Metadata(label, source, ability, target, owner);
+    OPP_MA_Mode = mode;
+    OPP_MA_Track = false;
+    BankValueSetFromString(OPP_MA_Bank, label, "Evidence", "real-engine-attempt");
+    if (snapshot) { OPP_MorphFixture_ClearUI(); }
+    origin = Point(65.0, 65.0);
+    // Only frozen matrix links167..180: collapse effects spawn neutral push
+    // units south of their source. Keep those real processes away from the
+    // power fixtures, without changing their abilities or reusing old proof.
+    if (OPP_MA_IsolateScenery) { origin = Point(35.0, 105.0); }
+    race = CatalogFieldValueGet(c_gameCatalogUnit, source, "Race", owner);
+    if (race == "Zerg" || race == "Terr" || race == "Prot") { PlayerSetRace(owner, race); }
+    CreepModify(origin, 18.0, race == "Zerg", true);
+    PlayerModifyPropertyInt(owner, c_playerPropMinerals, c_playerPropOperSetTo, 100000);
+    PlayerModifyPropertyInt(owner, c_playerPropVespene, c_playerPropOperSetTo, 100000);
+    PlayerModifyPropertyInt(owner, c_playerPropSuppliesMade, c_playerPropOperSetTo, 200);
+    if (reuse == null) {
+        OPP_MA_Created = UnitGroupEmpty();
+        OPP_MA_CollectCreated = true;
+        created = UnitCreate(1, source, c_unitCreateIgnorePlacement, owner, origin, 270.0);
+        OPP_MA_Subject = null;
+        if (UnitGroupCount(created, c_unitCountAll) > 0) { OPP_MA_Subject = UnitGroupUnit(created, 1); }
+    }
+    else { OPP_MA_Subject = reuse; }
+    BankValueSetFromFlag(OPP_MA_Bank, label, "Created", OPP_MA_Subject != null);
+    if (OPP_MA_Subject == null) { OPP_MA_SaveCase(snapshot); return null; }
+    BankValueSetFromInt(OPP_MA_Bank, label, "Tag", UnitGetTag(OPP_MA_Subject));
+    BankValueSetFromFixed(OPP_MA_Bank, label, "CreatedX", PointGetX(UnitGetPosition(OPP_MA_Subject)));
+    BankValueSetFromFixed(OPP_MA_Bank, label, "CreatedY", PointGetY(UnitGetPosition(OPP_MA_Subject)));
+    for (i = 1; i <= UnitAbilityCount(OPP_MA_Subject); i += 1) {
+        otherAbility = UnitAbilityGet(OPP_MA_Subject, i);
+        if (UnitCheckAbilCmdState(OPP_MA_Subject, AbilityCommand(otherAbility, 0), c_cmdStateIsAutoCast)) {
+            UnitIssueOrder(OPP_MA_Subject, OrderSetAutoCast(AbilityCommand(otherAbility, 0), false), c_orderQueueReplace);
+        }
+    }
+    Wait(0.0625, c_timeGame);
+    if (snapshot) {
+        if (OPP_MA_FullQueue) {
+            kind = 2;
+            if (UnitTypeTestAttribute(target, c_unitAttributeStructure)) { kind = 0; }
+            OPP_MorphFixture_FullUI(target, OPP_MA_Icon(target, ability, owner), kind);
+        }
+        OPP_MorphFixture_Snapshot(OPP_MA_Bank, label + "/Before", target);
+    }
+    if (mode == 4) { UnitAbilityEnable(OPP_MA_Subject, ability, false); }
+    OPP_MA_Track = true;
+    accepted = false;
+    if (mode == 5) {
+        BankValueSetFromFlag(OPP_MA_Bank, label, "CancelAccepted", UnitIssueOrder(OPP_MA_Subject, Order(AbilityCommand(ability, c_abilMorphCmdCancel)), c_orderQueueReplace));
+    }
+    else if (mode == 8) {
+        accepted = UnitIssueOrder(OPP_MA_Subject, OrderSetAutoCast(AbilityCommand(ability, c_abilMorphCmdExecute), true), c_orderQueueReplace);
+    }
+    else if (UnitIsAlive(OPP_MA_Subject) && UnitAbilityExists(OPP_MA_Subject, ability)) {
+        if (AbilityClass(ability) == c_classIdCAbilMorphPlacement) {
+            accepted = UnitIssueOrder(OPP_MA_Subject, OrderTargetingPoint(AbilityCommand(ability, c_abilMorphCmdExecute), Point(PointGetX(origin), PointGetY(origin) + 4.0)), c_orderQueueReplace);
+        }
+        else { accepted = UnitIssueOrder(OPP_MA_Subject, Order(AbilityCommand(ability, c_abilMorphCmdExecute)), c_orderQueueReplace); }
+    }
+    BankValueSetFromFlag(OPP_MA_Bank, label, "StartAccepted", accepted);
+    if (mode == 3 || mode == 6) {
+        Wait(0.0625, c_timeGame);
+        if (mode == 3) { UnitKill(OPP_MA_Subject); }
+        else { BankValueSetFromFlag(OPP_MA_Bank, label, "MoveAccepted", UnitIssueOrder(OPP_MA_Subject, OrderTargetingPoint(AbilityCommand("move", c_abilMoveCmdMove), Point(70.0, 70.0)), c_orderQueueReplace)); }
+    }
+    // Preflight ran at global scale 4; its 7.375-second Immortal rebuild
+    // observation is about 30 seconds at this fixture's normal time scale.
+    // Keep waiting for the actual callback; never force progress/completion.
+    observationLimit = 60.0;
+    BankValueSetFromFixed(OPP_MA_Bank, label, "ObservationLimit", observationLimit);
+    elapsed = 0.0;
+    while (elapsed < observationLimit && OPP_MA_Completes == 0 && OPP_MA_Cancels == 0 && UnitIsAlive(OPP_MA_Subject) && mode != 4 && mode != 5) {
+        Wait(0.0625, c_timeGame);
+        elapsed += 0.0625;
+        if (OPP_MA_Executes == 0 && elapsed > 0.5) { break; }
+    }
+    BankValueSetFromFixed(OPP_MA_Bank, label, "ObservedWait", elapsed);
+    Wait(0.1875, c_timeGame);
+    if (mode == 8 && UnitIsAlive(OPP_MA_Subject)) {
+        UnitIssueOrder(OPP_MA_Subject, OrderSetAutoCast(AbilityCommand(ability, c_abilMorphCmdExecute), false), c_orderQueueReplace);
+    }
+    OPP_MA_SaveCase(snapshot);
+    OPP_MA_Track = false;
+    if (!keep) { OPP_MA_Cleanup(); }
+    return OPP_MA_Subject;
+}
+
+void OPP_MA_Negatives () {
+    OPP_MA_Run("NegativeComplete", "Thor", "ThorAPMode", "ThorAP", 1, null, 2, true, false);
+    OPP_MA_Run("NegativeDeath", "Hatchery", "UpgradeToLair", "Lair", 1, null, 3, true, false);
+    OPP_MA_Run("NegativeRejected", "Roach", "MorphToRavager", "Ravager", 1, null, 4, true, false);
+    OPP_MA_Run("NegativeNoProcess", "Hatchery", "UpgradeToLair", "Lair", 1, null, 5, true, false);
+    OPP_MA_Run("NegativeMove", "SpineCrawlerUprooted", "SpineCrawlerRoot", "SpineCrawler", 1, null, 6, true, false);
+    OPP_MA_Run("NegativeMode", "SiegeTank", "SiegeMode", "SiegeTankSieged", 1, null, 1, true, false);
+    OPP_MA_Run("NegativeTransient", "Roach", "BurrowRoachDown", "RoachBurrowed", 1, null, 1, true, false);
+}
+
+void OPP_MA_Parallel () {
+    string label;
+    int index;
+    int owner;
+    OPP_MorphFixture_ClearUI();
+    OPP_MA_ParallelRunning = true;
+    OPP_MA_Track = true;
+    for (index = 0; index < 3; index += 1) {
+        owner = 1;
+        if (index == 1) { owner = 2; }
+        label = "Parallel" + IntToString(index);
+        OPP_MA_Metadata(label, "Hatchery", "UpgradeToLair", "Lair", owner);
+        PlayerModifyPropertyInt(owner, c_playerPropMinerals, c_playerPropOperSetTo, 100000);
+        PlayerModifyPropertyInt(owner, c_playerPropVespene, c_playerPropOperSetTo, 100000);
+        PlayerModifyPropertyInt(owner, c_playerPropSuppliesMade, c_playerPropOperSetTo, 200);
+        BankValueSetFromString(OPP_MA_Bank, label, "Evidence", "real-engine-attempt");
+        UnitCreate(1, "Hatchery", c_unitCreateIgnorePlacement, owner, Point(48.0 + IntToFixed(index) * 10.0, 80.0), 270.0);
+        OPP_MA_ParallelSubjects[index] = UnitLastCreated();
+        BankValueSetFromFlag(OPP_MA_Bank, label, "Created", true);
+        BankValueSetFromInt(OPP_MA_Bank, label, "Tag", UnitGetTag(OPP_MA_ParallelSubjects[index]));
+        BankValueSetFromFlag(OPP_MA_Bank, label, "StartAccepted", UnitIssueOrder(OPP_MA_ParallelSubjects[index], Order(AbilityCommand("UpgradeToLair", c_abilMorphCmdExecute)), c_orderQueueReplace));
+    }
+    Wait(0.125, c_timeGame);
+    OPP_MorphFixture_Snapshot(OPP_MA_Bank, "Parallel/Before", "Lair");
+    for (index = 0; index < 3; index += 1) {
+        label = "Parallel" + IntToString(index);
+        BankValueSetFromFlag(OPP_MA_Bank, label, "CancelAccepted", UnitIssueOrder(OPP_MA_ParallelSubjects[index], Order(AbilityCommand("UpgradeToLair", c_abilMorphCmdCancel)), c_orderQueueReplace));
+    }
+    Wait(0.1875, c_timeGame);
+    OPP_MorphFixture_Snapshot(OPP_MA_Bank, "Parallel/After", "Lair");
+    for (index = 0; index < 3; index += 1) {
+        label = "Parallel" + IntToString(index);
+        OPP_MA_Case = label;
+        OPP_MA_Subject = OPP_MA_ParallelSubjects[index];
+        OPP_MA_Executes = BankValueGetAsInt(OPP_MA_Bank, label, "ExecuteEvents");
+        OPP_MA_Cancels = BankValueGetAsInt(OPP_MA_Bank, label, "CancelEvents");
+        OPP_MA_Completes = BankValueGetAsInt(OPP_MA_Bank, label, "CompleteEvents");
+        OPP_MA_Orders = BankValueGetAsInt(OPP_MA_Bank, label, "CancelOrders");
+        OPP_MA_SaveCase(false);
+    }
+    OPP_MA_Track = false;
+    OPP_MA_ParallelRunning = false;
+    for (index = 0; index < 3; index += 1) { UnitRemove(OPP_MA_ParallelSubjects[index]); }
+}
+
+void OPP_MA_Retention () {
+    unit held;
+    unit cycling;
+    bank retained;
+    int mainEvents;
+    int cycle;
+    int chunk;
+    string chunkName;
+    string label;
+    OPP_MA_Metadata("RetentionHeld", "Hatchery", "UpgradeToLair", "Lair", 1);
+    BankValueSetFromString(OPP_MA_Bank, "RetentionHeld", "Evidence", "real-engine-attempt");
+    OPP_MA_Created = UnitGroupEmpty();
+    OPP_MA_CollectCreated = true;
+    UnitCreate(1, "Hatchery", c_unitCreateIgnorePlacement, 1, Point(42.0, 65.0), 270.0);
+    held = UnitLastCreated();
+    BankValueSetFromFlag(OPP_MA_Bank, "RetentionHeld", "Created", held != null && UnitIsValid(held));
+    OPP_MA_Subject = held;
+    OPP_MA_Mode = 2;
+    OPP_MA_Track = true;
+    // Fixture only: preserve one attempt beyond all 129 completed cycles.
+    OPP_MH_Lengthen(OPP_MA_Bank, "RetentionHeld");
+    // Independent native observer remains attached to this tag throughout
+    // every cycle, while the general fixture recorder follows the Thor tag.
+    OPP_MH_StartTrace(OPP_MA_Bank, held, "UpgradeToLair", "RetentionHeld");
+    BankValueSetFromInt(OPP_MA_Bank, "RetentionHeld", "Tag", UnitGetTag(held));
+    BankValueSetFromFlag(OPP_MA_Bank, "RetentionHeld", "StartAccepted", UnitIssueOrder(held, Order(AbilityCommand("UpgradeToLair", c_abilMorphCmdExecute)), c_orderQueueReplace));
+    Wait(0.125, c_timeGame);
+    OPP_MH_State(OPP_MA_Bank, "RetentionHeld/StartState", held, "UpgradeToLair");
+    OPP_MorphFixture_Snapshot(OPP_MA_Bank, "RetentionHeld/Held", "Lair");
+    BankValueSetFromInt(OPP_MA_Bank, "RetentionHeld", "ObservedStartedExecutes", OPP_MA_Executes);
+    mainEvents = OPP_MA_Events;
+    OPP_MA_Track = false;
+    cycling = null;
+    for (chunk = 0; chunk < 4; chunk += 1) {
+        chunkName = "OPPBuildingCancelTest" + "Retention" + IntToString(chunk);
+        retained = BankLoad(chunkName, 1);
+        BankValueSetFromString(OPP_MA_Main, "RetentionHeld", "Chunk" + IntToString(chunk), chunkName);
+        OPP_MA_Bank = retained;
+        OPP_MA_Events = 0;
+        BankValueSetFromString(retained, "Probe", "Fixture", "morph-retention");
+        BankValueSetFromInt(retained, "Probe", "Chunk", chunk);
+        for (cycle = chunk * 40; cycle < (chunk + 1) * 40 && cycle < 129; cycle += 1) {
+            label = "Cycle" + IntToString(cycle);
+            cycling = OPP_MA_Run(label, "Thor", "ThorAPMode", "ThorAP", 1, cycling, 1, false, true);
+        }
+        BankValueSetFromInt(retained, "Finished", "Events", OPP_MA_Events);
+        BankValueSetFromInt(retained, "Finished", "StartCycle", chunk * 40);
+        BankValueSetFromInt(retained, "Finished", "EndCycleExclusive", cycle);
+        BankValueSetFromFlag(retained, "Finished", "Done", true);
+        BankSave(retained);
+        BankSave(OPP_MA_Main);
+    }
+    OPP_MA_Cleanup();
+    OPP_MA_Bank = OPP_MA_Main;
+    OPP_MA_Events = mainEvents;
+    OPP_MA_Case = "RetentionHeld";
+    OPP_MA_Ability = "UpgradeToLair";
+    OPP_MA_Target = "Lair";
+    OPP_MA_Subject = held;
+    OPP_MA_Executes = BankValueGetAsInt(OPP_MA_Main, "RetentionHeld", "ObservedStartedExecutes");
+    OPP_MA_Cancels = 0;
+    OPP_MA_Completes = 0;
+    OPP_MA_Orders = 0;
+    OPP_MA_Track = true;
+    BankValueSetFromFlag(OPP_MA_Bank, OPP_MA_Case, "StillAlive", UnitIsAlive(held));
+    BankValueSetFromFlag(OPP_MA_Bank, OPP_MA_Case, "StillExecuting", UnitCheckAbilCmdState(held, AbilityCommand("UpgradeToLair", c_abilMorphCmdExecute), c_cmdStateExecuting));
+    OPP_MH_State(OPP_MA_Bank, "RetentionHeld/BeforeCancelState", held, "UpgradeToLair");
+    BankValueSetFromInt(OPP_MA_Bank, OPP_MA_Case, "Cycles", 129);
+    OPP_MorphFixture_ClearUI();
+    OPP_MorphFixture_Snapshot(OPP_MA_Bank, "RetentionHeld/Before", "Lair");
+    BankValueSetFromFlag(OPP_MA_Bank, OPP_MA_Case, "CancelAccepted", UnitIssueOrder(held, Order(AbilityCommand("UpgradeToLair", c_abilMorphCmdCancel)), c_orderQueueReplace));
+    Wait(0.1875, c_timeGame);
+    OPP_MH_State(OPP_MA_Bank, "RetentionHeld/AfterCancelState", held, "UpgradeToLair");
+    OPP_MA_SaveCase(true);
+    OPP_MH_CloseTrace();
+    OPP_MA_Track = false;
+    UnitRemove(held);
+}
+
+bool OPP_Test_Run (bool testConds, bool runActions) {
+    trigger event;
+    bank chunkBank;
+    unit repeated;
+    unit subject;
+    int link;
+    int chunk;
+    int mainEvents;
+    int index;
+    string label;
+    string chunkName;
+    if (!runActions) { return true; }
+    OPP_MA_ExpectedInit();
+    OPP_MA_Main = BankLoad("OPPBuildingCancelTest", 1);
+    OPP_MA_Bank = OPP_MA_Main;
+    BankValueSetFromString(OPP_MA_Main, "Probe", "Fixture", "morph-acceptance");
+    BankValueSetFromString(OPP_MA_Main, "Probe", "MatrixSHA256", OPP_MA_MatrixHash);
+    BankValueSetFromString(OPP_MA_Main, "Probe", "IconsSHA256", OPP_MA_IconsHash);
+    BankValueSetFromString(OPP_MA_Main, "Probe", "Limitation", "Local Test Document UI; observer/referee multi-client and replay require separate evidence. Synthetic boundary probes are separate from real cancellations.");
+    event = TriggerCreate("OPP_MA_AbilityEvent");
+    TriggerAddEventUnitAbility(event, null, null, c_unitAbilStageAll, false);
+    event = TriggerCreate("OPP_MA_OrderEvent");
+    TriggerAddEventUnitOrder(event, null, null);
+    event = TriggerCreate("OPP_MA_CreatedEvent");
+    TriggerAddEventUnitCreated(event, null, null, null);
+    UnitCreate(1, "CommandCenter", 0, 1, Point(25.0, 25.0), 270.0);
+    UnitCreate(1, "Nexus", 0, 2, Point(105.0, 105.0), 270.0);
+    UnitCreate(1, "Pylon", 0, 1, Point(65.0, 61.0), 270.0);
+    OPP_MA_PowerUnits[0] = UnitLastCreated();
+    UnitSetState(OPP_MA_PowerUnits[0], c_unitStateInvulnerable, true);
+    UnitCreate(1, "Pylon", 0, 2, Point(65.0, 59.0), 270.0);
+    OPP_MA_PowerUnits[1] = UnitLastCreated();
+    UnitSetState(OPP_MA_PowerUnits[1], c_unitStateInvulnerable, true);
+    TechTreeRequirementsEnable(1, false);
+    TechTreeRestrictionsEnable(1, false);
+    TechTreeRequirementsEnable(2, false);
+    TechTreeRestrictionsEnable(2, false);
+    TechTreeUpgradeAddLevel(1, "WarpGateResearch", 1);
+    Wait(8.0, c_timeGame);
+    // First completed positive has a reusable focused validator for break checks.
+    OPP_MA_Run("FirstLair", "Hatchery", "UpgradeToLair", "Lair", 1, null, 1, true, false);
+    mainEvents = OPP_MA_Events;
+    for (chunk = 0; chunk < 16; chunk += 1) {
+        chunkName = "OPPBuildingCancelTest" + "Matrix" + IntToString(chunk);
+        chunkBank = BankLoad(chunkName, 1);
+        OPP_MA_Bank = chunkBank;
+        OPP_MA_Events = 0;
+        BankValueSetFromString(chunkBank, "Probe", "Fixture", "morph-matrix-chunk");
+        BankValueSetFromString(chunkBank, "Probe", "MatrixSHA256", OPP_MA_MatrixHash);
+        BankValueSetFromString(chunkBank, "Probe", "IconsSHA256", OPP_MA_IconsHash);
+        BankValueSetFromInt(chunkBank, "Probe", "Chunk", chunk);
+        for (link = chunk * 20; link < (chunk + 1) * 20 && link < 301; link += 1) {
+            label = "Link" + IntToString(link);
+            if (link == 167) {
+                OPP_MA_IsolateScenery = true;
+                OPP_MA_PowerSnapshot("SceneryIsolation/Before");
+            }
+            if (OPP_MA_Classification[link] == "catalog-only-no-player-morph-command" || OPP_MA_ExecutionPolicy[link] == "reuse-isolated-noncancellable-proof") {
+                OPP_MA_Metadata(label, OPP_MA_Source[link], OPP_MA_AbilityId[link], OPP_MA_FinalTarget[link], 1);
+                BankValueSetFromString(chunkBank, label, "Evidence", "baseline-metadata-no-player-command");
+                if (OPP_MA_ExecutionPolicy[link] == "reuse-isolated-noncancellable-proof") { BankValueSetFromString(chunkBank, label, "Evidence", "baseline-isolated-noncancellable-proof"); }
+                BankValueSetFromString(chunkBank, label, "SourceRace", CatalogFieldValueGet(c_gameCatalogUnit, OPP_MA_Source[link], "Race", 1));
+                BankValueSetFromFlag(chunkBank, label, "NotRecreated", true);
+                BankValueSetFromFlag(chunkBank, label, "Saved", true);
+            }
+            else { OPP_MA_Run(label, OPP_MA_Source[link], OPP_MA_AbilityId[link], OPP_MA_FinalTarget[link], 1, null, 1, true, false); }
+            BankValueSetFromString(chunkBank, label, "BaselineClassification", OPP_MA_Classification[link]);
+            BankSave(chunkBank);
+            if (link == 180) {
+                OPP_MA_IsolateScenery = false;
+                OPP_MA_PowerSnapshot("SceneryIsolation/After");
+            }
+            // A readable replay gallery for every real positive matrix entry.
+            // Rapid same-tag/autocast cases below retain their original timing.
+            if (OPP_MA_Classification[link] == "cancellable" || OPP_MA_Classification[link] == "cancellable-supplemented-engine-trace") { Wait(2.0, c_timeGame); }
+        }
+        BankValueSetFromInt(chunkBank, "Finished", "StartLink", chunk * 20);
+        BankValueSetFromInt(chunkBank, "Finished", "EndLinkExclusive", link);
+        BankValueSetFromInt(chunkBank, "Finished", "Events", OPP_MA_Events);
+        BankValueSetFromFlag(chunkBank, "Finished", "Done", true);
+        BankSave(chunkBank);
+        BankValueSetFromString(OPP_MA_Main, "Matrix", "Chunk" + IntToString(chunk), chunkName);
+        BankSave(OPP_MA_Main);
+    }
+    OPP_MA_PowerSnapshot("SceneryIsolation/AfterMatrix");
+    OPP_MA_Bank = OPP_MA_Main;
+    OPP_MA_Events = mainEvents;
+    // Nine original Zerg morphs, PF/Orbital and all three Gateway abilities:
+    // repeat each real cancellation on the very same tag, without a quiet gap.
+    for (index = 0; index < 14; index += 1) {
+        link = OPP_MA_RepeatLinks[index];
+        label = "Repeat" + IntToString(index);
+        repeated = OPP_MA_Run(label + "A", OPP_MA_Source[link], OPP_MA_AbilityId[link], OPP_MA_FinalTarget[link], 1, null, 1, true, true);
+        OPP_MA_Run(label + "B", OPP_MA_Source[link], OPP_MA_AbilityId[link], OPP_MA_FinalTarget[link], 1, repeated, 1, true, false);
+    }
+    OPP_MA_Run("AutocastRestart", "Gateway", "MorphBuildingGatewayWarpGateFree", "WarpGate", 1, null, 8, true, false);
+    OPP_MA_Negatives();
+    OPP_MA_Parallel();
+    OPP_MA_Retention();
+    OPP_MA_FullQueue = true;
+    OPP_MA_Run("FullQueue", "Hatchery", "UpgradeToLair", "Lair", 1, null, 1, true, false);
+    OPP_MorphFixture_DrainBlockers("Lair");
+    OPP_MorphFixture_Snapshot(OPP_MA_Bank, "FullQueue/Drained", "Lair");
+    OPP_MA_FullQueue = false;
+    // Both signal orders and a restarted generation interposed between them.
+    for (index = 0; index < 4; index += 1) {
+        label = "Boundary" + IntToString(index);
+        OPP_MorphFixture_ClearUI();
+        OPP_MA_Metadata(label, "Hatchery", "UpgradeToLair", "Lair", 1);
+        BankValueSetFromString(OPP_MA_Bank, label, "Evidence", "synthetic-component-boundary");
+        UnitCreate(1, "Hatchery", c_unitCreateIgnorePlacement, 1, Point(65.0, 65.0), 270.0);
+        subject = UnitLastCreated();
+        OPP_MorphFixture_Snapshot(OPP_MA_Bank, label + "/Before", "Lair");
+        OPP_MorphFixture_Boundary(subject, "UpgradeToLair", index % 2 == 0, index >= 2);
+        OPP_MorphFixture_Snapshot(OPP_MA_Bank, label + "/After", "Lair");
+        BankValueSetFromFlag(OPP_MA_Bank, label, "Saved", true);
+        UnitRemove(subject);
+    }
+    BankValueSetFromInt(OPP_MA_Main, "Finished", "Events", OPP_MA_Events);
+    BankValueSetFromInt(OPP_MA_Main, "Finished", "MatrixLinks", 301);
+    BankValueSetFromInt(OPP_MA_Main, "Finished", "Chunks", 16);
+    BankValueSetFromFlag(OPP_MA_Main, "Finished", "Done", true);
+    BankSave(OPP_MA_Main);
+    Wait(2.0, c_timeGame);
+    GameOver(1, c_gameOverDefeat, true, false);
+    return true;
+}

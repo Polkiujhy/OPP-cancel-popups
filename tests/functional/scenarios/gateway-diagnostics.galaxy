@@ -1,0 +1,37 @@
+// Shared diagnostic helpers are embedded by stage_popup_test.py.
+bool OPP_Test_Run (bool testConds, bool runActions) {
+    trigger probe;
+    if (!runActions) { return true; }
+    OPP_Test_Bank = BankLoad("OPPBuildingCancelTest", 1);
+    probe = TriggerCreate("OPP_Test_Order");
+    TriggerAddEventUnitOrder(probe, null, null);
+    probe = TriggerCreate("OPP_Test_Ability");
+    TriggerAddEventUnitAbility(probe, null, null, c_unitAbilStageAll, false);
+    probe = TriggerCreate("OPP_Test_Created");
+    TriggerAddEventUnitCreated(probe, null, null, null);
+    probe = TriggerCreate("OPP_Test_Died");
+    TriggerAddEventUnitDied(probe, null);
+    PlayerSetRace(1, "Prot");
+    UnitCreate(1, "Nexus", 0, 1, Point(25.0, 25.0), 270.0);
+    UnitCreate(1, "Nexus", 0, 2, Point(105.0, 105.0), 270.0);
+    UnitCreate(1, "Pylon", 0, 1, Point(35.0, 61.0), 270.0);
+    UnitCreate(1, "CyberneticsCore", 0, 1, Point(45.0, 55.0), 270.0);
+    PlayerModifyPropertyInt(1, c_playerPropMinerals, c_playerPropOperSetTo, 5000);
+    PlayerModifyPropertyInt(1, c_playerPropVespene, c_playerPropOperSetTo, 5000);
+    TechTreeUpgradeAddLevel(1, "WarpGateResearch", 1);
+    Wait(8.0, c_timeGame);
+    OPP_Test_Morph("ToWarpGateFree", "Gateway", "MorphBuildingGatewayWarpGateFree", true);
+    OPP_Test_Morph("ToWarpGatePaid", "Gateway", "UpgradeToWarpGate", false);
+    OPP_Test_Morph("ToGatewayNormal", "WarpGate", "MorphBackToGateway", true);
+    TechTreeRequirementsEnable(1, false);
+    TechTreeRestrictionsEnable(1, false);
+    OPP_Test_Morph("ToWarpGateFreeBypass", "Gateway", "MorphBuildingGatewayWarpGateFree", false);
+    OPP_Test_Morph("ToGatewayBypass", "WarpGate", "MorphBackToGateway", false);
+    OPP_Test_Case = "Finished";
+    OPP_Test_Snapshot("Final");
+    BankValueSetFromFlag(OPP_Test_Bank, "Finished", "Done", true);
+    BankSave(OPP_Test_Bank);
+    Wait(2.0, c_timeGame);
+    GameOver(1, c_gameOverDefeat, true, false);
+    return true;
+}

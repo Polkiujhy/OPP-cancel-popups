@@ -1,0 +1,124 @@
+// Fresh-map, single-link follow-up; no preceding scenery or collapse effects.
+bool OPP_Test_Run (bool testConds, bool runActions) {
+    trigger probe;
+    string source;
+    string ability;
+    string section;
+    string cardSection;
+    string buttonSection;
+    string path;
+    int abilityClass;
+    int i;
+    int j;
+    int card;
+    int button;
+    int cards;
+    int buttons;
+    int count;
+    int units;
+    if (!runActions) { return true; }
+    OPP_Scope_Bank = BankLoad("OPPBuildingCancelTest", 1);
+    BankValueSetFromString(OPP_Scope_Bank, "Probe", "Fixture", "morph-scope-isolated");
+    BankValueSetFromString(OPP_Scope_Bank, "Probe", "Limitation", "Fresh map isolates Link181 from prior scenery creation and delayed collapse effects.");
+    BankValueSetFromInt(OPP_Scope_Bank, "Probe", "IsolatedLink", 181);
+    probe = TriggerCreate("OPP_Scope_Order");
+    TriggerAddEventUnitOrder(probe, null, null);
+    probe = TriggerCreate("OPP_Scope_AbilityEvent");
+    TriggerAddEventUnitAbility(probe, null, null, c_unitAbilStageAll, false);
+    probe = TriggerCreate("OPP_Scope_Created");
+    TriggerAddEventUnitCreated(probe, null, null, null);
+    probe = TriggerCreate("OPP_Scope_Died");
+    TriggerAddEventUnitDied(probe, null);
+    UnitCreate(1, "CommandCenter", 0, 1, Point(25.0, 25.0), 270.0);
+    UnitCreate(1, "Nexus", 0, 2, Point(105.0, 105.0), 270.0);
+    UnitCreate(1, "Pylon", 0, 1, Point(65.0, 61.0), 270.0);
+    OPP_Scope_PowerUnit = UnitLastCreated();
+    UnitSetState(OPP_Scope_PowerUnit, c_unitStateInvulnerable, true);
+    TechTreeRequirementsEnable(1, false);
+    TechTreeRestrictionsEnable(1, false);
+    Wait(8.0, c_timeGame);
+    units = CatalogEntryCount(c_gameCatalogUnit);
+    for (i = 1; i <= units; i += 1) {
+        if (i % 64 == 0) { Wait(0.0625, c_timeGame); }
+        source = CatalogEntryGet(c_gameCatalogUnit, i);
+        if (!CatalogEntryIsValid(c_gameCatalogUnit, source) || CatalogEntryIsDefault(c_gameCatalogUnit, source)) { continue; }
+        count = CatalogFieldValueCount(c_gameCatalogUnit, source, "AbilArray", 1);
+        for (j = 0; j < count; j += 1) {
+            ability = CatalogFieldValueGet(c_gameCatalogUnit, source, "AbilArray[" + IntToString(j) + "].Link", 1);
+            if (ability == "" || !CatalogEntryIsValid(c_gameCatalogAbil, ability)) { continue; }
+            abilityClass = AbilityClass(ability);
+            if (abilityClass != c_classIdCAbilMorph && abilityClass != c_classIdCAbilMorphPlacement) { continue; }
+            if (OPP_Scope_Index == 181) {
+                section = "Link" + IntToString(OPP_Scope_Index);
+                BankValueSetFromString(OPP_Scope_Bank, section, "Source", source);
+                BankValueSetFromString(OPP_Scope_Bank, section, "Ability", ability);
+                BankValueSetFromInt(OPP_Scope_Bank, section, "Class", abilityClass);
+                BankValueSetFromInt(OPP_Scope_Bank, section, "UnitCatalogIndex", i);
+                BankValueSetFromInt(OPP_Scope_Bank, section, "AbilArrayIndex", j);
+                BankValueSetFromString(OPP_Scope_Bank, section, "SourceRace", CatalogFieldValueGet(c_gameCatalogUnit, source, "Race", 1));
+                BankValueSetFromString(OPP_Scope_Bank, section, "SourceCategories", CatalogFieldValueGet(c_gameCatalogUnit, source, "EditorCategories", 1));
+                BankValueSetFromString(OPP_Scope_Bank, section, "Uncommandable", CatalogFieldValueGet(c_gameCatalogUnit, source, "FlagArray[Uncommandable]", 1));
+                BankValueSetFromString(OPP_Scope_Bank, section, "Unselectable", CatalogFieldValueGet(c_gameCatalogUnit, source, "FlagArray[Unselectable]", 1));
+                BankValueSetFromString(OPP_Scope_Bank, section, "Untargetable", CatalogFieldValueGet(c_gameCatalogUnit, source, "FlagArray[Untargetable]", 1));
+                BankValueSetFromString(OPP_Scope_Bank, section, "Destructible", CatalogFieldValueGet(c_gameCatalogUnit, source, "FlagArray[Destructible]", 1));
+                BankValueSetFromString(OPP_Scope_Bank, section, "Automatic", CatalogFieldValueGet(c_gameCatalogAbil, ability, "Flags[Automatic]", 1));
+                BankValueSetFromString(OPP_Scope_Bank, section, "DisableAbils", CatalogFieldValueGet(c_gameCatalogAbil, ability, "Flags[DisableAbils]", 1));
+                BankValueSetFromString(OPP_Scope_Bank, section, "Transient", CatalogFieldValueGet(c_gameCatalogAbil, ability, "Flags[Transient]", 1));
+                BankValueSetFromString(OPP_Scope_Bank, section, "ShowProgress", CatalogFieldValueGet(c_gameCatalogAbil, ability, "Flags[ShowProgress]", 1));
+                BankValueSetFromString(OPP_Scope_Bank, section, "Interruptible", CatalogFieldValueGet(c_gameCatalogAbil, ability, "Flags[Interruptible]", 1));
+                BankValueSetFromString(OPP_Scope_Bank, section, "CancelFace", CatalogFieldValueGet(c_gameCatalogAbil, ability, "CmdButtonArray[Cancel].DefaultButtonFace", 1));
+                BankValueSetFromString(OPP_Scope_Bank, section, "ExecuteRequirements", CatalogFieldValueGet(c_gameCatalogAbil, ability, "CmdButtonArray[Execute].Requirements", 1));
+                cards = CatalogFieldValueCount(c_gameCatalogUnit, source, "CardLayouts", 1);
+                BankValueSetFromInt(OPP_Scope_Bank, section, "CardCount", cards);
+                for (card = 0; card < cards; card += 1) {
+                    cardSection = section + "/Card" + IntToString(card);
+                    path = "CardLayouts[" + IntToString(card) + "].LayoutButtons";
+                    buttons = CatalogFieldValueCount(c_gameCatalogUnit, source, path, 1);
+                    BankValueSetFromInt(OPP_Scope_Bank, cardSection, "ButtonCount", buttons);
+                    for (button = 0; button < buttons; button += 1) {
+                        buttonSection = cardSection + "/Button" + IntToString(button);
+                        BankValueSetFromString(OPP_Scope_Bank, buttonSection, "Type", CatalogFieldValueGet(c_gameCatalogUnit, source, path + "[" + IntToString(button) + "].Type", 1));
+                        BankValueSetFromString(OPP_Scope_Bank, buttonSection, "AbilCmd", CatalogFieldValueGet(c_gameCatalogUnit, source, path + "[" + IntToString(button) + "].AbilCmd", 1));
+                    }
+                }
+                BankValueSetFromFlag(OPP_Scope_Bank, section, "MetadataSaved", true);
+                BankValueSetFromString(OPP_Scope_Bank, section, "ExecutionMode", "actual-isolated-attempt");
+                OPP_Scope_Attempt(OPP_Scope_Index, source, ability, false);
+                BankSave(OPP_Scope_Bank);
+            }
+            OPP_Scope_Index += 1;
+        }
+    }
+    // Independent earliest-Execute checks; the separate bank retains complete controls.
+    OPP_Window_Bank = BankLoad("OPPBuildingCancelTest" + "Window", 1);
+    BankValueSetFromString(OPP_Window_Bank, "Probe", "Fixture", "morph-cancel-window");
+    probe = TriggerCreate("OPP_Window_AbilityEvent");
+    TriggerAddEventUnitAbility(probe, null, null, c_unitAbilStageAll, false);
+    probe = TriggerCreate("OPP_Window_OrderEvent");
+    TriggerAddEventUnitOrder(probe, null, null);
+    probe = TriggerCreate("OPP_Window_CreatedEvent");
+    TriggerAddEventUnitCreated(probe, null, null, null);
+    probe = TriggerCreate("OPP_Window_DiedEvent");
+    TriggerAddEventUnitDied(probe, null);
+    PlayerModifyPropertyInt(1, c_playerPropMinerals, c_playerPropOperSetTo, 100000);
+    PlayerModifyPropertyInt(1, c_playerPropVespene, c_playerPropOperSetTo, 100000);
+    PlayerModifyPropertyInt(1, c_playerPropSuppliesMade, c_playerPropOperSetTo, 200);
+    OPP_Window_Attempt("PositiveLair", "Hatchery", "UpgradeToLair", true);
+    OPP_Window_Attempt("PositiveRavager", "Roach", "MorphToRavager", true);
+    OPP_Window_Attempt("RoachBurrowDown", "Roach", "BurrowRoachDown", true);
+    OPP_Window_Attempt("InfestorBurrowDown", "Infestor", "BurrowInfestorDown", true);
+    OPP_Window_Attempt("RoachBurrowUp", "RoachBurrowed", "BurrowRoachUp", true);
+    OPP_Window_Attempt("NaturalComplete", "Thor", "ThorAPMode", false);
+    BankValueSetFromInt(OPP_Window_Bank, "Finished", "Events", OPP_Window_Sequence);
+    BankValueSetFromFixed(OPP_Window_Bank, "Finished", "Time", GameGetMissionTime());
+    BankValueSetFromFlag(OPP_Window_Bank, "Finished", "Done", true);
+    BankSave(OPP_Window_Bank);
+    BankValueSetFromInt(OPP_Scope_Bank, "Finished", "Links", OPP_Scope_Index);
+    BankValueSetFromInt(OPP_Scope_Bank, "Finished", "IsolatedLinks", 1);
+    BankValueSetFromInt(OPP_Scope_Bank, "Finished", "Events", OPP_Scope_Events);
+    BankValueSetFromFlag(OPP_Scope_Bank, "Finished", "Done", true);
+    BankSave(OPP_Scope_Bank);
+    Wait(2.0, c_timeGame);
+    GameOver(1, c_gameOverDefeat, true, false);
+    return true;
+}

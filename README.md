@@ -132,3 +132,17 @@ oraz końcowy odbiór wizualny użytkownika pozostają otwarte dla tego pakietu.
 W części scen Default występowały ostrzeżenia fontów/layoutów i aktora Zealot;
 nie były to ScriptErrors. Własna integracja do innego moda wymaga własnego odbioru.
 Stockowa możliwość ręcznego anulowania warp-inu pozostaje bez zmian.
+
+## Testy i praca nad kodem
+
+Zestawy są rozdzielone na [unit — samodzielne](tests/unit/README.md)
+i [functional — z zależnościami](tests/functional/README.md).
+
+```bash
+python3 -m unittest discover -s tests/unit -v
+```
+
+Unit wymaga tylko Pythona 3.12+ i działa w GitHub Actions. Functional obejmuje
+rzeczywistą transformację Obs++/MPQ oraz osobne scenariusze w SC2 z walidatorami
+banków. [Instrukcja testów](tests/README.md) rozróżnia ich zakres i wymagania.
+Zielony CI nie zastępuje kompilacji Galaxy, Test Document, replaya ani testu ról.

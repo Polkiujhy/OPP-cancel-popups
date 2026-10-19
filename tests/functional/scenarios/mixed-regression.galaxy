@@ -1,0 +1,459 @@
+// Real cross-adapter regression. Private probes never inject cancellation signals.
+include "LibC0DEC0DE_h"
+include "LibGHLo_h"
+void OPP_MixedFixture_Snapshot (bank output, string section, unit facility);
+bank OPP_MX_Bank;
+int OPP_MX_Events = 0;
+string OPP_MX_Phase = "Setup";
+unit OPP_MX_LastConstruction;
+unit[12] OPP_MX_Warps;
+point[12] OPP_MX_WarpPoints;
+int[12] OPP_MX_WarpTags;
+int[12] OPP_MX_WarpOwners;
+string[12] OPP_MX_WarpTypes;
+int OPP_MX_WarpCount = 0;
+unit OPP_MX_Research;
+bool OPP_MX_Supplement = false;
+bool OPP_MX_Tracking = true;
+string OPP_MX_Case = "";
+int OPP_MX_CaseStart = 0;
+unit OPP_MX_A;
+unit OPP_MX_B;
+unit OPP_MX_Pylon;
+unit[3] OPP_MX_Killers;
+string[3] OPP_MX_DamageEffects;
+
+void OPP_MX_Event (string label, unit source, unit child, string ability, int command, string objectType, int stage) {
+    string section;
+    if (!OPP_MX_Tracking) { return; }
+    OPP_MX_Events += 1;
+    section = "Event" + IntToString(OPP_MX_Events);
+    BankValueSetFromString(OPP_MX_Bank, section, "Phase", OPP_MX_Phase);
+    BankValueSetFromFlag(OPP_MX_Bank, section, "Supplement", OPP_MX_Supplement);
+    BankValueSetFromString(OPP_MX_Bank, section, "Case", OPP_MX_Case);
+    BankValueSetFromString(OPP_MX_Bank, section, "Label", label);
+    BankValueSetFromFixed(OPP_MX_Bank, section, "Time", GameGetMissionTime());
+    BankValueSetFromInt(OPP_MX_Bank, section, "Tag", UnitGetTag(source));
+    BankValueSetFromInt(OPP_MX_Bank, section, "Owner", UnitGetOwner(source));
+    BankValueSetFromFlag(OPP_MX_Bank, section, "Alive", source != null && UnitIsAlive(source));
+    BankValueSetFromInt(OPP_MX_Bank, section, "ChildTag", UnitGetTag(child));
+    BankValueSetFromInt(OPP_MX_Bank, section, "ChildOwner", UnitGetOwner(child));
+    BankValueSetFromFlag(OPP_MX_Bank, section, "ChildAlive", child != null && UnitIsAlive(child));
+    BankValueSetFromFlag(OPP_MX_Bank, section, "ChildConstructing", child != null && UnitTestState(child, c_unitStateUnderConstruction));
+    BankValueSetFromString(OPP_MX_Bank, section, "Object", objectType);
+    BankValueSetFromString(OPP_MX_Bank, section, "Ability", ability);
+    BankValueSetFromInt(OPP_MX_Bank, section, "Command", command);
+    BankValueSetFromInt(OPP_MX_Bank, section, "Stage", stage);
+}
+bool OPP_MX_Order (bool testConds, bool runActions) {
+    abilcmd command;
+    if (!runActions) { return true; }
+    command = OrderGetAbilityCommand(EventUnitOrder());
+    OPP_MX_Event("Order", EventUnit(), null, AbilityCommandGetAbility(command), AbilityCommandGetCommand(command), "", 0);
+    return true;
+}
+bool OPP_MX_Ability (bool testConds, bool runActions) {
+    abilcmd command;
+    string ability;
+    if (!runActions) { return true; }
+    command = EventUnitAbility(); ability = AbilityCommandGetAbility(command);
+    if (ability == "UpgradeToLair" || ability == "TransportMode") {
+        OPP_MX_Event("Ability", EventUnit(), null, ability, AbilityCommandGetCommand(command), "", EventUnitAbilityStage());
+    }
+    return true;
+}
+bool OPP_MX_Created (bool testConds, bool runActions) {
+    unit child;
+    string ability;
+    if (!runActions) { return true; }
+    child = EventUnitCreatedUnit(); ability = EventUnitCreatedAbil();
+    if (ability == "WarpGateTrain") {
+        if (OPP_MX_WarpCount >= 12) { BankValueSetFromFlag(OPP_MX_Bank, "Finished", "Overflow", true); return true; }
+        OPP_MX_Warps[OPP_MX_WarpCount] = child;
+        OPP_MX_WarpPoints[OPP_MX_WarpCount] = UnitGetPosition(child);
+        OPP_MX_WarpTags[OPP_MX_WarpCount] = UnitGetTag(child);
+        OPP_MX_WarpOwners[OPP_MX_WarpCount] = UnitGetOwner(child);
+        OPP_MX_WarpTypes[OPP_MX_WarpCount] = UnitGetType(child);
+        OPP_MX_WarpCount += 1;
+        OPP_MX_Event("WarpCreated", EventUnit(), child, ability, 0, UnitGetType(child), 0);
+    }
+    if (UnitGetType(child) == "BarracksTechLab" || UnitGetType(child) == "FactoryReactor") {
+        OPP_MX_Event("AddonCreated", EventUnit(), child, ability, 0, UnitGetType(child), 0);
+    }
+    return true;
+}
+bool OPP_MX_ConstructStart (bool testConds, bool runActions) {
+    if (!runActions) { return true; }
+    OPP_MX_LastConstruction = EventUnitProgressUnit();
+    OPP_MX_Event("ConstructStart", EventUnit(), EventUnitProgressUnit(), "", 0, EventUnitProgressObjectType(), 0);
+    return true;
+}
+bool OPP_MX_ConstructCancel (bool testConds, bool runActions) {
+    if (runActions) { OPP_MX_Event("ConstructCancel", EventUnit(), EventUnitProgressUnit(), "", 0, EventUnitProgressObjectType(), 0); }
+    return true;
+}
+bool OPP_MX_TrainStart (bool testConds, bool runActions) {
+    if (runActions) { OPP_MX_Event("TrainStart", EventUnit(), EventUnitProgressUnit(), "", 0, EventUnitProgressObjectType(), 0); }
+    return true;
+}
+bool OPP_MX_TrainCancel (bool testConds, bool runActions) {
+    if (runActions) { OPP_MX_Event("TrainCancel", EventUnit(), EventUnitProgressUnit(), "", 0, EventUnitProgressObjectType(), 0); }
+    return true;
+}
+bool OPP_MX_ResearchCancel (bool testConds, bool runActions) {
+    if (runActions) { OPP_MX_Event("ResearchCancel", EventUnit(), null, "", 0, EventUnitProgressObjectType(), 0); }
+    return true;
+}
+bool OPP_MX_Died (bool testConds, bool runActions) {
+    string section;
+    if (runActions && OPP_MX_Tracking && (OPP_MX_Phase == "Denied" || OPP_MX_Supplement)) {
+        OPP_MX_Event("Died", EventUnit(), null, "", 0, UnitGetType(EventUnit()), 0);
+        section = "Event" + IntToString(OPP_MX_Events);
+        BankValueSetFromInt(OPP_MX_Bank, section, "KillingPlayer", EventUnitDamageSourcePlayer());
+        BankValueSetFromInt(OPP_MX_Bank, section, "KillingTag", 0);
+        if (EventUnitDamageSourceUnit() != null) { BankValueSetFromInt(OPP_MX_Bank, section, "KillingTag", UnitGetTag(EventUnitDamageSourceUnit())); }
+        BankValueSetFromFlag(OPP_MX_Bank, section, "Removed", EventUnitDamageDeathCheck(c_deathTypeRemove));
+    }
+    return true;
+}
+void OPP_MX_Snap (string label) { OPP_MixedFixture_Snapshot(OPP_MX_Bank, label, OPP_MX_Research); }
+void OPP_MX_Until (fixed time) {
+    while (GameGetMissionTime() < time) { Wait(0.0625, c_timeGame); }
+}
+void OPP_MX_OrderUnit (unit source, string ability, int command, int queue, string key) {
+    BankValueSetFromFlag(OPP_MX_Bank, "Orders", key, UnitIssueOrder(source, Order(AbilityCommand(ability, command)), queue));
+}
+void OPP_MX_Queue (unit facility, string label) {
+    int slot;
+    int count;
+    BankValueSetFromInt(OPP_MX_Bank, label, "Tag", UnitGetTag(facility));
+    BankValueSetFromFlag(OPP_MX_Bank, label, "Alive", UnitIsAlive(facility));
+    for (slot = 1; slot <= 5; slot += 1) {
+        count = UnitQueueItemCount(facility, slot);
+        BankValueSetFromInt(OPP_MX_Bank, label, "Slot" + IntToString(slot) + "Count", count);
+        if (count > 0) { BankValueSetFromString(OPP_MX_Bank, label, "Slot" + IntToString(slot), UnitQueueItemGet(facility, slot, 1)); }
+    }
+    BankSave(OPP_MX_Bank);
+}
+unit OPP_MX_Build (string workerType, string ability, int command, int owner, point destination, string label) {
+    unit worker;
+    unit child;
+    int poll;
+    UnitCreate(1, workerType, 0, owner, PointWithOffset(destination, -2.0, -2.0), 270.0); worker = UnitLastCreated();
+    OPP_MX_LastConstruction = null;
+    BankValueSetFromFlag(OPP_MX_Bank, "Orders", label, UnitIssueOrder(worker, OrderTargetingPoint(AbilityCommand(ability, command), destination), c_orderQueueReplace));
+    poll = 0;
+    while (OPP_MX_LastConstruction == null && poll < 32) { Wait(0.125, c_timeGame); poll += 1; }
+    child = OPP_MX_LastConstruction;
+    BankValueSetFromInt(OPP_MX_Bank, "Sources", label + "Tag", UnitGetTag(child));
+    BankValueSetFromString(OPP_MX_Bank, "Sources", label + "Type", UnitGetType(child));
+    BankValueSetFromFlag(OPP_MX_Bank, "Sources", label + "Constructing", child != null && UnitTestState(child, c_unitStateUnderConstruction));
+    return child;
+}
+void OPP_MX_Expected (string objectType, int kind, int owner) {
+    if (kind == 1) {
+        // Own queued-research cancellations use the native upgrade catalog,
+        // whose full name differs from GameHeart's abbreviated running label.
+        BankValueSetFromText(OPP_MX_Bank, "Expected", objectType + "Name", StringExternal(CatalogFieldValueGet(c_gameCatalogUpgrade, objectType, "Name", owner)));
+        BankValueSetFromString(OPP_MX_Bank, "Expected", objectType + "Icon", CatalogFieldValueGet(c_gameCatalogUpgrade, objectType, "Icon", owner));
+    }
+    else {
+        BankValueSetFromText(OPP_MX_Bank, "Expected", objectType + "Name", UnitTypeGetName(objectType));
+        BankValueSetFromString(OPP_MX_Bank, "Expected", objectType + "Icon", CatalogFieldValueGet(c_gameCatalogActor, objectType, "UnitIcon", owner));
+    }
+}
+
+void OPP_MX_ExpectedGHResearch (string objectType) {
+    // This separate oracle is only for GameHeart's running/Denied control.
+    BankValueSetFromText(OPP_MX_Bank, "Expected", objectType + "Name", libGHLo_gf_UpgradeNotificationsUpgradeName(objectType));
+    BankValueSetFromString(OPP_MX_Bank, "Expected", objectType + "Icon", libGHLo_gf_UpgradeNotificationsUpgradeImage(objectType));
+}
+
+void OPP_MX_Destroy (unit source, string key) {
+    int killer;
+    bool ready;
+    killer = 3 - UnitGetOwner(source);
+    ready = OPP_MX_Killers[killer] != null && UnitIsValid(OPP_MX_Killers[killer]) && UnitIsAlive(OPP_MX_Killers[killer]) && CatalogEntryIsValid(c_gameCatalogEffect, OPP_MX_DamageEffects[killer]);
+    BankValueSetFromFlag(OPP_MX_Bank, "Damage", key + "Ready", ready);
+    BankValueSetFromInt(OPP_MX_Bank, "Damage", key + "Tag", UnitGetTag(source));
+    BankValueSetFromInt(OPP_MX_Bank, "Damage", key + "Owner", UnitGetOwner(source));
+    BankValueSetFromInt(OPP_MX_Bank, "Damage", key + "KillingPlayer", killer);
+    BankValueSetFromInt(OPP_MX_Bank, "Damage", key + "KillingTag", UnitGetTag(OPP_MX_Killers[killer]));
+    BankValueSetFromString(OPP_MX_Bank, "Damage", key + "Effect", OPP_MX_DamageEffects[killer]);
+    BankValueSetFromFixed(OPP_MX_Bank, "Damage", key + "Time", GameGetMissionTime());
+    // Same verified credited-death pattern as prism-acceptance. No UnitKill or
+    // live UnitRemove: GameHeart's battle report must receive a real killer.
+    if (ready) { UnitDamage(OPP_MX_Killers[killer], OPP_MX_DamageEffects[killer], source, 100000.0); }
+}
+
+void OPP_MX_Provider (string section, string key, unit source) {
+    bool alive;
+    alive = source != null && UnitIsValid(source) && UnitIsAlive(source);
+    BankValueSetFromFlag(OPP_MX_Bank, section, key + "Alive", alive);
+    BankValueSetFromInt(OPP_MX_Bank, section, key + "Tag", UnitGetTag(source));
+    if (alive) {
+        BankValueSetFromInt(OPP_MX_Bank, section, key + "Owner", UnitGetOwner(source));
+        BankValueSetFromString(OPP_MX_Bank, section, key + "Type", UnitGetType(source));
+    }
+}
+
+bool OPP_MX_From (int index, unit source) {
+    if (source == null || !UnitIsValid(source) || !UnitIsAlive(source)) { return false; }
+    return PowerIsProvidedBy(OPP_MX_WarpOwners[index], OPP_MX_WarpPoints[index], "PowerSource", source, 1);
+}
+
+void OPP_MX_WarpSnapshot (string label) {
+    string section;
+    string key;
+    bool alive;
+    int i;
+    int index;
+    section = OPP_MX_Case + "/" + label;
+    OPP_MX_Snap(section);
+    BankValueSetFromInt(OPP_MX_Bank, section, "WarpCount", OPP_MX_WarpCount - OPP_MX_CaseStart);
+    OPP_MX_Provider(section, "A", OPP_MX_A);
+    OPP_MX_Provider(section, "B", OPP_MX_B);
+    OPP_MX_Provider(section, "Pylon", OPP_MX_Pylon);
+    for (i = OPP_MX_CaseStart; i < OPP_MX_WarpCount; i += 1) {
+        index = i - OPP_MX_CaseStart;
+        key = "Warp" + IntToString(index);
+        alive = UnitIsValid(OPP_MX_Warps[i]) && UnitIsAlive(OPP_MX_Warps[i]);
+        BankValueSetFromInt(OPP_MX_Bank, section, key + "Tag", OPP_MX_WarpTags[i]);
+        BankValueSetFromInt(OPP_MX_Bank, section, key + "Owner", OPP_MX_WarpOwners[i]);
+        BankValueSetFromString(OPP_MX_Bank, section, key + "Type", OPP_MX_WarpTypes[i]);
+        BankValueSetFromFlag(OPP_MX_Bank, section, key + "Alive", alive);
+        BankValueSetFromFlag(OPP_MX_Bank, section, key + "Constructing", alive && UnitTestState(OPP_MX_Warps[i], c_unitStateUnderConstruction));
+        BankValueSetFromFlag(OPP_MX_Bank, section, key + "FromA", OPP_MX_From(i, OPP_MX_A));
+        BankValueSetFromFlag(OPP_MX_Bank, section, key + "FromB", OPP_MX_From(i, OPP_MX_B));
+        BankValueSetFromFlag(OPP_MX_Bank, section, key + "FromPylon", OPP_MX_From(i, OPP_MX_Pylon));
+        BankValueSetFromInt(OPP_MX_Bank, section, key + "Power", PowerLevel(OPP_MX_WarpOwners[i], OPP_MX_WarpPoints[i], "PowerSource"));
+    }
+    BankSave(OPP_MX_Bank);
+}
+
+void OPP_MX_DeathCase (string label, int action, unit trainFacility) {
+    unit[3] gates;
+    int[3] commands;
+    point[3] positions;
+    int owner;
+    int count;
+    int i;
+    string trainAbility;
+    string queueAbility;
+    int trainCommand;
+    fixed anchor;
+    OPP_MX_Case = label;
+    OPP_MX_Phase = "SupplementSetup";
+    OPP_MX_CaseStart = OPP_MX_WarpCount;
+    OPP_MX_A = null; OPP_MX_B = null; OPP_MX_Pylon = null;
+    owner = 2; count = 2;
+    if (action == 1) { owner = 1; }
+    if (action == 2) { count = 3; }
+    // Fresh physical producers avoid cooldown reuse. IgnorePlacement is a
+    // fixture-only aid for footprints left by the base protocol; no cleanup
+    // removes a living unit, provider or foreign trigger.
+    for (i = 0; i < count; i += 1) {
+        UnitCreate(1, "WarpGate", c_unitCreateIgnorePlacement, owner, Point(83.0 + IntToFixed(i) * 3.0, 78.0), 270.0);
+        gates[i] = UnitLastCreated();
+    }
+    if (action == 1) {
+        UnitCreate(1, "Pylon", 0, owner, Point(76.0, 61.0), 270.0); OPP_MX_Pylon = UnitLastCreated();
+    }
+    else {
+        UnitCreate(1, "WarpPrismPhasing", 0, owner, Point(76.0, 57.0), 270.0); OPP_MX_A = UnitLastCreated();
+    }
+    if (action == 2) {
+        UnitCreate(1, "WarpPrismPhasing", 0, owner, Point(78.0, 57.0), 270.0); OPP_MX_B = UnitLastCreated();
+    }
+    commands[0] = c_abilWarpTrainCmdTrain1; commands[1] = c_abilWarpTrainCmdTrain1; commands[2] = c_abilWarpTrainCmdTrain6;
+    if (action == 1) { commands[0] = c_abilWarpTrainCmdTrain2; commands[1] = c_abilWarpTrainCmdTrain6; }
+    if (action == 2) { commands[1] = c_abilWarpTrainCmdTrain2; }
+    positions[0] = Point(75.0, 55.0); positions[1] = Point(77.0, 55.0); positions[2] = Point(76.0, 57.0);
+    trainAbility = "StargateTrain"; queueAbility = "que5"; trainCommand = c_abilTrainCmdTrain9;
+    if (action == 1) { trainAbility = "CommandCenterTrain"; queueAbility = "que5CancelToSelection"; trainCommand = c_abilTrainCmdTrain1; }
+    OPP_MX_WarpSnapshot("Initial");
+    OPP_MX_OrderUnit(trainFacility, trainAbility, trainCommand, c_orderQueueAddToEnd, label + "TrainStart");
+    Wait(0.125, c_timeGame);
+    for (i = 0; i < count; i += 1) {
+        BankValueSetFromFlag(OPP_MX_Bank, "Orders", label + "WarpStart" + IntToString(i), UnitIssueOrder(gates[i], OrderTargetingPoint(AbilityCommand("WarpGateTrain", commands[i]), positions[i]), c_orderQueueReplace));
+    }
+    Wait(0.25, c_timeGame); OPP_MX_Queue(trainFacility, label + "/TrainBefore"); OPP_MX_WarpSnapshot("Before");
+    OPP_MX_Phase = label;
+    anchor = GameGetMissionTime();
+    BankValueSetFromFixed(OPP_MX_Bank, label, "BurstTime", anchor);
+    OPP_MX_OrderUnit(trainFacility, queueAbility, c_abilQueueCmdCancelLast, c_orderQueueReplace, label + "TrainCancel");
+    Wait(0.125, c_timeGame); OPP_MX_WarpSnapshot("TrainShown");
+    if (action == 0) { OPP_MX_Destroy(OPP_MX_A, label + "KillA"); }
+    if (action == 1) { OPP_MX_Destroy(OPP_MX_Pylon, label + "KillPylon"); }
+    if (action == 2) {
+        OPP_MX_OrderUnit(OPP_MX_A, "TransportMode", c_abilMorphCmdExecute, c_orderQueueReplace, label + "CloseA");
+        Wait(0.125, c_timeGame); OPP_MX_WarpSnapshot("Kept");
+        OPP_MX_Destroy(OPP_MX_B, label + "KillB");
+    }
+    Wait(0.25, c_timeGame); OPP_MX_WarpSnapshot("After");
+    if (action == 2) {
+        OPP_MX_Destroy(OPP_MX_A, label + "KillClosedA");
+        Wait(0.125, c_timeGame); OPP_MX_WarpSnapshot("Dedup");
+    }
+    OPP_MX_Queue(trainFacility, label + "/TrainAfter");
+    OPP_MX_Until(anchor + 4.75); OPP_MX_WarpSnapshot("Near");
+    OPP_MX_Until(anchor + 5.5); OPP_MX_WarpSnapshot("Wave");
+    if (action == 2) {
+        OPP_MX_Until(anchor + 9.75); OPP_MX_WarpSnapshot("WaveNear");
+        OPP_MX_Until(anchor + 10.5);
+    }
+    OPP_MX_WarpSnapshot("Expired");
+}
+
+bool OPP_Test_Run (bool testConds, bool runActions) {
+    trigger probe;
+    unit stargate;
+    unit barracks;
+    unit factory;
+    unit center;
+    unit lair;
+    unit prism;
+    unit[3] gates;
+    unit[3] buildings;
+    int[3] warpCommands;
+    point[3] warpPoints;
+    int owner;
+    int i;
+    fixed anchor;
+    string weapon;
+    if (!runActions) { return true; }
+    OPP_MX_Bank = BankLoad("OPPBuildingCancelTest", 1);
+    BankValueSetFromString(OPP_MX_Bank, "Probe", "Fixture", "mixed-regression");
+    BankValueSetFromInt(OPP_MX_Bank, "Probe", "Protocol", 2);
+    BankValueSetFromFlag(OPP_MX_Bank, "Finished", "Done", false);
+    probe = TriggerCreate("OPP_MX_Order"); TriggerAddEventUnitOrder(probe, null, null);
+    probe = TriggerCreate("OPP_MX_Ability"); TriggerAddEventUnitAbility(probe, null, null, c_unitAbilStageAll, false);
+    probe = TriggerCreate("OPP_MX_Created"); TriggerAddEventUnitCreated(probe, null, null, null);
+    probe = TriggerCreate("OPP_MX_ConstructStart"); TriggerAddEventUnitConstructProgress(probe, null, c_unitProgressStageStart);
+    probe = TriggerCreate("OPP_MX_ConstructCancel"); TriggerAddEventUnitConstructProgress(probe, null, c_unitProgressStageCancel);
+    probe = TriggerCreate("OPP_MX_TrainStart"); TriggerAddEventUnitTrainProgress(probe, null, c_unitProgressStageStart);
+    probe = TriggerCreate("OPP_MX_TrainCancel"); TriggerAddEventUnitTrainProgress(probe, null, c_unitProgressStageCancel);
+    probe = TriggerCreate("OPP_MX_ResearchCancel"); TriggerAddEventUnitResearchProgress(probe, null, c_unitProgressStageCancel);
+    probe = TriggerCreate("OPP_MX_Died"); TriggerAddEventUnitDied(probe, null);
+    PlayerSetRace(1, "Terr"); PlayerSetRace(2, "Prot");
+    for (owner = 1; owner <= 2; owner += 1) {
+        TechTreeRequirementsEnable(owner, false); TechTreeRestrictionsEnable(owner, false);
+        PlayerModifyPropertyInt(owner, c_playerPropMinerals, c_playerPropOperSetTo, 100000);
+        PlayerModifyPropertyInt(owner, c_playerPropVespene, c_playerPropOperSetTo, 100000);
+        PlayerModifyPropertyInt(owner, c_playerPropSuppliesMade, c_playerPropOperSetTo, 200);
+        UnitCreate(1, "Marine", 0, owner, Point(12.0 + IntToFixed(owner) * 45.0, 12.0), 270.0);
+        OPP_MX_Killers[owner] = UnitLastCreated();
+        if (UnitWeaponCount(OPP_MX_Killers[owner]) > 0) {
+            weapon = UnitWeaponGet(OPP_MX_Killers[owner], 1);
+            OPP_MX_DamageEffects[owner] = CatalogFieldValueGet(c_gameCatalogWeapon, weapon, "Effect", owner);
+        }
+    }
+    UnitCreate(1, "CommandCenter", 0, 1, Point(25.0, 25.0), 270.0);
+    UnitCreate(1, "Nexus", 0, 2, Point(105.0, 105.0), 270.0);
+    UnitCreate(1, "CommandCenter", 0, 2, Point(105.0, 25.0), 270.0); center = UnitLastCreated();
+    UnitCreate(1, "Hatchery", 0, 1, Point(65.0, 75.0), 270.0);
+    UnitCreate(1, "Hatchery", 0, 1, Point(50.0, 55.0), 270.0); lair = UnitLastCreated();
+    UnitCreate(1, "Pylon", 0, 1, Point(85.0, 29.0), 270.0);
+    UnitCreate(1, "Stargate", 0, 1, Point(85.0, 25.0), 270.0); stargate = UnitLastCreated();
+    UnitCreate(1, "Barracks", 0, 1, Point(65.0, 25.0), 270.0); barracks = UnitLastCreated();
+    UnitCreate(1, "Factory", 0, 2, Point(65.0, 40.0), 270.0); factory = UnitLastCreated();
+    UnitCreate(1, "EngineeringBay", 0, 1, Point(40.0, 40.0), 270.0); OPP_MX_Research = UnitLastCreated();
+    UnitCreate(1, "Pylon", 0, 2, Point(88.0, 81.0), 270.0);
+    TechTreeUpgradeAddLevel(2, "WarpGateResearch", 1);
+    TechTreeUpgradeAddLevel(1, "WarpGateResearch", 1);
+    UnitCreate(1, "Pylon", c_unitCreateIgnorePlacement, 1, Point(88.0, 81.0), 270.0);
+    for (i = 0; i < 3; i += 1) { UnitCreate(1, "WarpGate", 0, 2, Point(83.0 + IntToFixed(i) * 3.0, 78.0), 270.0); gates[i] = UnitLastCreated(); }
+    UnitCreate(1, "WarpPrismPhasing", 0, 2, Point(76.0, 57.0), 270.0); prism = UnitLastCreated();
+    warpCommands[0] = c_abilWarpTrainCmdTrain1; warpCommands[1] = c_abilWarpTrainCmdTrain2; warpCommands[2] = c_abilWarpTrainCmdTrain6;
+    warpPoints[0] = Point(75.0, 55.0); warpPoints[1] = Point(77.0, 55.0); warpPoints[2] = Point(76.0, 57.0);
+    Wait(8.0, c_timeGame);
+    buildings[0] = OPP_MX_Build("Probe", "ProtossBuild", c_abilBuildCmdBuild2, 1, Point(51.0, 80.0), "Pylon");
+    buildings[1] = OPP_MX_Build("SCV", "TerranBuild", c_abilBuildCmdBuild2, 2, Point(41.0, 80.0), "SupplyDepot");
+    // Unlike natural-building, this burst reaches the Pool before the nearby
+    // Hatchery has had its long sequential setup to spread creep. Prepare only
+    // its local footprint; the Drone must still start real construction below.
+    // Samples 0..8 cover x=70..72, y=74..76 around the requested center (71,75).
+    for (i = 0; i < 9; i += 1) {
+        BankValueSetFromFlag(OPP_MX_Bank, "Sources", "SpawningPoolCreepBefore" + IntToString(i), CreepIsPresent(Point(70.0 + IntToFixed(i % 3), 74.0 + IntToFixed(i / 3))));
+    }
+    CreepModify(Point(71.0, 75.0), 3.0, true, true);
+    for (i = 0; i < 9; i += 1) {
+        BankValueSetFromFlag(OPP_MX_Bank, "Sources", "SpawningPoolCreepAfter" + IntToString(i), CreepIsPresent(Point(70.0 + IntToFixed(i % 3), 74.0 + IntToFixed(i / 3))));
+    }
+    buildings[2] = OPP_MX_Build("Drone", "ZergBuild", c_abilBuildCmdBuild4, 1, Point(71.0, 75.0), "SpawningPool");
+    OPP_MX_OrderUnit(barracks, "BarracksAddOns", c_abilBuildCmdBuild1, c_orderQueueReplace, "TechLabStart");
+    OPP_MX_OrderUnit(factory, "FactoryAddOns", c_abilBuildCmdBuild2, c_orderQueueReplace, "ReactorStart");
+    OPP_MX_OrderUnit(lair, "UpgradeToLair", c_abilMorphCmdExecute, c_orderQueueReplace, "LairStart");
+    OPP_MX_OrderUnit(stargate, "StargateTrain", c_abilTrainCmdTrain9, c_orderQueueAddToEnd, "Air0");
+    OPP_MX_OrderUnit(stargate, "StargateTrain", c_abilTrainCmdTrain1, c_orderQueueAddToEnd, "Air1");
+    OPP_MX_OrderUnit(stargate, "StargateTrain", c_abilTrainCmdTrain9, c_orderQueueAddToEnd, "Air2");
+    for (i = 0; i < 5; i += 1) { OPP_MX_OrderUnit(center, "CommandCenterTrain", c_abilTrainCmdTrain1, c_orderQueueAddToEnd, "SCVStart" + IntToString(i)); }
+    OPP_MX_OrderUnit(OPP_MX_Research, "EngineeringBayResearch", c_abilResearchCmdResearch3, c_orderQueueAddToEnd, "ResearchStart");
+    OPP_MX_OrderUnit(OPP_MX_Research, "EngineeringBayResearch", c_abilResearchCmdResearch7, c_orderQueueAddToEnd, "ResearchQueued");
+    Wait(0.25, c_timeGame);
+    UnitSetProgressComplete(OPP_MX_Research, 1, 95);
+    for (i = 0; i < 3; i += 1) { BankValueSetFromFlag(OPP_MX_Bank, "Orders", "WarpStart" + IntToString(i), UnitIssueOrder(gates[i], OrderTargetingPoint(AbilityCommand("WarpGateTrain", warpCommands[i]), warpPoints[i]), c_orderQueueReplace)); }
+    Wait(0.5, c_timeGame);
+    OPP_MX_Queue(stargate, "AirBefore"); OPP_MX_Queue(center, "TrainBefore"); OPP_MX_Queue(OPP_MX_Research, "ResearchBefore");
+    BankValueSetFromInt(OPP_MX_Bank, "Sources", "LairTag", UnitGetTag(lair));
+    BankValueSetFromInt(OPP_MX_Bank, "Sources", "PrismTag", UnitGetTag(prism));
+    OPP_MX_Expected("Pylon", 0, 1); OPP_MX_Expected("SupplyDepot", 0, 2); OPP_MX_Expected("SpawningPool", 0, 1);
+    OPP_MX_Expected("Oracle", 2, 1); OPP_MX_Expected("Phoenix", 2, 1); OPP_MX_Expected("SCV", 2, 2);
+    OPP_MX_Expected("Lair", 0, 1); OPP_MX_Expected("BarracksTechLab", 0, 1); OPP_MX_Expected("FactoryReactor", 0, 2);
+    OPP_MX_Expected("TerranInfantryArmorsLevel1", 1, 1);
+    OPP_MX_ExpectedGHResearch("TerranInfantryWeaponsLevel1");
+    BankValueSetFromText(OPP_MX_Bank, "Expected", "BarracksTechLabName", StringToText("Tech Lab - Barracks"));
+    BankValueSetFromText(OPP_MX_Bank, "Expected", "FactoryReactorName", StringToText("Reactor - Factory"));
+    OPP_MX_Expected("Zealot", 2, 2); OPP_MX_Expected("Stalker", 2, 2); OPP_MX_Expected("Sentry", 2, 2);
+    OPP_MX_Snap("Baseline");
+    OPP_MX_Phase = "Burst";
+    anchor = GameGetMissionTime();
+    BankValueSetFromFixed(OPP_MX_Bank, "Probe", "BurstTime", anchor);
+    for (i = 0; i < 3; i += 1) { OPP_MX_OrderUnit(buildings[i], "BuildInProgress", c_abilBuildableCmdCancel, c_orderQueueReplace, "BuildingCancel" + IntToString(i)); }
+    Wait(0.0625, c_timeGame); OPP_MX_Snap("Blocked");
+    for (i = 0; i < 3; i += 1) { OPP_MX_OrderUnit(stargate, "que5", c_abilQueueCmdCancelLast, c_orderQueueReplace, "AirCancel" + IntToString(i)); Wait(0.125, c_timeGame); }
+    OPP_MX_OrderUnit(barracks, "BarracksAddOns", c_abilBuildCmdHalt, c_orderQueueReplace, "TechLabCancel"); Wait(0.25, c_timeGame);
+    OPP_MX_OrderUnit(lair, "UpgradeToLair", c_abilMorphCmdCancel, c_orderQueueReplace, "LairCancel"); Wait(0.25, c_timeGame);
+    for (i = 0; i < 5; i += 1) { OPP_MX_OrderUnit(center, "que5CancelToSelection", c_abilQueueCmdCancelLast, c_orderQueueReplace, "SCVCancel" + IntToString(i)); }
+    Wait(0.25, c_timeGame);
+    OPP_MX_OrderUnit(OPP_MX_Research, "que5", c_abilQueueCmdCancelLast, c_orderQueueReplace, "ResearchCancel"); Wait(0.25, c_timeGame);
+    OPP_MX_Queue(OPP_MX_Research, "ResearchAfterQueuedCancel"); OPP_MX_Snap("RunningResearch");
+    OPP_MX_OrderUnit(prism, "TransportMode", c_abilMorphCmdExecute, c_orderQueueReplace, "PrismClose"); Wait(0.25, c_timeGame);
+    OPP_MX_OrderUnit(factory, "FactoryAddOns", c_abilBuildCmdHalt, c_orderQueueReplace, "ReactorCancel"); Wait(0.25, c_timeGame);
+    OPP_MX_Queue(stargate, "AirAfter"); OPP_MX_Queue(center, "TrainAfter");
+    OPP_MX_Snap("Pending");
+    OPP_MX_Phase = "Drain";
+    for (i = 0; i < 4; i += 1) {
+        OPP_MX_Until(anchor + 5.125 + IntToFixed(i) * 5.0); OPP_MX_Snap("Wave" + IntToString(i));
+        OPP_MX_Until(anchor + 9.625 + IntToFixed(i) * 5.0); OPP_MX_Snap("Near" + IntToString(i));
+    }
+    OPP_MX_Until(anchor + 25.125); OPP_MX_Snap("Expired");
+    OPP_MX_Phase = "Reset";
+    OPP_MX_OrderUnit(stargate, "StargateTrain", c_abilTrainCmdTrain9, c_orderQueueAddToEnd, "ResetStart"); Wait(0.25, c_timeGame);
+    OPP_MX_OrderUnit(stargate, "que5", c_abilQueueCmdCancelLast, c_orderQueueReplace, "ResetCancel"); Wait(0.125, c_timeGame); OPP_MX_Snap("ResetShown");
+    Wait(4.5, c_timeGame); OPP_MX_Snap("ResetNear"); Wait(0.5, c_timeGame); OPP_MX_Snap("ResetExpired");
+    OPP_MX_Phase = "Denied";
+    UnitCreate(1, "EngineeringBay", 0, 2, Point(40.0, 55.0), 270.0); OPP_MX_Research = UnitLastCreated();
+    OPP_MX_OrderUnit(OPP_MX_Research, "EngineeringBayResearch", c_abilResearchCmdResearch3, c_orderQueueAddToEnd, "DeniedStart"); Wait(0.25, c_timeGame);
+    UnitSetProgressComplete(OPP_MX_Research, 1, 95); Wait(0.5, c_timeGame); OPP_MX_Snap("DeniedBefore");
+    BankValueSetFromInt(OPP_MX_Bank, "Sources", "DeniedTag", UnitGetTag(OPP_MX_Research));
+    OPP_MX_Destroy(OPP_MX_Research, "Denied"); Wait(0.125, c_timeGame); OPP_MX_Snap("DeniedAfter");
+    Wait(4.5, c_timeGame); OPP_MX_Snap("DeniedNear"); Wait(0.5, c_timeGame); OPP_MX_Snap("DeniedExpired");
+    BankValueSetFromInt(OPP_MX_Bank, "BaseFinished", "Events", OPP_MX_Events);
+    BankValueSetFromFixed(OPP_MX_Bank, "BaseFinished", "Time", GameGetMissionTime());
+    BankValueSetFromFlag(OPP_MX_Bank, "BaseFinished", "Done", true);
+    OPP_MX_Research = null;
+    OPP_MX_Supplement = true;
+    OPP_MX_DeathCase("PrismDeath", 0, stargate);
+    OPP_MX_DeathCase("PylonDeath", 1, center);
+    OPP_MX_DeathCase("OverlapMixed", 2, stargate);
+    OPP_MX_Phase = "SupplementFinished";
+    OPP_MX_Snap("SupplementFinished");
+    BankValueSetFromInt(OPP_MX_Bank, "Finished", "BaseEvents", BankValueGetAsInt(OPP_MX_Bank, "BaseFinished", "Events"));
+    BankValueSetFromInt(OPP_MX_Bank, "Finished", "WarpCount", OPP_MX_WarpCount);
+    BankValueSetFromInt(OPP_MX_Bank, "Finished", "Events", OPP_MX_Events);
+    BankValueSetFromFlag(OPP_MX_Bank, "Finished", "Done", true); BankSave(OPP_MX_Bank);
+    OPP_MX_Tracking = false;
+    Wait(2.0, c_timeGame); GameOver(1, c_gameOverDefeat, true, false);
+    return true;
+}

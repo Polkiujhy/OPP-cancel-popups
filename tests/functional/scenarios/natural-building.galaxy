@@ -1,0 +1,116 @@
+// Explicit worker-order fixture. No production economy or AI changes.
+bank OPP_Test_Bank;
+unit OPP_Test_Construction;
+int OPP_Test_Completions = 0;
+
+bool OPP_Test_Started (bool testConds, bool runActions) {
+    if (!runActions) { return true; }
+    OPP_Test_Construction = EventUnitProgressUnit();
+    return true;
+}
+
+bool OPP_Test_Completed (bool testConds, bool runActions) {
+    if (!runActions) { return true; }
+    OPP_Test_Completions += 1;
+    BankValueSetFromString(OPP_Test_Bank, "CompletionEvent", "Unit", UnitGetType(EventUnitProgressUnit()));
+    BankSave(OPP_Test_Bank);
+    return true;
+}
+
+void OPP_Test_Snapshot (string section) {
+    BankValueSetFromInt(OPP_Test_Bank, section, "BuildingCancels", DataTableGetInt(true, "OPPCancelPopups/BuildingCancels"));
+    BankValueSetFromInt(OPP_Test_Bank, section, "Displayed", DataTableGetInt(true, "OPPCancelPopups/Displayed"));
+    BankValueSetFromInt(OPP_Test_Bank, section, "Completions", OPP_Test_Completions);
+    BankValueSetFromFixed(OPP_Test_Bank, section, "GameTime", GameGetMissionTime());
+    BankSave(OPP_Test_Bank);
+}
+
+bool OPP_Test_Run (bool testConds, bool runActions) {
+    trigger probe;
+    unit worker;
+    unit building;
+    int race;
+    int attempts;
+    int sample;
+    string workerType;
+    string ability;
+    string section;
+    int command;
+    point destination;
+    bool accepted;
+    if (!runActions) { return true; }
+    OPP_Test_Bank = BankLoad("OPPBuildingCancelTest", 1);
+    probe = TriggerCreate("OPP_Test_Started");
+    TriggerAddEventUnitConstructProgress(probe, null, c_unitProgressStageStart);
+    probe = TriggerCreate("OPP_Test_Completed");
+    TriggerAddEventUnitConstructProgress(probe, null, c_unitProgressStageComplete);
+    UnitCreate(1, "CommandCenter", 0, 1, Point(30.0, 30.0), 270.0);
+    UnitCreate(1, "Nexus", 0, 2, Point(90.0, 90.0), 270.0);
+    UnitCreate(1, "Hatchery", 0, 1, Point(65.0, 75.0), 270.0);
+    PlayerModifyPropertyInt(1, c_playerPropMinerals, c_playerPropOperSetTo, 2000);
+    Wait(10.0, c_timeGame);
+    OPP_Test_Snapshot("Before");
+    for (race = 0; race < 3; race += 1) {
+        workerType = "SCV";
+        ability = "TerranBuild";
+        command = c_abilBuildCmdBuild2;
+        section = "SCVSupplyDepot";
+        destination = Point(41.0, 80.0);
+        if (race == 1) {
+            workerType = "Probe";
+            ability = "ProtossBuild";
+            section = "ProbePylon";
+            destination = Point(51.0, 80.0);
+        }
+        if (race == 2) {
+            workerType = "Drone";
+            ability = "ZergBuild";
+            command = c_abilBuildCmdBuild4;
+            section = "DroneSpawningPool";
+            destination = Point(71.0, 75.0);
+        }
+        UnitCreate(1, workerType, 0, 1, PointWithOffset(destination, -2.0, -2.0), 270.0);
+        worker = UnitLastCreated();
+        OPP_Test_Construction = null;
+        if (race == 2) {
+            // Keep the real Drone build independent of natural creep spread.
+            // Samples 0..8 cover x=70..72, y=74..76 around destination (71,75).
+            for (sample = 0; sample < 9; sample += 1) {
+                BankValueSetFromFlag(OPP_Test_Bank, section, "CreepBefore" + IntToString(sample), CreepIsPresent(PointWithOffset(destination, IntToFixed(sample % 3) - 1.0, IntToFixed(sample / 3) - 1.0)));
+            }
+            CreepModify(destination, 3.0, true, true);
+            for (sample = 0; sample < 9; sample += 1) {
+                BankValueSetFromFlag(OPP_Test_Bank, section, "CreepAfter" + IntToString(sample), CreepIsPresent(PointWithOffset(destination, IntToFixed(sample % 3) - 1.0, IntToFixed(sample / 3) - 1.0)));
+            }
+        }
+        accepted = UnitIssueOrder(worker, OrderTargetingPoint(AbilityCommand(ability, command), destination), c_orderQueueReplace);
+        BankValueSetFromFlag(OPP_Test_Bank, section, "BuildOrderAccepted", accepted);
+        attempts = 0;
+        while (OPP_Test_Construction == null && attempts < 12) {
+            Wait(0.5, c_timeGame);
+            attempts += 1;
+        }
+        building = OPP_Test_Construction;
+        BankValueSetFromString(OPP_Test_Bank, section, "StartedUnit", UnitGetType(building));
+        if (building != null) {
+            Wait(2.0, c_timeGame);
+            accepted = UnitIssueOrder(building, Order(AbilityCommand("BuildInProgress", c_abilBuildableCmdCancel)), c_orderQueueReplace);
+            BankValueSetFromFlag(OPP_Test_Bank, section, "CancelAccepted", accepted);
+        }
+        Wait(0.5, c_timeGame);
+        OPP_Test_Snapshot(section);
+        Wait(6.0, c_timeGame);
+    }
+    // A real Probe order is allowed to complete without acceleration.
+    UnitCreate(1, "Probe", 0, 1, Point(78.0, 58.0), 270.0);
+    worker = UnitLastCreated();
+    OPP_Test_Construction = null;
+    accepted = UnitIssueOrder(worker, OrderTargetingPoint(AbilityCommand("ProtossBuild", c_abilBuildCmdBuild2), Point(80.0, 60.0)), c_orderQueueReplace);
+    BankValueSetFromFlag(OPP_Test_Bank, "NaturalCompletion", "BuildOrderAccepted", accepted);
+    Wait(35.0, c_timeGame);
+    BankValueSetFromString(OPP_Test_Bank, "NaturalCompletion", "StartedUnit", UnitGetType(OPP_Test_Construction));
+    OPP_Test_Snapshot("NaturalCompletion");
+    Wait(5.0, c_timeGame);
+    GameOver(1, c_gameOverDefeat, true, false);
+    return true;
+}

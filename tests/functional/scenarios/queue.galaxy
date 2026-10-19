@@ -1,0 +1,61 @@
+// Stress real cancellation events and read the resulting dialog control state.
+bank OPP_Test_Bank;
+
+void OPP_Test_Snapshot (int batch) {
+    int row;
+    int control;
+    string section;
+    string key;
+    section = "Batch" + IntToString(batch);
+    BankValueSetFromFixed(OPP_Test_Bank, section, "GameTime", GameGetMissionTime());
+    BankValueSetFromInt(OPP_Test_Bank, section, "BuildingCancels", DataTableGetInt(true, "OPPCancelPopups/BuildingCancels"));
+    BankValueSetFromInt(OPP_Test_Bank, section, "Displayed", DataTableGetInt(true, "OPPCancelPopups/Displayed"));
+    for (row = 0; row < 3; row += 1) {
+        key = "Row" + IntToString(row);
+        control = DataTableGetInt(true, "OPPCancelPopups/Panel" + IntToString(row));
+        BankValueSetFromFlag(OPP_Test_Bank, section, key + "ObserverVisible", DialogControlIsVisible(control, 14));
+        BankValueSetFromFlag(OPP_Test_Bank, section, key + "Player1Visible", DialogControlIsVisible(control, 1));
+        BankValueSetFromFlag(OPP_Test_Bank, section, key + "Player2Visible", DialogControlIsVisible(control, 2));
+        if (DialogControlIsVisible(control, 14)) {
+            control = DataTableGetInt(true, "OPPCancelPopups/Name" + IntToString(row));
+            BankValueSetFromText(OPP_Test_Bank, section, key + "Name", DialogControlGetPropertyAsText(control, c_triggerControlPropertyText, 14));
+            control = DataTableGetInt(true, "OPPCancelPopups/Owner" + IntToString(row));
+            BankValueSetFromText(OPP_Test_Bank, section, key + "Owner", DialogControlGetPropertyAsText(control, c_triggerControlPropertyText, 14));
+        }
+    }
+    BankSave(OPP_Test_Bank);
+}
+
+bool OPP_Test_Run (bool testConds, bool runActions) {
+    int i;
+    int batch;
+    int accepted;
+    unit building;
+    string unitType;
+    if (!runActions) { return true; }
+    OPP_Test_Bank = BankLoad("OPPBuildingCancelTest", 1);
+    UnitCreate(1, "CommandCenter", 0, 1, Point(25.0, 25.0), 270.0);
+    UnitCreate(1, "Nexus", 0, 2, Point(105.0, 105.0), 270.0);
+    Wait(8.0, c_timeGame);
+    accepted = 0;
+    for (i = 0; i < 138; i += 1) {
+        unitType = "Pylon";
+        if (i % 3 == 1) { unitType = "SupplyDepot"; }
+        if (i % 3 == 2) { unitType = "SpawningPool"; }
+        UnitCreate(1, unitType, c_unitCreateConstruct, 1 + i % 2, Point(30.0 + IntToFixed(i % 12) * 5.0, 30.0 + IntToFixed(i / 12) * 5.0), 270.0);
+        building = UnitLastCreated();
+        if (UnitIssueOrder(building, Order(AbilityCommand("BuildInProgress", c_abilBuildableCmdCancel)), c_orderQueueReplace)) { accepted += 1; }
+    }
+    BankValueSetFromInt(OPP_Test_Bank, "Setup", "Accepted", accepted);
+    Wait(0.25, c_timeGame);
+    // Accelerate this isolated stress fixture after the burst. Timers and
+    // snapshots still use game time; no production time scale is changed.
+    GameSetGlobalTimeScale(4.0);
+    for (batch = 0; batch <= 45; batch += 1) {
+        OPP_Test_Snapshot(batch);
+        Wait(5.0, c_timeGame);
+    }
+    GameSetGlobalTimeScale(1.0);
+    GameOver(1, c_gameOverDefeat, true, false);
+    return true;
+}

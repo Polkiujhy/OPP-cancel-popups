@@ -1,0 +1,203 @@
+// Isolated visual/integration fixture: production, three cancellation kinds,
+// real worker deaths and a normal GameHeart upgrade notification at once.
+// No part of this scenario is included in the production mod.
+include "LibGHLo_h"
+bank OPP_Test_Bank;
+int OPP_Test_ConstructionEvents = 0;
+
+void OPP_Test_ConstructionEvent (string label, unit child, string objectType) {
+    string section;
+    int tag;
+    bool constructing;
+    if (objectType != "Pylon" && objectType != "SupplyDepot") { return; }
+    tag = UnitGetTag(child);
+    constructing = child != null && UnitIsValid(child) && UnitIsAlive(child) && UnitTestState(child, c_unitStateUnderConstruction);
+    OPP_Test_ConstructionEvents += 1;
+    section = "ConstructionEvent" + IntToString(OPP_Test_ConstructionEvents);
+    BankValueSetFromString(OPP_Test_Bank, section, "Label", label);
+    BankValueSetFromFixed(OPP_Test_Bank, section, "Time", GameGetMissionTime());
+    BankValueSetFromInt(OPP_Test_Bank, section, "Tag", tag);
+    BankValueSetFromString(OPP_Test_Bank, section, "Type", objectType);
+    BankValueSetFromInt(OPP_Test_Bank, section, "Owner", UnitGetOwner(child));
+    BankValueSetFromFlag(OPP_Test_Bank, section, "Constructing", constructing);
+    if (constructing && (label == "Created" || label == "Start")) {
+        DataTableSetBool(true, "OPPPositionFixture/" + label + "/" + IntToString(tag), true);
+    }
+}
+
+bool OPP_Test_ConstructionCreated (bool testConds, bool runActions) {
+    if (runActions) { OPP_Test_ConstructionEvent("Created", EventUnitCreatedUnit(), UnitGetType(EventUnitCreatedUnit())); }
+    return true;
+}
+
+bool OPP_Test_ConstructionStarted (bool testConds, bool runActions) {
+    if (runActions) { OPP_Test_ConstructionEvent("Start", EventUnitProgressUnit(), EventUnitProgressObjectType()); }
+    return true;
+}
+
+bool OPP_Test_ConstructionCancelled (bool testConds, bool runActions) {
+    if (runActions) { OPP_Test_ConstructionEvent("Cancel", EventUnitProgressUnit(), EventUnitProgressObjectType()); }
+    return true;
+}
+
+void OPP_Test_CancelBuilding (string objectType, int owner, point destination, string section) {
+    unit building;
+    int tag;
+    int polls;
+    bool ready;
+    bool accepted;
+    UnitCreate(1, objectType, c_unitCreateConstruct, owner, destination, 270.0);
+    building = UnitLastCreated(); tag = UnitGetTag(building);
+    BankValueSetFromFixed(OPP_Test_Bank, section, "CreatedTime", GameGetMissionTime());
+    // A UI action cannot cancel inside UnitCreate's atomic Galaxy thread.
+    // Let actual Created/Start callbacks observe the living construction first.
+    Wait(0.0625, c_timeGame);
+    polls = 1;
+    while (polls < 4 && !DataTableGetBool(true, "OPPPositionFixture/Created/" + IntToString(tag)) && !DataTableGetBool(true, "OPPPositionFixture/Start/" + IntToString(tag))) {
+        Wait(0.0625, c_timeGame); polls += 1;
+    }
+    ready = building != null && UnitIsValid(building) && UnitIsAlive(building) && UnitGetType(building) == objectType && UnitGetOwner(building) == owner && UnitTestState(building, c_unitStateUnderConstruction) && (DataTableGetBool(true, "OPPPositionFixture/Created/" + IntToString(tag)) || DataTableGetBool(true, "OPPPositionFixture/Start/" + IntToString(tag)));
+    BankValueSetFromInt(OPP_Test_Bank, section, "Tag", tag);
+    BankValueSetFromString(OPP_Test_Bank, section, "Type", UnitGetType(building));
+    BankValueSetFromInt(OPP_Test_Bank, section, "Owner", UnitGetOwner(building));
+    BankValueSetFromFlag(OPP_Test_Bank, section, "Alive", building != null && UnitIsValid(building) && UnitIsAlive(building));
+    BankValueSetFromFlag(OPP_Test_Bank, section, "Constructing", building != null && UnitIsValid(building) && UnitTestState(building, c_unitStateUnderConstruction));
+    BankValueSetFromFlag(OPP_Test_Bank, section, "CreatedSeen", DataTableGetBool(true, "OPPPositionFixture/Created/" + IntToString(tag)));
+    BankValueSetFromFlag(OPP_Test_Bank, section, "StartSeen", DataTableGetBool(true, "OPPPositionFixture/Start/" + IntToString(tag)));
+    BankValueSetFromFlag(OPP_Test_Bank, section, "Ready", ready);
+    BankValueSetFromFixed(OPP_Test_Bank, section, "CancelTime", GameGetMissionTime());
+    accepted = false;
+    if (ready) { accepted = UnitIssueOrder(building, Order(AbilityCommand("BuildInProgress", c_abilBuildableCmdCancel)), c_orderQueueReplace); }
+    BankValueSetFromFlag(OPP_Test_Bank, section, "CancelAccepted", accepted);
+}
+
+
+void OPP_Test_Snapshot (string section) {
+    int row;
+    int control;
+    bool validPanel;
+    bool visible;
+    string key;
+    BankValueSetFromFixed(OPP_Test_Bank, section, "GameTime", GameGetMissionTime());
+    BankValueSetFromInt(OPP_Test_Bank, section, "InitializationCount", DataTableGetInt(true, "OPPCancelPopups/InitializationCount"));
+    BankValueSetFromInt(OPP_Test_Bank, section, "BuildingCancels", DataTableGetInt(true, "OPPCancelPopups/BuildingCancels"));
+    BankValueSetFromInt(OPP_Test_Bank, section, "UnitCancels", DataTableGetInt(true, "OPPCancelPopups/UnitCancels"));
+    BankValueSetFromInt(OPP_Test_Bank, section, "ResearchOwn", DataTableGetInt(true, "OPPCancelPopups/ResearchOwn"));
+    BankValueSetFromInt(OPP_Test_Bank, section, "Displayed", DataTableGetInt(true, "OPPCancelPopups/Displayed"));
+    BankValueSetFromFlag(OPP_Test_Bank, section, "WorkersActive", libGHLo_gv_workersKilledNotifications.lv_active);
+    for (row = 1; row <= 2; row += 1) {
+        key = "Workers" + IntToString(row);
+        BankValueSetFromInt(OPP_Test_Bank, section, key + "Killed", libGHLo_gv_workersKilledNotifications.lv_intKilledAmount[row]);
+        BankValueSetFromFlag(OPP_Test_Bank, section, key + "Visible", DialogControlIsVisible(libGHLo_gv_workersKilledNotifications.lv_itemPanel[row], 14));
+    }
+    for (row = 0; row < 3; row += 1) {
+        key = "Row" + IntToString(row);
+        control = DataTableGetInt(true, "OPPCancelPopups/Panel" + IntToString(row));
+        validPanel = control != c_invalidDialogControlId;
+        visible = validPanel && DialogControlIsVisible(control, 14);
+        BankValueSetFromFlag(OPP_Test_Bank, section, key + "ObserverVisible", visible);
+        BankValueSetFromFlag(OPP_Test_Bank, section, key + "Player1Visible", validPanel && DialogControlIsVisible(control, 1));
+        BankValueSetFromFlag(OPP_Test_Bank, section, key + "Player2Visible", validPanel && DialogControlIsVisible(control, 2));
+        // Hidden rows can be valid controls without initialized text properties.
+        BankValueSetFromText(OPP_Test_Bank, section, key + "Name", StringToText(""));
+        BankValueSetFromText(OPP_Test_Bank, section, key + "Status", StringToText(""));
+        if (visible) {
+            control = DataTableGetInt(true, "OPPCancelPopups/Name" + IntToString(row));
+            if (control != c_invalidDialogControlId) {
+                BankValueSetFromText(OPP_Test_Bank, section, key + "Name", DialogControlGetPropertyAsText(control, c_triggerControlPropertyText, 14));
+            }
+            control = DataTableGetInt(true, "OPPCancelPopups/Status" + IntToString(row));
+            if (control != c_invalidDialogControlId) {
+                BankValueSetFromText(OPP_Test_Bank, section, key + "Status", DialogControlGetPropertyAsText(control, c_triggerControlPropertyText, 14));
+            }
+        }
+    }
+    BankSave(OPP_Test_Bank);
+}
+
+bool OPP_Test_Run (bool testConds, bool runActions) {
+    trigger probe;
+    unit center;
+    unit research;
+    unit normalResearch;
+    unit worker;
+    int i;
+    bool accepted;
+    if (!runActions) { return true; }
+    OPP_Test_Bank = BankLoad("OPPBuildingCancelTest", 1);
+    probe = TriggerCreate("OPP_Test_ConstructionCreated"); TriggerAddEventUnitCreated(probe, null, null, null);
+    probe = TriggerCreate("OPP_Test_ConstructionStarted"); TriggerAddEventUnitConstructProgress(probe, null, c_unitProgressStageStart);
+    probe = TriggerCreate("OPP_Test_ConstructionCancelled"); TriggerAddEventUnitConstructProgress(probe, null, c_unitProgressStageCancel);
+    UnitCreate(1, "CommandCenter", 0, 1, Point(25.0, 25.0), 270.0);
+    center = UnitLastCreated();
+    UnitCreate(1, "Nexus", 0, 2, Point(105.0, 105.0), 270.0);
+    UnitCreate(1, "SupplyDepot", 0, 1, Point(30.0, 25.0), 270.0);
+    UnitCreate(1, "EngineeringBay", 0, 1, Point(35.0, 25.0), 270.0);
+    research = UnitLastCreated();
+    UnitCreate(1, "EngineeringBay", 0, 2, Point(100.0, 100.0), 270.0);
+    normalResearch = UnitLastCreated();
+    for (i = 1; i <= 2; i += 1) {
+        PlayerModifyPropertyInt(i, c_playerPropMinerals, c_playerPropOperSetTo, 5000);
+        PlayerModifyPropertyInt(i, c_playerPropVespene, c_playerPropOperSetTo, 5000);
+    }
+    Wait(8.0, c_timeGame);
+    for (i = 0; i < 4; i += 1) {
+        UnitCreate(1, "Drone", 0, 1 + i % 2, Point(50.0 + IntToFixed(i) * 3.0, 50.0), 270.0);
+        worker = UnitLastCreated();
+        UnitKill(worker);
+    }
+    accepted = UnitIssueOrder(center, Order(AbilityCommand("CommandCenterTrain", c_abilTrainCmdTrain1)), c_orderQueueAddToEnd);
+    BankValueSetFromFlag(OPP_Test_Bank, "Orders", "TrainAccepted", accepted);
+    accepted = UnitIssueOrder(research, Order(AbilityCommand("EngineeringBayResearch", c_abilResearchCmdResearch3)), c_orderQueueReplace);
+    BankValueSetFromFlag(OPP_Test_Bank, "Orders", "ResearchAccepted", accepted);
+    accepted = UnitIssueOrder(normalResearch, Order(AbilityCommand("EngineeringBayResearch", c_abilResearchCmdResearch3)), c_orderQueueReplace);
+    BankValueSetFromFlag(OPP_Test_Bank, "Orders", "NormalResearchAccepted", accepted);
+    Wait(2.0, c_timeGame);
+    // Separate production and upgrade panels remain populated during the burst.
+    UnitSetProgressComplete(normalResearch, 1, 90);
+    UnitIssueOrder(research, Order(AbilityCommand("que5", c_abilQueueCmdCancelLast)), c_orderQueueReplace);
+    UnitIssueOrder(center, Order(AbilityCommand("que5CancelToSelection", c_abilQueueCmdCancelLast)), c_orderQueueReplace);
+    OPP_Test_CancelBuilding("Pylon", 1, Point(40.0, 40.0), "ThreeKindsBuilding");
+    UnitIssueOrder(center, Order(AbilityCommand("CommandCenterTrain", c_abilTrainCmdTrain1)), c_orderQueueAddToEnd);
+    Wait(0.5, c_timeGame);
+    OPP_Test_Snapshot("ThreeKinds");
+    OPP_Test_CancelBuilding("SupplyDepot", 2, Point(45.0, 45.0), "FourthBuilding");
+    Wait(0.5, c_timeGame);
+    OPP_Test_Snapshot("FourthQueued");
+    Wait(4.25, c_timeGame);
+    OPP_Test_Snapshot("FourthShown");
+    Wait(5.25, c_timeGame);
+    OPP_Test_Snapshot("Expired");
+    // Repeated real research cancels must merge and restart five game seconds.
+    for (i = 0; i < 3; i += 1) {
+        UnitIssueOrder(research, Order(AbilityCommand("EngineeringBayResearch", c_abilResearchCmdResearch3)), c_orderQueueReplace);
+        Wait(1.0, c_timeGame);
+        UnitIssueOrder(research, Order(AbilityCommand("que5", c_abilQueueCmdCancelLast)), c_orderQueueReplace);
+        Wait(0.25, c_timeGame);
+        OPP_Test_Snapshot("ResearchGroup" + IntToString(i));
+        Wait(1.0, c_timeGame);
+    }
+    Wait(5.0, c_timeGame);
+    OPP_Test_Snapshot("ResearchExpired");
+    Wait(10.0, c_timeGame);
+    OPP_Test_CancelBuilding("Pylon", 2, Point(45.0, 40.0), "NoWorkersBuilding");
+    Wait(0.25, c_timeGame);
+    OPP_Test_Snapshot("NoWorkers");
+    // Alternate an existing cancellation with a fresh worker alert, then renew
+    // the same cancellation. Neither alert may reposition the other stack.
+    Wait(1.0, c_timeGame);
+    for (i = 0; i < 2; i += 1) {
+        UnitCreate(1, "Drone", 0, 1, Point(60.0 + IntToFixed(i) * 3.0, 50.0), 270.0);
+        UnitKill(UnitLastCreated());
+    }
+    Wait(0.25, c_timeGame);
+    OPP_Test_Snapshot("WorkerRefreshed");
+    OPP_Test_CancelBuilding("Pylon", 2, Point(45.0, 40.0), "RefreshedBuilding");
+    Wait(0.25, c_timeGame);
+    OPP_Test_Snapshot("CancelRefreshed");
+    Wait(5.25, c_timeGame);
+    OPP_Test_Snapshot("FinalExpired");
+    Wait(2.0, c_timeGame);
+    GameOver(1, c_gameOverDefeat, true, false);
+    return true;
+}

@@ -1,0 +1,175 @@
+// Private dependency instrumentation only. None of this ships in production.
+void OPP_PrismFixture_ClearUI () {
+    int row;
+    int owner;
+    int kind;
+    for (row = 0; row < OPP_UI_ROWS; row += 1) {
+        TimerPause(OPP_UI_Timer[row], true);
+        OPP_UI_Busy[row] = false;
+        DialogControlSetVisible(OPP_UI_Panel[row], OPP_UI_Viewers, false);
+    }
+    OPP_UI_Count = 0;
+    OPP_UI_Head = 0;
+    for (owner = 0; owner < 17; owner += 1) {
+        for (kind = 0; kind < 3; kind += 1) { OPP_UI_Overflow[owner][kind] = 0; }
+    }
+}
+
+void OPP_PrismFixture_Snapshot (bank output, string section) {
+    int row;
+    int offset;
+    int slot;
+    bool validPanel;
+    bool visible;
+    string key;
+    BankValueSetFromFixed(output, section, "Time", GameGetMissionTime());
+    BankValueSetFromFlag(output, section, "UIReady", OPP_UI_Ready);
+    BankValueSetFromInt(output, section, "Init", DataTableGetInt(true, "OPPCancelPopups/InitializationCount"));
+    BankValueSetFromInt(output, section, "Units", DataTableGetInt(true, "OPPCancelPopups/UnitCancels"));
+    BankValueSetFromInt(output, section, "Warps", DataTableGetInt(true, "OPPCancelPopups/WarpCancels"));
+    BankValueSetFromInt(output, section, "Prisms", DataTableGetInt(true, "OPPCancelPopups/PrismCancels"));
+    BankValueSetFromInt(output, section, "Records", OPP_WarpRecords);
+    BankValueSetFromInt(output, section, "Sources", OPP_PowerRecords);
+    BankValueSetFromInt(output, section, "PeakRecords", DataTableGetInt(true, "OPPCancelPopups/WarpPeakRecords"));
+    BankValueSetFromInt(output, section, "PendingGroups", OPP_UI_Count);
+    for (row = 0; row < OPP_UI_ROWS; row += 1) {
+        key = "Row" + IntToString(row);
+        validPanel = OPP_UI_Panel[row] != c_invalidDialogControlId;
+        visible = validPanel && DialogControlIsVisible(OPP_UI_Panel[row], OPP_UI_ViewerId);
+        BankValueSetFromFlag(output, section, key + "Visible", visible);
+        BankValueSetFromFlag(output, section, key + "Player1", validPanel && DialogControlIsVisible(OPP_UI_Panel[row], 1));
+        BankValueSetFromFlag(output, section, key + "Player2", validPanel && DialogControlIsVisible(OPP_UI_Panel[row], 2));
+        BankValueSetFromInt(output, section, key + "Owner", OPP_UI_RowOwner[row]);
+        BankValueSetFromInt(output, section, key + "Kind", OPP_UI_RowKind[row]);
+        BankValueSetFromInt(output, section, key + "Count", OPP_UI_RowCount[row]);
+        BankValueSetFromString(output, section, key + "Key", OPP_UI_RowKey[row]);
+        // Hidden rows may never have received text/image properties from SC2.
+        BankValueSetFromText(output, section, key + "Name", StringToText(""));
+        BankValueSetFromText(output, section, key + "Status", StringToText(""));
+        BankValueSetFromString(output, section, key + "Icon", "");
+        if (OPP_UI_Ready && visible && OPP_UI_Busy[row] && OPP_UI_RowCount[row] > 0) {
+            if (OPP_UI_Name[row] != c_invalidDialogControlId) {
+                BankValueSetFromText(output, section, key + "Name", DialogControlGetPropertyAsText(OPP_UI_Name[row], c_triggerControlPropertyText, OPP_UI_ViewerId));
+            }
+            if (OPP_UI_Status[row] != c_invalidDialogControlId) {
+                BankValueSetFromText(output, section, key + "Status", DialogControlGetPropertyAsText(OPP_UI_Status[row], c_triggerControlPropertyText, OPP_UI_ViewerId));
+            }
+            if (OPP_UI_Icon[row] != c_invalidDialogControlId) {
+                BankValueSetFromString(output, section, key + "Icon", DialogControlGetPropertyAsString(OPP_UI_Icon[row], c_triggerControlPropertyImage, OPP_UI_ViewerId));
+            }
+        }
+        BankValueSetFromFixed(output, section, key + "Remaining", TimerGetRemaining(OPP_UI_Timer[row]));
+    }
+    for (offset = 0; offset < OPP_UI_Count; offset += 1) {
+        slot = (OPP_UI_Head + offset) % OPP_UI_CAPACITY;
+        key = "Queue" + IntToString(offset);
+        BankValueSetFromString(output, section, key + "Key", OPP_UI_QueueKey[slot]);
+        BankValueSetFromInt(output, section, key + "Owner", OPP_UI_QueueOwner[slot]);
+        BankValueSetFromInt(output, section, key + "Kind", OPP_UI_QueueKind[slot]);
+        BankValueSetFromInt(output, section, key + "Count", OPP_UI_QueueCopies[slot]);
+    }
+    BankSave(output);
+}
+
+void OPP_PrismFixture_Instance (bank output, string section, unit child) {
+    int generation;
+    int provider;
+    int count;
+    string key;
+    string edge;
+    string source;
+    string prefix;
+    unit subject;
+    generation = OPP_WarpFind(child);
+    BankValueSetFromInt(output, section, "Generation", generation);
+    if (generation <= 0) { return; }
+    key = OPP_WarpKey(generation);
+    BankValueSetFromInt(output, section, "Tag", DataTableGetInt(true, key + "Tag"));
+    BankValueSetFromInt(output, section, "Owner", DataTableGetInt(true, key + "Owner"));
+    BankValueSetFromString(output, section, "Type", DataTableGetString(true, key + "Type"));
+    BankValueSetFromFlag(output, section, "Cancelled", DataTableGetBool(true, key + "Cancelled"));
+    BankValueSetFromFlag(output, section, "Direct", DataTableGetBool(true, key + "Order"));
+    BankValueSetFromFlag(output, section, "Decided", DataTableGetBool(true, key + "Decided"));
+    BankValueSetFromFlag(output, section, "Sent", DataTableGetBool(true, key + "Sent"));
+    BankValueSetFromFixed(output, section, "End", DataTableGetFixed(true, key + "End"));
+    BankValueSetFromFixed(output, section, "OrderTime", DataTableGetFixed(true, key + "OrderTime"));
+    provider = DataTableGetInt(true, key + "Providers");
+    count = 0;
+    while (provider > 0) {
+        edge = OPP_WarpEdge(generation, provider);
+        source = OPP_PowerKey(provider);
+        subject = DataTableGetUnit(true, source + "Unit");
+        prefix = "Provider" + IntToString(count);
+        BankValueSetFromInt(output, section, prefix + "Generation", provider);
+        BankValueSetFromInt(output, section, prefix + "Tag", DataTableGetInt(true, edge + "SourceTag"));
+        BankValueSetFromFlag(output, section, prefix + "Alive", subject != null && UnitIsValid(subject) && UnitIsAlive(subject));
+        BankValueSetFromFlag(output, section, prefix + "Current", DataTableGetBool(true, edge + "Current"));
+        BankValueSetFromFlag(output, section, prefix + "Lost", DataTableGetBool(true, edge + "Lost"));
+        BankValueSetFromFixed(output, section, prefix + "LostTime", DataTableGetFixed(true, edge + "LostTime"));
+        BankValueSetFromFlag(output, section, prefix + "Death", DataTableGetBool(true, edge + "Death"));
+        BankValueSetFromFixed(output, section, prefix + "DeathTime", DataTableGetFixed(true, edge + "DeathTime"));
+        BankValueSetFromFlag(output, section, prefix + "CloseOrder", DataTableGetBool(true, edge + "CloseOrder"));
+        BankValueSetFromFlag(output, section, prefix + "CloseExecute", DataTableGetBool(true, edge + "CloseExecute"));
+        BankValueSetFromFixed(output, section, prefix + "CloseOrderTime", DataTableGetFixed(true, edge + "CloseOrderTime"));
+        BankValueSetFromFixed(output, section, prefix + "CloseExecuteTime", DataTableGetFixed(true, edge + "CloseExecuteTime"));
+        provider = DataTableGetInt(true, edge + "Next");
+        count += 1;
+    }
+    BankValueSetFromInt(output, section, "Providers", count);
+    BankSave(output);
+}
+
+void OPP_PrismFixture_BlockRows () {
+    int row;
+    for (row = 0; row < 3; row += 1) {
+        OPP_UI_PushTyped(1, StringToText("Fixture blocker"), "Assets\\Textures\\btn-command-cancel.dds", OPP_KIND_BUILDING, "PrismBlock" + IntToString(row));
+    }
+}
+
+void OPP_PrismFixture_Drain () {
+    int row;
+    for (row = 0; row < 3; row += 1) {
+        TimerPause(OPP_UI_Timer[row], true);
+        OPP_UI_Busy[row] = false;
+        DialogControlSetVisible(OPP_UI_Panel[row], OPP_UI_Viewers, false);
+    }
+    OPP_UI_Drain();
+}
+
+void OPP_PrismFixture_FullQueue () {
+    int group;
+    OPP_PrismFixture_ClearUI();
+    for (group = 0; group < 130; group += 1) {
+        OPP_UI_PushTyped(1, StringToText("Fixture blocker"), "Assets\\Textures\\btn-command-cancel.dds", OPP_KIND_BUILDING, "PrismBlock" + IntToString(group));
+        if (group % 8 == 7) { Wait(0.0625, c_timeGame); }
+    }
+    OPP_UI_PushTyped(1, UnitTypeGetName("Zealot"), CatalogFieldValueGet(c_gameCatalogActor, "Zealot", "UnitIcon", 1), OPP_KIND_UNIT, "Zealot");
+}
+
+void OPP_PrismFixture_DrainQueue () {
+    int row;
+    int batch;
+    bool found;
+    batch = 0;
+    found = false;
+    while (!found && OPP_UI_Count > 0) {
+        for (row = 0; row < OPP_UI_ROWS; row += 1) {
+            if (OPP_UI_Busy[row] && OPP_UI_RowKey[row] == "Zealot") { found = true; }
+            else {
+                TimerPause(OPP_UI_Timer[row], true);
+                OPP_UI_Busy[row] = false;
+                DialogControlSetVisible(OPP_UI_Panel[row], OPP_UI_Viewers, false);
+            }
+        }
+        if (!found) { OPP_UI_Drain(); }
+        batch += 1;
+        if (batch % 8 == 0) { Wait(0.0625, c_timeGame); }
+    }
+    for (row = 0; row < OPP_UI_ROWS; row += 1) {
+        if (OPP_UI_RowKey[row] != "Zealot") {
+            TimerPause(OPP_UI_Timer[row], true);
+            OPP_UI_Busy[row] = false;
+            DialogControlSetVisible(OPP_UI_Panel[row], OPP_UI_Viewers, false);
+        }
+    }
+}

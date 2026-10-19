@@ -1,0 +1,189 @@
+// Baseline-only: test the earliest observable explicit Cancel window after real Execute.
+bank OPP_Window_Bank;
+string OPP_Window_Case;
+string OPP_Window_Ability;
+unit OPP_Window_Subject;
+unitgroup OPP_Window_Created;
+bool OPP_Window_Collect = false;
+bool OPP_Window_CancelEnabled = false;
+bool OPP_Window_Attempted = false;
+int OPP_Window_Sequence = 0;
+int OPP_Window_Executes = 0;
+int OPP_Window_Completes = 0;
+int OPP_Window_Cancels = 0;
+int OPP_Window_Orders = 0;
+
+void OPP_Window_Record (string label, unit subject, abilcmd command, int stage) {
+    string section;
+    string ability;
+    int cmd;
+    if (!OPP_Window_Collect) { return; }
+    section = "Event" + IntToString(OPP_Window_Sequence);
+    OPP_Window_Sequence += 1;
+    ability = "";
+    cmd = -1;
+    if (command != null) { ability = AbilityCommandGetAbility(command); cmd = AbilityCommandGetCommand(command); }
+    BankValueSetFromString(OPP_Window_Bank, section, "Case", OPP_Window_Case);
+    BankValueSetFromString(OPP_Window_Bank, section, "Label", label);
+    BankValueSetFromString(OPP_Window_Bank, section, "Ability", ability);
+    BankValueSetFromInt(OPP_Window_Bank, section, "Command", cmd);
+    BankValueSetFromInt(OPP_Window_Bank, section, "Stage", stage);
+    BankValueSetFromInt(OPP_Window_Bank, section, "Tag", UnitGetTag(subject));
+    BankValueSetFromString(OPP_Window_Bank, section, "Type", UnitGetType(subject));
+    BankValueSetFromFlag(OPP_Window_Bank, section, "Alive", UnitIsAlive(subject));
+    BankValueSetFromFixed(OPP_Window_Bank, section, "Time", GameGetMissionTime());
+    if (ability == OPP_Window_Ability && label == "Ability" && cmd == c_abilMorphCmdExecute) {
+        if (stage == c_unitAbilStageExecute) { OPP_Window_Executes += 1; }
+        if (stage == c_unitAbilStageComplete) { OPP_Window_Completes += 1; }
+        if (stage == c_unitAbilStageCancel) { OPP_Window_Cancels += 1; }
+    }
+    if (ability == OPP_Window_Ability && label == "Order" && cmd == c_abilMorphCmdCancel) { OPP_Window_Orders += 1; }
+}
+void OPP_Window_State (string label) {
+    bool exists;
+    if (OPP_Window_Subject == null) { return; }
+    BankValueSetFromFixed(OPP_Window_Bank, OPP_Window_Case, label + "Time", GameGetMissionTime());
+    BankValueSetFromString(OPP_Window_Bank, OPP_Window_Case, label + "Type", UnitGetType(OPP_Window_Subject));
+    BankValueSetFromInt(OPP_Window_Bank, OPP_Window_Case, label + "Tag", UnitGetTag(OPP_Window_Subject));
+    BankValueSetFromFlag(OPP_Window_Bank, OPP_Window_Case, label + "Alive", UnitIsAlive(OPP_Window_Subject));
+    if (!UnitIsAlive(OPP_Window_Subject)) { return; }
+    exists = UnitAbilityExists(OPP_Window_Subject, OPP_Window_Ability);
+    BankValueSetFromFlag(OPP_Window_Bank, OPP_Window_Case, label + "Exists", exists);
+    BankValueSetFromFlag(OPP_Window_Bank, OPP_Window_Case, label + "Enabled", UnitAbilityCheck(OPP_Window_Subject, OPP_Window_Ability, true));
+    BankValueSetFromInt(OPP_Window_Bank, OPP_Window_Case, label + "Power", PowerLevel(1, UnitGetPosition(OPP_Window_Subject), "PowerSource"));
+    if (exists) {
+        BankValueSetFromFlag(OPP_Window_Bank, OPP_Window_Case, label + "CancelHidden", UnitCheckAbilCmdState(OPP_Window_Subject, AbilityCommand(OPP_Window_Ability, c_abilMorphCmdCancel), c_cmdStateHidden));
+        BankValueSetFromFlag(OPP_Window_Bank, OPP_Window_Case, label + "CancelDisabled", UnitCheckAbilCmdState(OPP_Window_Subject, AbilityCommand(OPP_Window_Ability, c_abilMorphCmdCancel), c_cmdStateDisabled));
+    }
+}
+bool OPP_Window_AbilityEvent (bool testConds, bool runActions) {
+    abilcmd cmd;
+    bool accepted;
+    if (!runActions || !OPP_Window_Collect || EventUnit() != OPP_Window_Subject) { return true; }
+    cmd = EventUnitAbility();
+    OPP_Window_Record("Ability", EventUnit(), cmd, EventUnitAbilityStage());
+    if (AbilityCommandGetAbility(cmd) == OPP_Window_Ability && AbilityCommandGetCommand(cmd) == c_abilMorphCmdExecute && EventUnitAbilityStage() == c_unitAbilStageExecute && !OPP_Window_Attempted) {
+        OPP_Window_Attempted = true;
+        BankValueSetFromFlag(OPP_Window_Bank, OPP_Window_Case, "ExecuteWindowObserved", true);
+        OPP_Window_State("AtExecute");
+        BankValueSetFromFlag(OPP_Window_Bank, OPP_Window_Case, "CancelAttempted", OPP_Window_CancelEnabled);
+        if (OPP_Window_CancelEnabled && UnitIsAlive(OPP_Window_Subject)) {
+            accepted = UnitIssueOrder(OPP_Window_Subject, Order(AbilityCommand(OPP_Window_Ability, c_abilMorphCmdCancel)), c_orderQueueReplace);
+            BankValueSetFromFlag(OPP_Window_Bank, OPP_Window_Case, "CallbackCancelAccepted", accepted);
+        }
+    }
+    return true;
+}
+bool OPP_Window_OrderEvent (bool testConds, bool runActions) {
+    if (runActions && OPP_Window_Collect && EventUnit() == OPP_Window_Subject) { OPP_Window_Record("Order", EventUnit(), OrderGetAbilityCommand(EventUnitOrder()), 0); }
+    return true;
+}
+bool OPP_Window_CreatedEvent (bool testConds, bool runActions) {
+    if (runActions && OPP_Window_Collect) {
+        UnitGroupAdd(OPP_Window_Created, EventUnitCreatedUnit());
+        OPP_Window_Record("Created", EventUnitCreatedUnit(), null, 0);
+    }
+    return true;
+}
+bool OPP_Window_DiedEvent (bool testConds, bool runActions) {
+    if (runActions && OPP_Window_Collect && UnitGroupHasUnit(OPP_Window_Created, EventUnit())) { OPP_Window_Record("Died", EventUnit(), null, 0); }
+    return true;
+}
+
+void OPP_Window_Attempt (string label, string source, string ability, bool cancel) {
+    unitgroup created;
+    unit cleanup;
+    string race;
+    fixed elapsed;
+    bool accepted;
+    OPP_Window_Case = label;
+    OPP_Window_Ability = ability;
+    OPP_Window_CancelEnabled = cancel;
+    OPP_Window_Attempted = false;
+    OPP_Window_Executes = 0;
+    OPP_Window_Completes = 0;
+    OPP_Window_Cancels = 0;
+    OPP_Window_Orders = 0;
+    OPP_Window_Subject = null;
+    OPP_Window_Created = UnitGroupEmpty();
+    BankValueSetFromString(OPP_Window_Bank, label, "Source", source);
+    BankValueSetFromString(OPP_Window_Bank, label, "Ability", ability);
+    BankValueSetFromFlag(OPP_Window_Bank, label, "RequestedCancel", cancel);
+    BankValueSetFromString(OPP_Window_Bank, label, "Interruptible", CatalogFieldValueGet(c_gameCatalogAbil, ability, "Flags[Interruptible]", 1));
+    BankValueSetFromString(OPP_Window_Bank, label, "CancelFace", CatalogFieldValueGet(c_gameCatalogAbil, ability, "CmdButtonArray[Cancel].DefaultButtonFace", 1));
+    race = CatalogFieldValueGet(c_gameCatalogUnit, source, "Race", 1);
+    if (race == "Zerg" || race == "Terr" || race == "Prot") { PlayerSetRace(1, race); }
+    CreepModify(Point(65.0, 65.0), 18.0, race == "Zerg", true);
+    OPP_Window_Collect = true;
+    created = UnitCreate(1, source, c_unitCreateIgnorePlacement, 1, Point(65.0, 65.0), 270.0);
+    if (UnitGroupCount(created, c_unitCountAll) > 0) { OPP_Window_Subject = UnitGroupUnit(created, 1); }
+    OPP_Window_State("Created");
+    Wait(0.125, c_timeGame);
+    OPP_Window_State("Before");
+    accepted = false;
+    if (OPP_Window_Subject != null && UnitIsAlive(OPP_Window_Subject)) {
+        accepted = UnitIssueOrder(OPP_Window_Subject, Order(AbilityCommand(ability, c_abilMorphCmdExecute)), c_orderQueueReplace);
+    }
+    BankValueSetFromFlag(OPP_Window_Bank, label, "StartAccepted", accepted);
+    elapsed = 0.0;
+    while (elapsed < 15.0 && OPP_Window_Completes == 0 && OPP_Window_Cancels == 0) {
+        Wait(0.125, c_timeGame);
+        elapsed += 0.125;
+    }
+    Wait(0.25, c_timeGame);
+    OPP_Window_State("Settled");
+    BankValueSetFromInt(OPP_Window_Bank, label, "ExecuteEvents", OPP_Window_Executes);
+    BankValueSetFromInt(OPP_Window_Bank, label, "CompleteEvents", OPP_Window_Completes);
+    BankValueSetFromInt(OPP_Window_Bank, label, "CancelEvents", OPP_Window_Cancels);
+    BankValueSetFromInt(OPP_Window_Bank, label, "CancelOrderEvents", OPP_Window_Orders);
+    BankSave(OPP_Window_Bank);
+    OPP_Window_Collect = false;
+    while (UnitGroupCount(OPP_Window_Created, c_unitCountAll) > 0) {
+        cleanup = UnitGroupUnit(OPP_Window_Created, 1);
+        UnitGroupRemove(OPP_Window_Created, cleanup);
+        UnitRemove(cleanup);
+    }
+}
+
+bool OPP_Test_Run (bool testConds, bool runActions) {
+    trigger probe;
+    if (!runActions) { return true; }
+    OPP_Window_Bank = BankLoad("OPPBuildingCancelTest", 1);
+    BankValueSetFromString(OPP_Window_Bank, "Probe", "Fixture", "morph-cancel-window");
+    probe = TriggerCreate("OPP_Window_AbilityEvent");
+    TriggerAddEventUnitAbility(probe, null, null, c_unitAbilStageAll, false);
+    probe = TriggerCreate("OPP_Window_OrderEvent");
+    TriggerAddEventUnitOrder(probe, null, null);
+    probe = TriggerCreate("OPP_Window_CreatedEvent");
+    TriggerAddEventUnitCreated(probe, null, null, null);
+    probe = TriggerCreate("OPP_Window_DiedEvent");
+    TriggerAddEventUnitDied(probe, null);
+    UnitCreate(1, "CommandCenter", 0, 1, Point(25.0, 25.0), 270.0);
+    UnitCreate(1, "Nexus", 0, 2, Point(105.0, 105.0), 270.0);
+    UnitCreate(1, "Pylon", 0, 1, Point(65.0, 61.0), 270.0);
+    UnitSetState(UnitLastCreated(), c_unitStateInvulnerable, true);
+    TechTreeRequirementsEnable(1, false);
+    TechTreeRestrictionsEnable(1, false);
+    PlayerModifyPropertyInt(1, c_playerPropMinerals, c_playerPropOperSetTo, 100000);
+    PlayerModifyPropertyInt(1, c_playerPropVespene, c_playerPropOperSetTo, 100000);
+    PlayerModifyPropertyInt(1, c_playerPropSuppliesMade, c_playerPropOperSetTo, 200);
+    Wait(8.0, c_timeGame);
+    OPP_Window_Attempt("PositiveLair", "Hatchery", "UpgradeToLair", true);
+    OPP_Window_Attempt("PositiveRavager", "Roach", "MorphToRavager", true);
+    OPP_Window_Attempt("BanelingBurrow", "Baneling", "BurrowBanelingDown", true);
+    OPP_Window_Attempt("DroneBurrow", "Drone", "BurrowDroneDown", true);
+    OPP_Window_Attempt("HydraliskBurrow", "Hydralisk", "BurrowHydraliskDown", true);
+    OPP_Window_Attempt("QueenBurrow", "Queen", "BurrowQueenDown", true);
+    OPP_Window_Attempt("RavagerBurrow", "Ravager", "BurrowRavagerDown", true);
+    OPP_Window_Attempt("WidowMineBurrow", "WidowMine", "WidowMineBurrow", true);
+    OPP_Window_Attempt("SwarmHostBurrow", "SwarmHostMP", "MorphToSwarmHostBurrowedMP", true);
+    OPP_Window_Attempt("DefilerBurrow", "DefilerMP", "DefilerMPBurrow", true);
+    OPP_Window_Attempt("NaturalComplete", "Thor", "ThorAPMode", false);
+    BankValueSetFromInt(OPP_Window_Bank, "Finished", "Events", OPP_Window_Sequence);
+    BankValueSetFromFixed(OPP_Window_Bank, "Finished", "Time", GameGetMissionTime());
+    BankValueSetFromFlag(OPP_Window_Bank, "Finished", "Done", true);
+    BankSave(OPP_Window_Bank);
+    Wait(2.0, c_timeGame);
+    GameOver(1, c_gameOverDefeat, true, false);
+    return true;
+}

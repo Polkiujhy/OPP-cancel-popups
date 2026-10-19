@@ -1,0 +1,113 @@
+// Native production-panel clicks, not synthetic CancelSlot target encoding.
+include "LibGHLo_h"
+bank OPP_Test_Bank;
+int OPP_Test_Event = 0;
+
+void OPP_Test_Record (string section, unit facility) {
+    int row;
+    int control;
+    int slot;
+    int running;
+    string key;
+    BankValueSetFromFixed(OPP_Test_Bank, section, "Time", GameGetMissionTime());
+    BankValueSetFromInt(OPP_Test_Bank, section, "Used", UnitQueueGetProperty(facility, c_unitQueuePropertyUsed));
+    if (UnitQueueItemCount(facility, 1) > 0) {
+        BankValueSetFromString(OPP_Test_Bank, section, "First", UnitQueueItemGet(facility, 1, 1));
+    }
+    BankValueSetFromInt(OPP_Test_Bank, section, "UnitCancels", DataTableGetInt(true, "OPPCancelPopups/UnitCancels"));
+    BankValueSetFromInt(OPP_Test_Bank, section, "ResearchOwn", DataTableGetInt(true, "OPPCancelPopups/ResearchOwn"));
+    running = 0;
+    for (slot = 0; slot <= libGHLo_gv_upgradeNotifications.lv_slotLastUsed && slot < 101; slot += 1) {
+        if (libGHLo_gv_upgradeNotifications.lv_slotFacility[slot] == facility && (slot > 50 || libGHLo_gv_upgradeNotifications.lv_slotStatus[slot] < 2)) { running += 1; }
+    }
+    BankValueSetFromInt(OPP_Test_Bank, section, "GameHeartRunning", running);
+    BankValueSetFromFlag(OPP_Test_Bank, section, "GameHeartActive", libGHLo_gv_upgradeNotifications.lv_active);
+    for (row = 0; row < 3; row += 1) {
+        key = "Row" + IntToString(row);
+        control = DataTableGetInt(true, "OPPCancelPopups/Panel" + IntToString(row));
+        BankValueSetFromFlag(OPP_Test_Bank, section, key + "ObserverVisible", DialogControlIsVisible(control, 14));
+        BankValueSetFromFlag(OPP_Test_Bank, section, key + "Player1Visible", DialogControlIsVisible(control, 1));
+        BankValueSetFromFlag(OPP_Test_Bank, section, key + "Player2Visible", DialogControlIsVisible(control, 2));
+        if (DialogControlIsVisible(control, 14)) {
+            control = DataTableGetInt(true, "OPPCancelPopups/Name" + IntToString(row));
+            BankValueSetFromText(OPP_Test_Bank, section, key + "Name", DialogControlGetPropertyAsText(control, c_triggerControlPropertyText, 14));
+            control = DataTableGetInt(true, "OPPCancelPopups/Status" + IntToString(row));
+            BankValueSetFromText(OPP_Test_Bank, section, key + "Status", DialogControlGetPropertyAsText(control, c_triggerControlPropertyText, 14));
+        }
+    }
+    BankSave(OPP_Test_Bank);
+}
+
+bool OPP_Test_Order (bool testConds, bool runActions) {
+    string section;
+    abilcmd command;
+    if (!runActions) { return true; }
+    command = OrderGetAbilityCommand(EventUnitOrder());
+    if (AbilityClass(AbilityCommandGetAbility(command)) != c_classIdCAbilQueue) { return true; }
+    OPP_Test_Event += 1;
+    section = "QueueOrder" + IntToString(OPP_Test_Event);
+    BankValueSetFromString(OPP_Test_Bank, section, "Ability", AbilityCommandGetAbility(command));
+    BankValueSetFromInt(OPP_Test_Bank, section, "Command", AbilityCommandGetCommand(command));
+    BankValueSetFromInt(OPP_Test_Bank, section, "TargetType", OrderGetTargetType(EventUnitOrder()));
+    OPP_Test_Record(section, EventUnit());
+    return true;
+}
+
+bool OPP_Test_Run (bool testConds, bool runActions) {
+    unit research;
+    unit center;
+    trigger probe;
+    int attempt;
+    int i;
+    if (!runActions) { return true; }
+    OPP_Test_Bank = BankLoad("OPPBuildingCancelTest", 1);
+    probe = TriggerCreate("OPP_Test_Order");
+    TriggerAddEventUnitOrder(probe, null, null);
+    UnitCreate(1, "CommandCenter", 0, 1, Point(25.0, 25.0), 270.0);
+    center = UnitLastCreated();
+    UnitCreate(1, "Nexus", 0, 2, Point(105.0, 105.0), 270.0);
+    UnitCreate(1, "EngineeringBay", 0, 1, Point(40.0, 40.0), 270.0);
+    research = UnitLastCreated();
+    PlayerModifyPropertyInt(1, c_playerPropMinerals, c_playerPropOperSetTo, 5000);
+    PlayerModifyPropertyInt(1, c_playerPropVespene, c_playerPropOperSetTo, 5000);
+    // Leave enough time for an actual UI click in this fixture. This catalog
+    // change is local to the test map, never part of the production mod.
+    BankValueSetFromFlag(OPP_Test_Bank, "Orders", "SlowTrainSet", CatalogFieldValueSet(c_gameCatalogAbil, "CommandCenterTrain", "InfoArray[0].Time", 1, "120"));
+    Wait(8.0, c_timeGame);
+    UnitIssueOrder(research, Order(AbilityCommand("EngineeringBayResearch", c_abilResearchCmdResearch3)), c_orderQueueAddToEnd);
+    UnitIssueOrder(research, Order(AbilityCommand("EngineeringBayResearch", c_abilResearchCmdResearch7)), c_orderQueueAddToEnd);
+    UnitIssueOrder(research, Order(AbilityCommand("EngineeringBayResearch", c_abilResearchCmdResearch2)), c_orderQueueAddToEnd);
+    Wait(0.5, c_timeGame);
+    UnitSelect(research, 1, true);
+    OPP_Test_Record("ResearchClickReady", research);
+    attempt = 0;
+    while (UnitQueueGetProperty(research, c_unitQueuePropertyUsed) == 3 && attempt < 480) {
+        Wait(0.25, c_timeGame);
+        attempt += 1;
+    }
+    Wait(0.25, c_timeGame);
+    OPP_Test_Record("ResearchClicked", research);
+    UnitSelect(research, 1, false);
+    for (i = 0; i < 5; i += 1) {
+        UnitIssueOrder(center, Order(AbilityCommand("CommandCenterTrain", c_abilTrainCmdTrain1)), c_orderQueueAddToEnd);
+    }
+    Wait(0.25, c_timeGame);
+    UnitSelect(center, 1, true);
+    OPP_Test_Record("UnitClickReady", center);
+    attempt = 0;
+    while (UnitQueueGetProperty(center, c_unitQueuePropertyUsed) == 5 && attempt < 480) {
+        Wait(0.25, c_timeGame);
+        attempt += 1;
+    }
+    Wait(0.25, c_timeGame);
+    OPP_Test_Record("UnitClicked", center);
+    for (i = 0; i < 4; i += 1) {
+        UnitIssueOrder(center, Order(AbilityCommand("que5CancelToSelection", c_abilQueueCmdCancelLast)), c_orderQueueReplace);
+    }
+    Wait(0.25, c_timeGame);
+    OPP_Test_Record("AllFiveCancelled", center);
+    Wait(6.0, c_timeGame);
+    OPP_Test_Record("Expired", center);
+    GameOver(1, c_gameOverDefeat, true, false);
+    return true;
+}

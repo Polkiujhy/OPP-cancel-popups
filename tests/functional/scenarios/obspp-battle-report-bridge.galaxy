@@ -1,0 +1,29 @@
+// Read-only, fixture-only access to the actual loaded BattleReport arrays.
+void OPP_BRFixture_Snapshot (bank output, string section) {
+    int slot;
+    int index;
+    string key;
+    string prefix;
+    BankValueSetFromFixed(output, section, "Time", GameGetMissionTime());
+    BankValueSetFromFlag(output, section, "BattleActive", lib7805B319_gf_fightStarted());
+    BankValueSetFromFlag(output, section, "TrackEnabled", TriggerIsEnabled(lib7805B319_gt_TrackUnitKills));
+    BankValueSetFromInt(output, section, "Units", DataTableGetInt(true, "OPPCancelPopups/UnitCancels"));
+    BankValueSetFromInt(output, section, "Warps", DataTableGetInt(true, "OPPCancelPopups/WarpCancels"));
+    BankValueSetFromInt(output, section, "Prisms", DataTableGetInt(true, "OPPCancelPopups/PrismCancels"));
+    BankValueSetFromInt(output, section, "Buildings", DataTableGetInt(true, "OPPCancelPopups/BuildingCancels"));
+    BankValueSetFromInt(output, section, "Morphs", DataTableGetInt(true, "OPPCancelPopups/MorphCancels"));
+    for (slot = 0; slot < 2; slot += 1) {
+        prefix = "Slot" + IntToString(slot);
+        BankValueSetFromInt(output, section, prefix + "Units", lib7805B319_gv_battleReport.lv_playerBattleStats[slot].lv_totalUnitsLost);
+        BankValueSetFromInt(output, section, prefix + "Minerals", lib7805B319_gv_battleReport.lv_playerBattleStats[slot].lv_mineralsLost);
+        BankValueSetFromInt(output, section, prefix + "Gas", lib7805B319_gv_battleReport.lv_playerBattleStats[slot].lv_gasLost);
+        BankValueSetFromFixed(output, section, prefix + "Supply", lib7805B319_gv_battleReport.lv_playerBattleStats[slot].lv_suppliesLost);
+        BankValueSetFromInt(output, section, prefix + "Types", lib7805B319_gv_battleReport.lv_playerBattleStats[slot].lv_lostUnitTypeCount);
+        for (index = 0; index < lib7805B319_gv_battleReport.lv_playerBattleStats[slot].lv_lostUnitTypeCount && index < 16; index += 1) {
+            key = prefix + "Type" + IntToString(index);
+            BankValueSetFromString(output, section, key, lib7805B319_gv_battleReport.lv_playerBattleStats[slot].lv_lostUnitTypes[index]);
+            BankValueSetFromInt(output, section, key + "Count", lib7805B319_gv_battleReport.lv_playerBattleStats[slot].lv_lostUnitTypeCounts[index]);
+        }
+    }
+    BankSave(output);
+}

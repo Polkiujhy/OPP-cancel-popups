@@ -1,0 +1,145 @@
+// Appended only to the uniquely named private test dependency, never production.
+void OPP_MorphFixture_Snapshot (bank output, string section, string target) {
+    int row;
+    int offset;
+    int slot;
+    int copies;
+    bool validPanel;
+    bool visible;
+    string key;
+    BankValueSetFromFixed(output, section, "Time", GameGetMissionTime());
+    BankValueSetFromInt(output, section, "Init", DataTableGetInt(true, "OPPCancelPopups/InitializationCount"));
+    BankValueSetFromFlag(output, section, "UIReady", OPP_UI_Ready);
+    BankValueSetFromInt(output, section, "Morphs", DataTableGetInt(true, "OPPCancelPopups/MorphCancels"));
+    BankValueSetFromInt(output, section, "Buildings", DataTableGetInt(true, "OPPCancelPopups/BuildingCancels"));
+    BankValueSetFromInt(output, section, "Units", DataTableGetInt(true, "OPPCancelPopups/UnitCancels"));
+    BankValueSetFromInt(output, section, "ResolverErrors", DataTableGetInt(true, "OPPCancelPopups/MorphResolverErrors"));
+    BankValueSetFromString(output, section, "ResolverAbility", DataTableGetString(true, "OPPCancelPopups/MorphResolverAbility"));
+    BankValueSetFromString(output, section, "ResolverStages", DataTableGetString(true, "OPPCancelPopups/MorphResolverStages"));
+    BankValueSetFromInt(output, section, "Records", OPP_MorphLiveRecords);
+    BankValueSetFromInt(output, section, "PeakRecords", DataTableGetInt(true, "OPPCancelPopups/MorphPeakRecords"));
+    BankValueSetFromInt(output, section, "PendingGroups", OPP_UI_Count);
+    for (row = 0; row < OPP_UI_ROWS; row += 1) {
+        key = "Row" + IntToString(row);
+        validPanel = OPP_UI_Panel[row] != c_invalidDialogControlId;
+        visible = validPanel && DialogControlIsVisible(OPP_UI_Panel[row], OPP_UI_ViewerId);
+        BankValueSetFromFlag(output, section, key + "Visible", visible);
+        BankValueSetFromFlag(output, section, key + "Player1", validPanel && DialogControlIsVisible(OPP_UI_Panel[row], 1));
+        BankValueSetFromFlag(output, section, key + "Player2", validPanel && DialogControlIsVisible(OPP_UI_Panel[row], 2));
+        BankValueSetFromString(output, section, key + "Key", OPP_UI_RowKey[row]);
+        BankValueSetFromInt(output, section, key + "Kind", OPP_UI_RowKind[row]);
+        BankValueSetFromInt(output, section, key + "Owner", OPP_UI_RowOwner[row]);
+        BankValueSetFromInt(output, section, key + "Count", OPP_UI_RowCount[row]);
+        BankValueSetFromFixed(output, section, key + "Remaining", TimerGetRemaining(OPP_UI_Timer[row]));
+        // Hidden rows may never have received text/image properties from SC2.
+        BankValueSetFromText(output, section, key + "Name", StringToText(""));
+        BankValueSetFromText(output, section, key + "Status", StringToText(""));
+        BankValueSetFromString(output, section, key + "Icon", "");
+        if (OPP_UI_Ready && visible && OPP_UI_Busy[row] && OPP_UI_RowCount[row] > 0) {
+            if (OPP_UI_Name[row] != c_invalidDialogControlId) {
+                BankValueSetFromText(output, section, key + "Name", DialogControlGetPropertyAsText(OPP_UI_Name[row], c_triggerControlPropertyText, OPP_UI_ViewerId));
+            }
+            if (OPP_UI_Status[row] != c_invalidDialogControlId) {
+                BankValueSetFromText(output, section, key + "Status", DialogControlGetPropertyAsText(OPP_UI_Status[row], c_triggerControlPropertyText, OPP_UI_ViewerId));
+            }
+            if (OPP_UI_Icon[row] != c_invalidDialogControlId) {
+                BankValueSetFromString(output, section, key + "Icon", DialogControlGetPropertyAsString(OPP_UI_Icon[row], c_triggerControlPropertyImage, OPP_UI_ViewerId));
+            }
+        }
+    }
+    copies = 0;
+    for (offset = 0; offset < OPP_UI_Count; offset += 1) {
+        slot = (OPP_UI_Head + offset) % OPP_UI_CAPACITY;
+        if (target != "" && OPP_UI_QueueKey[slot] == target) {
+            copies += OPP_UI_QueueCopies[slot];
+            BankValueSetFromInt(output, section, "QueuedKind", OPP_UI_QueueKind[slot]);
+            BankValueSetFromInt(output, section, "QueuedOwner", OPP_UI_QueueOwner[slot]);
+            BankValueSetFromText(output, section, "QueuedName", OPP_UI_QueueName[slot]);
+            BankValueSetFromString(output, section, "QueuedIcon", OPP_UI_QueueIcon[slot]);
+        }
+    }
+    BankValueSetFromInt(output, section, "QueuedCopies", copies);
+    BankSave(output);
+}
+
+void OPP_MorphFixture_Resolve (bank output, string section, string ability, int owner) {
+    int stage;
+    int count;
+    BankValueSetFromString(output, section, "ResolvedTarget", OPP_MorphTarget(ability, owner));
+    count = CatalogFieldValueCount(c_gameCatalogAbil, ability, "InfoArray", owner);
+    BankValueSetFromInt(output, section, "StageCount", count);
+    for (stage = 0; stage < count; stage += 1) {
+        BankValueSetFromString(output, section, "Stage" + IntToString(stage), CatalogFieldValueGet(c_gameCatalogAbil, ability, "InfoArray[" + IntToString(stage) + "].Unit", owner));
+    }
+}
+
+void OPP_MorphFixture_ClearUI () {
+    int row;
+    int owner;
+    int kind;
+    for (row = 0; row < OPP_UI_ROWS; row += 1) {
+        TimerPause(OPP_UI_Timer[row], true);
+        OPP_UI_Busy[row] = false;
+        DialogControlSetVisible(OPP_UI_Panel[row], OPP_UI_Viewers, false);
+    }
+    OPP_UI_Count = 0;
+    OPP_UI_Head = 0;
+    for (owner = 0; owner < 17; owner += 1) {
+        for (kind = 0; kind < 3; kind += 1) { OPP_UI_Overflow[owner][kind] = 0; }
+    }
+}
+
+void OPP_MorphFixture_FullUI (string target, string icon, int kind) {
+    int group;
+    OPP_MorphFixture_ClearUI();
+    // Three visible + 127 waiting test groups + one genuine target group.
+    for (group = 0; group < 130; group += 1) {
+        OPP_UI_PushTyped(1, StringToText("Fixture blocker"), "Assets\\Textures\\btn-command-cancel.dds", OPP_KIND_UNIT, "FixtureBlock" + IntToString(group));
+        if (group % 8 == 7) { Wait(0.0625, c_timeGame); }
+    }
+    OPP_UI_PushTyped(1, UnitTypeGetName(target), icon, kind, target);
+}
+
+void OPP_MorphFixture_DrainBlockers (string target) {
+    int row;
+    int batch;
+    bool found;
+    found = false;
+    batch = 0;
+    // Fixture arrangement only: retire synthetic blockers without shortening
+    // the target group's real five-second timer or adding a cancellation.
+    while (!found && OPP_UI_Count > 0) {
+        for (row = 0; row < OPP_UI_ROWS; row += 1) {
+            if (OPP_UI_Busy[row] && OPP_UI_RowKey[row] == target) { found = true; }
+            else {
+                TimerPause(OPP_UI_Timer[row], true);
+                OPP_UI_Busy[row] = false;
+                DialogControlSetVisible(OPP_UI_Panel[row], OPP_UI_Viewers, false);
+            }
+        }
+        if (!found) { OPP_UI_Drain(); }
+        batch += 1;
+        if (batch % 8 == 0) { Wait(0.0625, c_timeGame); }
+    }
+    for (row = 0; row < OPP_UI_ROWS; row += 1) {
+        if (OPP_UI_RowKey[row] != target) {
+            TimerPause(OPP_UI_Timer[row], true);
+            OPP_UI_Busy[row] = false;
+            DialogControlSetVisible(OPP_UI_Panel[row], OPP_UI_Viewers, false);
+        }
+    }
+}
+
+void OPP_MorphFixture_Boundary (unit subject, string ability, bool engineFirst, bool restartBetween) {
+    // Synthetic component-boundary coverage only; it is never engine evidence.
+    OPP_MorphBegin(subject, ability);
+    if (engineFirst) { OPP_MorphEnd(subject, ability, true); }
+    else { OPP_MorphOrderSignal(subject, ability); }
+    if (restartBetween) { OPP_MorphBegin(subject, ability); }
+    if (engineFirst) { OPP_MorphOrderSignal(subject, ability); }
+    else { OPP_MorphEnd(subject, ability, true); }
+    if (restartBetween) { OPP_MorphEnd(subject, ability, false); }
+    // Redundant delivery without a new Execute is neutral.
+    OPP_MorphEnd(subject, ability, true);
+    OPP_MorphOrderSignal(subject, ability);
+}

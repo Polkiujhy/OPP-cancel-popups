@@ -1,0 +1,686 @@
+{
+  "baseline_sha256": "5b81a952e41bf81b2f20e392e2c87b837d2278a03ae8619522dcfc4ce2556ad3",
+  "scope": "40 positive source links; explicit acceptance oracle only, not a production whitelist",
+  "icons": [
+    {
+      "link": 6,
+      "source": "InfestorTerran",
+      "ability": "BurrowInfestorTerranDown",
+      "target": "InfestorTerranBurrowed",
+      "catalog": "Actor",
+      "entry": "InfestorTerran",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-infestedmarine.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "InfestorTerran",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 7,
+      "source": "BanelingCocoon",
+      "ability": "MorphToBaneling",
+      "target": "Baneling",
+      "catalog": "Actor",
+      "entry": "Baneling",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-baneling.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "Baneling",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 8,
+      "source": "Baneling",
+      "ability": "BurrowBanelingDown",
+      "target": "BanelingBurrowed",
+      "catalog": "Actor",
+      "entry": "Baneling",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-baneling.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "Baneling",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 10,
+      "source": "CommandCenter",
+      "ability": "UpgradeToPlanetaryFortress",
+      "target": "PlanetaryFortress",
+      "catalog": "Actor",
+      "entry": "PlanetaryFortress",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-building-terran-PlanetaryFortress.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "TerranBuildingEx",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 11,
+      "source": "CommandCenter",
+      "ability": "UpgradeToOrbital",
+      "target": "OrbitalCommand",
+      "catalog": "Actor",
+      "entry": "OrbitalCommand",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-building-terran-surveillancestation.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "OrbitalCommand",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 43,
+      "source": "Thor",
+      "ability": "ThorAPMode",
+      "target": "ThorAP",
+      "catalog": "Actor",
+      "entry": "Thor",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-terran-thor.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "Thor",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 46,
+      "source": "Gateway",
+      "ability": "UpgradeToWarpGate",
+      "target": "WarpGate",
+      "catalog": "Actor",
+      "entry": "WarpGate",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-building-protoss-WarpGate.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "ProtossBuildingEx",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 47,
+      "source": "Gateway",
+      "ability": "MorphBuildingGatewayWarpGateFree",
+      "target": "WarpGate",
+      "catalog": "Actor",
+      "entry": "WarpGate",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-building-protoss-WarpGate.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "ProtossBuildingEx",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 50,
+      "source": "Hatchery",
+      "ability": "UpgradeToLair",
+      "target": "Lair",
+      "catalog": "Actor",
+      "entry": "Lair",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-building-zerg-lair.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "Lair",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 52,
+      "source": "Spire",
+      "ability": "UpgradeToGreaterSpire",
+      "target": "GreaterSpire",
+      "catalog": "Actor",
+      "entry": "GreaterSpire",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-building-zerg-greaterspire.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "GreaterSpire",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 55,
+      "source": "Lair",
+      "ability": "UpgradeToHive",
+      "target": "Hive",
+      "catalog": "Actor",
+      "entry": "Hive",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-building-zerg-hive.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "Hive",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 56,
+      "source": "Drone",
+      "ability": "BurrowDroneDown",
+      "target": "DroneBurrowed",
+      "catalog": "Actor",
+      "entry": "DroneBurrowed",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-drone.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "DroneBurrowed",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 57,
+      "source": "Zergling",
+      "ability": "BurrowZerglingDown",
+      "target": "ZerglingBurrowed",
+      "catalog": "Actor",
+      "entry": "Zergling",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-zergling.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "Zergling",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 58,
+      "source": "Zergling",
+      "ability": "MorphToBaneling",
+      "target": "Baneling",
+      "catalog": "Actor",
+      "entry": "Baneling",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-baneling.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "Baneling",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 59,
+      "source": "Overlord",
+      "ability": "MorphToOverseer",
+      "target": "Overseer",
+      "catalog": "Actor",
+      "entry": "Overseer",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-overseer.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "Overseer",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 60,
+      "source": "Overlord",
+      "ability": "MorphToTransportOverlord",
+      "target": "OverlordTransport",
+      "catalog": "Actor",
+      "entry": "OverlordTransport",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-overlordtransport.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "OverlordTransport",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 61,
+      "source": "Hydralisk",
+      "ability": "BurrowHydraliskDown",
+      "target": "HydraliskBurrowed",
+      "catalog": "Actor",
+      "entry": "Hydralisk",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-hydralisk.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "Hydralisk",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 62,
+      "source": "Hydralisk",
+      "ability": "MorphToLurker",
+      "target": "LurkerMP",
+      "catalog": "Actor",
+      "entry": "LurkerMP",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-lurker.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "LurkerMP",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 65,
+      "source": "Roach",
+      "ability": "MorphToRavager",
+      "target": "Ravager",
+      "catalog": "Actor",
+      "entry": "Ravager",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-ravager.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "Ravager",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 67,
+      "source": "Corruptor",
+      "ability": "MorphToBroodLord",
+      "target": "BroodLord",
+      "catalog": "Actor",
+      "entry": "BroodLord",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-mantalisk.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "BroodLord",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 68,
+      "source": "BroodLordCocoon",
+      "ability": "MorphToBroodLord",
+      "target": "BroodLord",
+      "catalog": "Actor",
+      "entry": "BroodLord",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-mantalisk.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "BroodLord",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 80,
+      "source": "Queen",
+      "ability": "BurrowQueenDown",
+      "target": "QueenBurrowed",
+      "catalog": "Actor",
+      "entry": "Queen",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-queen.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "Queen",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 82,
+      "source": "OverlordCocoon",
+      "ability": "MorphToOverseer",
+      "target": "Overseer",
+      "catalog": "Actor",
+      "entry": "Overseer",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-overseer.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "Overseer",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 86,
+      "source": "WarpGate",
+      "ability": "MorphBackToGateway",
+      "target": "Gateway",
+      "catalog": "Actor",
+      "entry": "Gateway",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-building-protoss-Gateway.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "ProtossBuildingEx",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 90,
+      "source": "SpineCrawlerUprooted",
+      "ability": "SpineCrawlerRoot",
+      "target": "SpineCrawler",
+      "catalog": "Actor",
+      "entry": "SpineCrawler",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-building-zerg-spinecrawler.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "SpineCrawler",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 91,
+      "source": "SporeCrawlerUprooted",
+      "ability": "SporeCrawlerRoot",
+      "target": "SporeCrawler",
+      "catalog": "Actor",
+      "entry": "SporeCrawler",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-building-zerg-sporecrawler.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "SporeCrawler",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 94,
+      "source": "LurkerMPBurrowed",
+      "ability": "BurrowLurkerMPDown",
+      "target": "LurkerMPBurrowed",
+      "catalog": "Actor",
+      "entry": "LurkerMP",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-lurker.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "LurkerMP",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 95,
+      "source": "LurkerMP",
+      "ability": "BurrowLurkerMPDown",
+      "target": "LurkerMPBurrowed",
+      "catalog": "Actor",
+      "entry": "LurkerMP",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-lurker.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "LurkerMP",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 96,
+      "source": "LurkerMPEgg",
+      "ability": "MorphToLurker",
+      "target": "LurkerMP",
+      "catalog": "Actor",
+      "entry": "LurkerMP",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-lurker.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "LurkerMP",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 97,
+      "source": "OverlordTransport",
+      "ability": "MorphToOverseer",
+      "target": "Overseer",
+      "catalog": "Actor",
+      "entry": "Overseer",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-overseer.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "Overseer",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 98,
+      "source": "Ravager",
+      "ability": "BurrowRavagerDown",
+      "target": "RavagerBurrowed",
+      "catalog": "Actor",
+      "entry": "Ravager",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-ravager.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "Ravager",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 100,
+      "source": "RavagerCocoon",
+      "ability": "MorphToRavager",
+      "target": "Ravager",
+      "catalog": "Actor",
+      "entry": "Ravager",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-ravager.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "Ravager",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 101,
+      "source": "TransportOverlordCocoon",
+      "ability": "MorphToTransportOverlord",
+      "target": "OverlordTransport",
+      "catalog": "Actor",
+      "entry": "OverlordTransport",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-overlordtransport.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "OverlordTransport",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 107,
+      "source": "WidowMine",
+      "ability": "WidowMineBurrow",
+      "target": "WidowMineBurrowed",
+      "catalog": "Actor",
+      "entry": "WidowMine",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-terran-widowmine.dds",
+      "provenance": {
+        "file": "build/swarm-ActorData-editor-v83.xml",
+        "sha256": "b8ddedc83e159b62b08a2dbd5afe4b41fbce994e37d741181de2c9337ff1c1bf",
+        "declaring_entry": "WidowMine",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 109,
+      "source": "SwarmHostMP",
+      "ability": "MorphToSwarmHostBurrowedMP",
+      "target": "SwarmHostBurrowedMP",
+      "catalog": "Actor",
+      "entry": "SwarmHostMP",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-swarmhost.dds",
+      "provenance": {
+        "file": "build/swarm-ActorData-editor-v83.xml",
+        "sha256": "b8ddedc83e159b62b08a2dbd5afe4b41fbce994e37d741181de2c9337ff1c1bf",
+        "declaring_entry": "SwarmHostMP",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 110,
+      "source": "MothershipCore",
+      "ability": "MorphToMothership",
+      "target": "Mothership",
+      "catalog": "Actor",
+      "entry": "Mothership",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-protoss-mothership.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "Mothership",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 111,
+      "source": "ThorAP",
+      "ability": "ThorNormalMode",
+      "target": "Thor",
+      "catalog": "Actor",
+      "entry": "Thor",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-terran-thor.dds",
+      "provenance": {
+        "file": "build/liberty-ActorData-editor-v83.xml",
+        "sha256": "11c622a59686f3df71d53df1b357ad1b47f39dc2c5e32ca3dfad5e0fe1fc7de4",
+        "declaring_entry": "Thor",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 227,
+      "source": "GuardianCocoonMP",
+      "ability": "MorphToGuardianMP",
+      "target": "GuardianMP",
+      "catalog": "Actor",
+      "entry": "GuardianMP",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-primalguardian.dds",
+      "provenance": {
+        "file": "build/void-ActorData-editor-v83.xml",
+        "sha256": "9289ce4d9cea157b7a8c6af67f372b65878af070972ddc96796c5c500d3f36e7",
+        "declaring_entry": "GuardianMP",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 228,
+      "source": "DevourerCocoonMP",
+      "ability": "MorphToDevourerMP",
+      "target": "DevourerMP",
+      "catalog": "Button",
+      "entry": "MorphToDevourerMP",
+      "field": "Icon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-primalguardian.dds",
+      "provenance": {
+        "file": "build/void-ButtonData-editor-v83.xml",
+        "sha256": "2b48cddbe55196d7ec6a094698cd4be98a5ade5ecc9951bcf1c860b82f70c822",
+        "declaring_entry": "MorphToDevourerMP",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    },
+    {
+      "link": 230,
+      "source": "DefilerMP",
+      "ability": "DefilerMPBurrow",
+      "target": "DefilerMPBurrowed",
+      "catalog": "Actor",
+      "entry": "DefilerMP",
+      "field": "UnitIcon",
+      "expected_asset": "Assets\\Textures\\btn-unit-zerg-defilerex3.dds",
+      "provenance": {
+        "file": "build/void-ActorData-editor-v83.xml",
+        "sha256": "9289ce4d9cea157b7a8c6af67f372b65878af070972ddc96796c5c500d3f36e7",
+        "declaring_entry": "DefilerMP",
+        "source": "Galaxy Editor read-only Data XML copy, v83Compile dependency tab, 2026-10-19",
+        "binding": "Explicit reviewed acceptance reference, independent of production resolver"
+      }
+    }
+  ]
+}

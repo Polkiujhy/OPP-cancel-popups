@@ -1,0 +1,200 @@
+// Diagnostic only: select a real warp-in and wait for actual UI ESC input.
+// No cancellation order, engine signal or popup is injected by this fixture.
+bank OPP_PD_Bank;
+unit OPP_PD_Child;
+unit OPP_PD_Gate;
+unit OPP_PD_Prism;
+int OPP_PD_Events = 0;
+int OPP_PD_Cancels = 0;
+int OPP_PD_Completes = 0;
+
+void OPP_PD_Unit (string section, string prefix, unit subject) {
+    BankValueSetFromFlag(OPP_PD_Bank, section, prefix + "Present", subject != null);
+    if (subject == null) { return; }
+    BankValueSetFromInt(OPP_PD_Bank, section, prefix + "Tag", UnitGetTag(subject));
+    BankValueSetFromString(OPP_PD_Bank, section, prefix + "Type", UnitGetType(subject));
+    BankValueSetFromInt(OPP_PD_Bank, section, prefix + "Owner", UnitGetOwner(subject));
+    BankValueSetFromFlag(OPP_PD_Bank, section, prefix + "Alive", UnitIsValid(subject) && UnitIsAlive(subject));
+    BankValueSetFromFlag(OPP_PD_Bank, section, prefix + "Constructing", UnitIsValid(subject) && UnitTestState(subject, c_unitStateUnderConstruction));
+    BankValueSetFromFlag(OPP_PD_Bank, section, prefix + "Selected1", UnitIsSelected(subject, 1));
+}
+void OPP_PD_Event (string label, unit source, unit child, abilcmd command, int stage, string detail) {
+    string section;
+    OPP_PD_Events += 1;
+    section = "Event" + IntToString(OPP_PD_Events);
+    BankValueSetFromString(OPP_PD_Bank, section, "Label", label);
+    BankValueSetFromFixed(OPP_PD_Bank, section, "Time", GameGetMissionTime());
+    BankValueSetFromInt(OPP_PD_Bank, section, "Stage", stage);
+    BankValueSetFromString(OPP_PD_Bank, section, "Detail", detail);
+    OPP_PD_Unit(section, "Source", source);
+    OPP_PD_Unit(section, "Child", child);
+    if (command != null) {
+        BankValueSetFromString(OPP_PD_Bank, section, "Ability", AbilityCommandGetAbility(command));
+        BankValueSetFromInt(OPP_PD_Bank, section, "Command", AbilityCommandGetCommand(command));
+    }
+    BankValueSetFromInt(OPP_PD_Bank, "Progress", "Events", OPP_PD_Events);
+    BankSave(OPP_PD_Bank);
+}
+bool OPP_PD_Created (bool testConds, bool runActions) {
+    unit child;
+    string ability;
+    if (!runActions) { return true; }
+    child = EventUnitCreatedUnit(); ability = EventUnitCreatedAbil();
+    if (ability == "WarpGateTrain" && UnitGetType(child) == "Zealot") { OPP_PD_Child = child; }
+    OPP_PD_Event("Created", EventUnit(), child, null, 0, ability);
+    return true;
+}
+bool OPP_PD_Order (bool testConds, bool runActions) {
+    if (runActions) { OPP_PD_Event("Order", EventUnit(), null, OrderGetAbilityCommand(EventUnitOrder()), 0, ""); }
+    return true;
+}
+bool OPP_PD_Ability (bool testConds, bool runActions) {
+    if (runActions) { OPP_PD_Event("Ability", EventUnit(), null, EventUnitAbility(), EventUnitAbilityStage(), ""); }
+    return true;
+}
+bool OPP_PD_Cancel (bool testConds, bool runActions) {
+    if (!runActions) { return true; }
+    if (EventUnitProgressUnit() == OPP_PD_Child) { OPP_PD_Cancels += 1; }
+    OPP_PD_Event("ConstructCancel", EventUnit(), EventUnitProgressUnit(), null, c_unitProgressStageCancel, EventUnitProgressObjectType());
+    return true;
+}
+bool OPP_PD_Complete (bool testConds, bool runActions) {
+    if (!runActions) { return true; }
+    if (EventUnitProgressUnit() == OPP_PD_Child) { OPP_PD_Completes += 1; }
+    OPP_PD_Event("ConstructComplete", EventUnit(), EventUnitProgressUnit(), null, c_unitProgressStageComplete, EventUnitProgressObjectType());
+    return true;
+}
+bool OPP_PD_Died (bool testConds, bool runActions) {
+    if (runActions) { OPP_PD_Event("Died", EventUnit(), null, null, 0, UnitGetType(EventUnit())); }
+    return true;
+}
+void OPP_PD_Snapshot (string section) {
+    int slot;
+    int count;
+    string key;
+    BankValueSetFromFixed(OPP_PD_Bank, section, "Time", GameGetMissionTime());
+    BankValueSetFromInt(OPP_PD_Bank, section, "CancelEvents", OPP_PD_Cancels);
+    BankValueSetFromInt(OPP_PD_Bank, section, "CompleteEvents", OPP_PD_Completes);
+    OPP_PD_Unit(section, "Child", OPP_PD_Child);
+    OPP_PD_Unit(section, "Gate", OPP_PD_Gate);
+    OPP_PD_Unit(section, "Prism", OPP_PD_Prism);
+    BankValueSetFromInt(OPP_PD_Bank, section, "Units", DataTableGetInt(true, "OPPCancelPopups/UnitCancels"));
+    BankValueSetFromInt(OPP_PD_Bank, section, "Warps", DataTableGetInt(true, "OPPCancelPopups/WarpCancels"));
+    BankValueSetFromInt(OPP_PD_Bank, section, "Prisms", DataTableGetInt(true, "OPPCancelPopups/PrismCancels"));
+    BankValueSetFromFlag(OPP_PD_Bank, section, "ProducerQueueCancelExists", UnitAbilityExists(OPP_PD_Gate, "que5"));
+    if (UnitAbilityExists(OPP_PD_Gate, "que5")) {
+        BankValueSetFromFlag(OPP_PD_Bank, section, "ProducerQueueCancelHidden", UnitCheckAbilCmdState(OPP_PD_Gate, AbilityCommand("que5", c_abilQueueCmdCancelLast), c_cmdStateHidden));
+        BankValueSetFromFlag(OPP_PD_Bank, section, "ProducerQueueCancelDisabled", UnitCheckAbilCmdState(OPP_PD_Gate, AbilityCommand("que5", c_abilQueueCmdCancelLast), c_cmdStateDisabled));
+    }
+    BankValueSetFromInt(OPP_PD_Bank, section, "QueueUsed", UnitQueueGetProperty(OPP_PD_Gate, c_unitQueuePropertyUsed));
+    for (slot = 1; slot <= 5; slot += 1) {
+        key = "Queue" + IntToString(slot);
+        count = UnitQueueItemCount(OPP_PD_Gate, slot);
+        BankValueSetFromInt(OPP_PD_Bank, section, key + "Count", count);
+        if (count > 0) {
+            BankValueSetFromString(OPP_PD_Bank, section, key + "Object", UnitQueueItemGet(OPP_PD_Gate, slot, 1));
+            BankValueSetFromFlag(OPP_PD_Bank, section, key + "Train", UnitQueueItemTypeCheck(OPP_PD_Gate, slot, c_unitProgressTypeTrain));
+            BankValueSetFromFixed(OPP_PD_Bank, section, key + "Remaining", UnitQueueItemTime(OPP_PD_Gate, c_unitQueueTimeRemaining, slot));
+        }
+    }
+    if (OPP_PD_Child != null && UnitIsValid(OPP_PD_Child) && UnitIsAlive(OPP_PD_Child)) {
+        BankValueSetFromInt(OPP_PD_Bank, section, "Power", PowerLevel(1, UnitGetPosition(OPP_PD_Child), "PowerSource"));
+        BankValueSetFromFlag(OPP_PD_Bank, section, "FromPrism", PowerIsProvidedBy(1, UnitGetPosition(OPP_PD_Child), "PowerSource", OPP_PD_Prism, 1));
+    }
+    BankSave(OPP_PD_Bank);
+}
+void OPP_PD_Abilities () {
+    int index;
+    int count;
+    string ability;
+    string section;
+    count = CatalogFieldValueCount(c_gameCatalogUnit, UnitGetType(OPP_PD_Child), "AbilArray", 1);
+    BankValueSetFromInt(OPP_PD_Bank, "Abilities", "CatalogCount", count);
+    BankValueSetFromInt(OPP_PD_Bank, "Abilities", "WarpableCancelConstant", c_abilWarpableCmdCancel);
+    for (index = 0; index < count; index += 1) {
+        section = "CatalogAbility" + IntToString(index);
+        ability = CatalogFieldValueGet(c_gameCatalogUnit, UnitGetType(OPP_PD_Child), "AbilArray[" + IntToString(index) + "].Link", 1);
+        BankValueSetFromString(OPP_PD_Bank, section, "Ability", ability);
+        if (ability == "") { continue; }
+        BankValueSetFromInt(OPP_PD_Bank, section, "Class", AbilityClass(ability));
+        BankValueSetFromFlag(OPP_PD_Bank, section, "Exists", UnitAbilityExists(OPP_PD_Child, ability));
+        BankValueSetFromFlag(OPP_PD_Bank, section, "Enabled", UnitAbilityCheck(OPP_PD_Child, ability, true));
+        if (AbilityClass(ability) == c_classIdCAbilWarpable) {
+            BankValueSetFromInt(OPP_PD_Bank, section, "CancelCommand", c_abilWarpableCmdCancel);
+            BankValueSetFromString(OPP_PD_Bank, section, "Cancelable", CatalogFieldValueGet(c_gameCatalogAbil, ability, "Cancelable", 1));
+            BankValueSetFromFlag(OPP_PD_Bank, section, "CancelHidden", UnitCheckAbilCmdState(OPP_PD_Child, AbilityCommand(ability, c_abilWarpableCmdCancel), c_cmdStateHidden));
+            BankValueSetFromFlag(OPP_PD_Bank, section, "CancelDisabled", UnitCheckAbilCmdState(OPP_PD_Child, AbilityCommand(ability, c_abilWarpableCmdCancel), c_cmdStateDisabled));
+        }
+    }
+    count = UnitAbilityCount(OPP_PD_Child);
+    BankValueSetFromInt(OPP_PD_Bank, "Abilities", "LiveCount", count);
+    for (index = 1; index <= count; index += 1) {
+        ability = UnitAbilityGet(OPP_PD_Child, index);
+        BankValueSetFromString(OPP_PD_Bank, "Abilities", "Live" + IntToString(index), ability);
+    }
+    BankSave(OPP_PD_Bank);
+}
+
+bool OPP_Test_Run (bool testConds, bool runActions) {
+    trigger probe;
+    unitgroup selected;
+    int owner;
+    int poll;
+    string originalTime;
+    bool ready;
+    if (!runActions) { return true; }
+    OPP_PD_Bank = BankLoad("OPPBuildingCancelTest", 1);
+    BankValueSetFromString(OPP_PD_Bank, "Probe", "Fixture", "prism-direct-order-probe");
+    BankValueSetFromFlag(OPP_PD_Bank, "Finished", "Done", false);
+    probe = TriggerCreate("OPP_PD_Created"); TriggerAddEventUnitCreated(probe, null, null, null);
+    probe = TriggerCreate("OPP_PD_Order"); TriggerAddEventUnitOrder(probe, null, null);
+    probe = TriggerCreate("OPP_PD_Ability"); TriggerAddEventUnitAbility(probe, null, null, c_unitAbilStageAll, false);
+    probe = TriggerCreate("OPP_PD_Cancel"); TriggerAddEventUnitConstructProgress(probe, null, c_unitProgressStageCancel);
+    probe = TriggerCreate("OPP_PD_Complete"); TriggerAddEventUnitConstructProgress(probe, null, c_unitProgressStageComplete);
+    probe = TriggerCreate("OPP_PD_Died"); TriggerAddEventUnitDied(probe, null);
+    for (owner = 1; owner <= 2; owner += 1) {
+        PlayerSetRace(owner, "Prot"); TechTreeRequirementsEnable(owner, false); TechTreeRestrictionsEnable(owner, false);
+        TechTreeUpgradeAddLevel(owner, "WarpGateResearch", 1);
+        PlayerModifyPropertyInt(owner, c_playerPropMinerals, c_playerPropOperSetTo, 100000);
+        PlayerModifyPropertyInt(owner, c_playerPropVespene, c_playerPropOperSetTo, 100000);
+        PlayerModifyPropertyInt(owner, c_playerPropSuppliesMade, c_playerPropOperSetTo, 200);
+        UnitCreate(1, "Nexus", 0, owner, Point(20.0 + IntToFixed(owner) * 10.0, 25.0), 270.0);
+    }
+    UnitCreate(1, "Pylon", 0, 1, Point(88.0, 81.0), 270.0);
+    UnitCreate(1, "WarpGate", 0, 1, Point(83.0, 78.0), 270.0); OPP_PD_Gate = UnitLastCreated();
+    UnitCreate(1, "WarpPrismPhasing", 0, 1, Point(76.0, 57.0), 270.0); OPP_PD_Prism = UnitLastCreated();
+    Wait(8.0, c_timeGame);
+    originalTime = CatalogFieldValueGet(c_gameCatalogAbil, "WarpGateTrain", "InfoArray[0].Time", 1);
+    BankValueSetFromString(OPP_PD_Bank, "Probe", "OriginalDuration", originalTime);
+    BankValueSetFromFlag(OPP_PD_Bank, "Probe", "Lengthened", CatalogFieldValueSet(c_gameCatalogAbil, "WarpGateTrain", "InfoArray[0].Time", 1, "120"));
+    BankValueSetFromString(OPP_PD_Bank, "Probe", "ConfiguredDuration", CatalogFieldValueGet(c_gameCatalogAbil, "WarpGateTrain", "InfoArray[0].Time", 1));
+    BankValueSetFromFlag(OPP_PD_Bank, "Probe", "StartAccepted", UnitIssueOrder(OPP_PD_Gate, OrderTargetingPoint(AbilityCommand("WarpGateTrain", c_abilWarpTrainCmdTrain1), Point(75.0, 55.0)), c_orderQueueReplace));
+    poll = 0;
+    while (OPP_PD_Child == null && poll < 32) { Wait(0.0625, c_timeGame); poll += 1; }
+    ready = OPP_PD_Child != null && UnitIsValid(OPP_PD_Child) && UnitIsAlive(OPP_PD_Child) && UnitTestState(OPP_PD_Child, c_unitStateUnderConstruction);
+    if (ready) {
+        selected = UnitGroupEmpty(); UnitGroupAdd(selected, OPP_PD_Child);
+        UnitGroupSelect(UnitGroupSelected(1), 1, false); UnitGroupSelect(selected, 1, true);
+        CameraPan(1, Point(76.0, 57.0), 0.0, 0.0, 0.0, false);
+        Wait(0.125, c_timeGame);
+        OPP_PD_Abilities();
+        ready = UnitIsSelected(OPP_PD_Child, 1) && UnitIsAlive(OPP_PD_Child) && UnitTestState(OPP_PD_Child, c_unitStateUnderConstruction);
+    }
+    OPP_PD_Snapshot("ProbeReady");
+    BankValueSetFromFlag(OPP_PD_Bank, "ProbeReady", "Ready", ready); BankSave(OPP_PD_Bank);
+    poll = 0;
+    while (ready && OPP_PD_Cancels == 0 && UnitIsAlive(OPP_PD_Child) && poll < 80) {
+        Wait(0.25, c_timeGame); poll += 1;
+        if (poll % 20 == 0) { OPP_PD_Snapshot("Waiting"); }
+    }
+    Wait(0.25, c_timeGame); OPP_PD_Snapshot("After");
+    BankValueSetFromFlag(OPP_PD_Bank, "Progress", "Ready", false);
+    BankValueSetFromFlag(OPP_PD_Bank, "Finished", "ObservationElapsed", poll >= 80);
+    BankValueSetFromFixed(OPP_PD_Bank, "Probe", "ObservationSeconds", 20.0);
+    BankValueSetFromFlag(OPP_PD_Bank, "Finished", "FailedToStart", !ready);
+    BankValueSetFromInt(OPP_PD_Bank, "Finished", "Events", OPP_PD_Events);
+    BankValueSetFromFlag(OPP_PD_Bank, "Finished", "Done", true); BankSave(OPP_PD_Bank);
+    CatalogFieldValueSet(c_gameCatalogAbil, "WarpGateTrain", "InfoArray[0].Time", 1, originalTime);
+    Wait(2.0, c_timeGame); GameOver(1, c_gameOverDefeat, true, false);
+    return true;
+}

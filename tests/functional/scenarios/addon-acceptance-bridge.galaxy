@@ -1,0 +1,32 @@
+// Private test dependency only: actual image, catalog key, owner, kind and timer properties.
+void OPP_AddonFixture_Snapshot (bank output, string section) {
+    int row;
+    bool visible;
+    string key;
+    for (row = 0; row < OPP_UI_ROWS; row += 1) {
+        key = "Row" + IntToString(row);
+        BankValueSetFromString(output, section, key + "Key", OPP_UI_RowKey[row]);
+        BankValueSetFromInt(output, section, key + "Count", OPP_UI_RowCount[row]);
+        BankValueSetFromInt(output, section, key + "Owner", OPP_UI_RowOwner[row]);
+        BankValueSetFromInt(output, section, key + "Kind", OPP_UI_RowKind[row]);
+        BankValueSetFromFixed(output, section, key + "Remaining", TimerGetRemaining(OPP_UI_Timer[row]));
+        // An unused hidden row has no image property to query yet.
+        BankValueSetFromString(output, section, key + "Icon", "");
+        visible = OPP_UI_Panel[row] != c_invalidDialogControlId && DialogControlIsVisible(OPP_UI_Panel[row], OPP_UI_ViewerId);
+        if (OPP_UI_Ready && visible && OPP_UI_Busy[row] && OPP_UI_RowCount[row] > 0 && OPP_UI_Icon[row] != c_invalidDialogControlId) {
+            BankValueSetFromString(output, section, key + "Icon", DialogControlGetPropertyAsString(OPP_UI_Icon[row], c_triggerControlPropertyImage, OPP_UI_ViewerId));
+        }
+    }
+    BankSave(output);
+}
+
+void OPP_AddonFixture_ReversePair (unit child, unit parent, string ability, bool progressFirst) {
+    // Boundary-only test of production pairing in both callback orders. These
+    // records are labelled separately and never substitute for real ESC evidence.
+    OPP_BuildRemember(child, parent, ability);
+    if (!progressFirst) { OPP_BuildParentOrderSignal(parent, ability); }
+    OPP_BuildProgressSignal(parent, child, UnitGetType(child));
+    if (progressFirst) { OPP_BuildParentOrderSignal(parent, ability); }
+    OPP_BuildParentOrderSignal(parent, ability);
+    OPP_BuildProgressSignal(parent, child, UnitGetType(child));
+}

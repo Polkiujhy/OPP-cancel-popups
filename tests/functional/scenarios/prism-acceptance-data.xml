@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Catalog>
+    <!-- Private acceptance variant only. Cancelable is runtime read-only. -->
+    <CAbilWarpable id="Warpable">
+        <Cancelable value="1"/>
+    </CAbilWarpable>
+</Catalog>

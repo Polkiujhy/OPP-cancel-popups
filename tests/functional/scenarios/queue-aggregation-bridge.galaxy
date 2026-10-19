@@ -1,0 +1,96 @@
+// Appended by the stager ONLY to the isolated test mod, never src/galaxy or a release.
+void OPP_QueueFixture_Push (int owner, string name, int kind, string key) {
+    OPP_UI_PushTyped(owner, StringToText(name), "Assets\\Textures\\btn-command-cancel.dds", kind, key);
+}
+void OPP_QueueFixture_Reset () {
+    int i;
+    int owner;
+    int kind;
+    for (i = 0; i < OPP_UI_ROWS; i += 1) {
+        TimerPause(OPP_UI_Timer[i], true);
+        OPP_UI_Busy[i] = false;
+        OPP_UI_RowKey[i] = "";
+        OPP_UI_RowCount[i] = 0;
+        DialogControlSetVisible(OPP_UI_Panel[i], OPP_UI_Viewers, false);
+    }
+    for (i = 0; i < OPP_UI_CAPACITY; i += 1) {
+        OPP_UI_QueueName[i] = null;
+        OPP_UI_QueueIcon[i] = "";
+        OPP_UI_QueueKey[i] = "";
+        OPP_UI_QueueCopies[i] = 0;
+    }
+    OPP_UI_Count = 0;
+    // Preserve the actual head reached by earlier drains to exercise ring wrap-around.
+    for (owner = 1; owner < c_playerAny; owner += 1) {
+        for (kind = 0; kind < 3; kind += 1) { OPP_UI_Overflow[owner][kind] = 0; }
+    }
+}
+void OPP_QueueFixture_Release (int row) {
+    // Deliberately expose the Push -> Drain boundary, without rewriting production logic.
+    TimerPause(OPP_UI_Timer[row], true);
+    OPP_UI_Busy[row] = false;
+    DialogControlSetVisible(OPP_UI_Panel[row], OPP_UI_Viewers, false);
+}
+void OPP_QueueFixture_Snapshot (bank output, string section, bool details) {
+    int row;
+    int offset;
+    int index;
+    int total;
+    int owner;
+    int kind;
+    bool validPanel;
+    bool visible;
+    string key;
+    BankValueSetFromFixed(output, section, "Time", GameGetMissionTime());
+    BankValueSetFromInt(output, section, "Init", DataTableGetInt(true, "OPPCancelPopups/InitializationCount"));
+    BankValueSetFromFlag(output, section, "UIReady", OPP_UI_Ready);
+    BankValueSetFromInt(output, section, "QueueGroups", OPP_UI_Count);
+    BankValueSetFromFlag(output, section, "QueueDetails", details);
+    BankValueSetFromInt(output, section, "Head", OPP_UI_Head);
+    BankValueSetFromInt(output, section, "Displayed", DataTableGetInt(true, "OPPCancelPopups/Displayed"));
+    BankValueSetFromInt(output, section, "UnitCancels", DataTableGetInt(true, "OPPCancelPopups/UnitCancels"));
+    total = 0;
+    for (offset = 0; offset < OPP_UI_Count; offset += 1) {
+        index = (OPP_UI_Head + offset) % OPP_UI_CAPACITY;
+        key = "Queue" + IntToString(offset);
+        if (details) {
+            BankValueSetFromString(output, section, key + "Key", OPP_UI_QueueKey[index]);
+            BankValueSetFromInt(output, section, key + "Owner", OPP_UI_QueueOwner[index]);
+            BankValueSetFromInt(output, section, key + "Kind", OPP_UI_QueueKind[index]);
+            BankValueSetFromInt(output, section, key + "Copies", OPP_UI_QueueCopies[index]);
+        }
+        total += OPP_UI_QueueCopies[index];
+    }
+    BankValueSetFromInt(output, section, "QueuedCancels", total);
+    for (owner = 1; owner <= 2; owner += 1) {
+        for (kind = 0; kind < 3; kind += 1) {
+            BankValueSetFromInt(output, section, "Overflow" + IntToString(owner) + "Kind" + IntToString(kind), OPP_UI_Overflow[owner][kind]);
+        }
+    }
+    for (row = 0; row < OPP_UI_ROWS; row += 1) {
+        key = "Row" + IntToString(row);
+        validPanel = OPP_UI_Panel[row] != c_invalidDialogControlId;
+        visible = validPanel && DialogControlIsVisible(OPP_UI_Panel[row], OPP_UI_ViewerId);
+        BankValueSetFromFlag(output, section, key + "Busy", OPP_UI_Busy[row]);
+        BankValueSetFromFlag(output, section, key + "Visible", visible);
+        BankValueSetFromFlag(output, section, key + "Player1", validPanel && DialogControlIsVisible(OPP_UI_Panel[row], 1));
+        BankValueSetFromFlag(output, section, key + "Player2", validPanel && DialogControlIsVisible(OPP_UI_Panel[row], 2));
+        BankValueSetFromFixed(output, section, key + "Remaining", TimerGetRemaining(OPP_UI_Timer[row]));
+        BankValueSetFromInt(output, section, key + "Count", OPP_UI_RowCount[row]);
+        BankValueSetFromInt(output, section, key + "Owner", OPP_UI_RowOwner[row]);
+        BankValueSetFromInt(output, section, key + "Kind", OPP_UI_RowKind[row]);
+        BankValueSetFromString(output, section, key + "Key", OPP_UI_RowKey[row]);
+        // Hidden rows may never have received text properties from SC2.
+        BankValueSetFromText(output, section, key + "Name", StringToText(""));
+        BankValueSetFromText(output, section, key + "Status", StringToText(""));
+        if (OPP_UI_Ready && visible && OPP_UI_Busy[row] && OPP_UI_RowCount[row] > 0) {
+            if (OPP_UI_Name[row] != c_invalidDialogControlId) {
+                BankValueSetFromText(output, section, key + "Name", DialogControlGetPropertyAsText(OPP_UI_Name[row], c_triggerControlPropertyText, OPP_UI_ViewerId));
+            }
+            if (OPP_UI_Status[row] != c_invalidDialogControlId) {
+                BankValueSetFromText(output, section, key + "Status", DialogControlGetPropertyAsText(OPP_UI_Status[row], c_triggerControlPropertyText, OPP_UI_ViewerId));
+            }
+        }
+    }
+    BankSave(output);
+}

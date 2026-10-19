@@ -1,0 +1,977 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Bank version="1">
+    <Section name="Event7">
+        <Key name="Stage">
+            <Value int="6"/>
+        </Key>
+        <Key name="Type">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Alive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="Command">
+            <Value int="0"/>
+        </Key>
+        <Key name="Ability">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Time">
+            <Value fixed="8.8125"/>
+        </Key>
+        <Key name="Tag">
+            <Value int="12582913"/>
+        </Key>
+        <Key name="Label">
+            <Value string="Ability"/>
+        </Key>
+        <Key name="Case">
+            <Value string="Link181/Default"/>
+        </Key>
+    </Section>
+    <Section name="Event4">
+        <Key name="Stage">
+            <Value int="2"/>
+        </Key>
+        <Key name="Type">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Alive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="Command">
+            <Value int="0"/>
+        </Key>
+        <Key name="Ability">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Time">
+            <Value fixed="8.8125"/>
+        </Key>
+        <Key name="Tag">
+            <Value int="12582913"/>
+        </Key>
+        <Key name="Label">
+            <Value string="Ability"/>
+        </Key>
+        <Key name="Case">
+            <Value string="Link181/Default"/>
+        </Key>
+    </Section>
+    <Section name="Event6">
+        <Key name="Stage">
+            <Value int="4"/>
+        </Key>
+        <Key name="Type">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Alive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="Command">
+            <Value int="0"/>
+        </Key>
+        <Key name="Ability">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Time">
+            <Value fixed="8.8125"/>
+        </Key>
+        <Key name="Tag">
+            <Value int="12582913"/>
+        </Key>
+        <Key name="Label">
+            <Value string="Ability"/>
+        </Key>
+        <Key name="Case">
+            <Value string="Link181/Default"/>
+        </Key>
+    </Section>
+    <Section name="Event5">
+        <Key name="Stage">
+            <Value int="3"/>
+        </Key>
+        <Key name="Type">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Alive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="Command">
+            <Value int="0"/>
+        </Key>
+        <Key name="Ability">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Time">
+            <Value fixed="8.8125"/>
+        </Key>
+        <Key name="Tag">
+            <Value int="12582913"/>
+        </Key>
+        <Key name="Label">
+            <Value string="Ability"/>
+        </Key>
+        <Key name="Case">
+            <Value string="Link181/Default"/>
+        </Key>
+    </Section>
+    <Section name="Event2">
+        <Key name="Stage">
+            <Value int="1"/>
+        </Key>
+        <Key name="Type">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Alive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="Command">
+            <Value int="0"/>
+        </Key>
+        <Key name="Ability">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Time">
+            <Value fixed="8.8125"/>
+        </Key>
+        <Key name="Tag">
+            <Value int="12582913"/>
+        </Key>
+        <Key name="Label">
+            <Value string="Ability"/>
+        </Key>
+        <Key name="Case">
+            <Value string="Link181/Default"/>
+        </Key>
+    </Section>
+    <Section name="Event16">
+        <Key name="Stage">
+            <Value int="11"/>
+        </Key>
+        <Key name="Type">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Alive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="Command">
+            <Value int="0"/>
+        </Key>
+        <Key name="Ability">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Time">
+            <Value fixed="11.75"/>
+        </Key>
+        <Key name="Tag">
+            <Value int="12582913"/>
+        </Key>
+        <Key name="Label">
+            <Value string="Ability"/>
+        </Key>
+        <Key name="Case">
+            <Value string="Link181/Default"/>
+        </Key>
+    </Section>
+    <Section name="Event1">
+        <Key name="Stage">
+            <Value int="-3"/>
+        </Key>
+        <Key name="Type">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Alive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="Command">
+            <Value int="0"/>
+        </Key>
+        <Key name="Ability">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Time">
+            <Value fixed="8.8125"/>
+        </Key>
+        <Key name="Tag">
+            <Value int="12582913"/>
+        </Key>
+        <Key name="Label">
+            <Value string="Ability"/>
+        </Key>
+        <Key name="Case">
+            <Value string="Link181/Default"/>
+        </Key>
+    </Section>
+    <Section name="Probe">
+        <Key name="IsolatedLink">
+            <Value int="181"/>
+        </Key>
+        <Key name="Fixture">
+            <Value string="morph-scope-isolated"/>
+        </Key>
+        <Key name="Limitation">
+            <Value string="Fresh map isolates Link181 from prior scenery creation and delayed collapse effects."/>
+        </Key>
+    </Section>
+    <Section name="Event13">
+        <Key name="Stage">
+            <Value int="12"/>
+        </Key>
+        <Key name="Type">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Alive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="Command">
+            <Value int="0"/>
+        </Key>
+        <Key name="Ability">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Time">
+            <Value fixed="11.6875"/>
+        </Key>
+        <Key name="Tag">
+            <Value int="12582913"/>
+        </Key>
+        <Key name="Label">
+            <Value string="Ability"/>
+        </Key>
+        <Key name="Case">
+            <Value string="Link181/Default"/>
+        </Key>
+    </Section>
+    <Section name="Event11">
+        <Key name="Stage">
+            <Value int="10"/>
+        </Key>
+        <Key name="Type">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Alive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="Command">
+            <Value int="0"/>
+        </Key>
+        <Key name="Ability">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Time">
+            <Value fixed="8.8125"/>
+        </Key>
+        <Key name="Tag">
+            <Value int="12582913"/>
+        </Key>
+        <Key name="Label">
+            <Value string="Ability"/>
+        </Key>
+        <Key name="Case">
+            <Value string="Link181/Default"/>
+        </Key>
+    </Section>
+    <Section name="Event15">
+        <Key name="Stage">
+            <Value int="5"/>
+        </Key>
+        <Key name="Type">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Alive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="Command">
+            <Value int="0"/>
+        </Key>
+        <Key name="Ability">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Time">
+            <Value fixed="11.75"/>
+        </Key>
+        <Key name="Tag">
+            <Value int="12582913"/>
+        </Key>
+        <Key name="Label">
+            <Value string="Ability"/>
+        </Key>
+        <Key name="Case">
+            <Value string="Link181/Default"/>
+        </Key>
+    </Section>
+    <Section name="Finished">
+        <Key name="Done">
+            <Value flag="1"/>
+        </Key>
+        <Key name="IsolatedLinks">
+            <Value int="1"/>
+        </Key>
+        <Key name="Events">
+            <Value int="19"/>
+        </Key>
+        <Key name="Links">
+            <Value int="301"/>
+        </Key>
+    </Section>
+    <Section name="Link181/Card0">
+        <Key name="ButtonCount">
+            <Value int="1"/>
+        </Key>
+    </Section>
+    <Section name="Event18">
+        <Key name="Stage">
+            <Value int="-6"/>
+        </Key>
+        <Key name="Type">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Alive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="Command">
+            <Value int="0"/>
+        </Key>
+        <Key name="Ability">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Time">
+            <Value fixed="11.75"/>
+        </Key>
+        <Key name="Tag">
+            <Value int="12582913"/>
+        </Key>
+        <Key name="Label">
+            <Value string="Ability"/>
+        </Key>
+        <Key name="Case">
+            <Value string="Link181/Default"/>
+        </Key>
+    </Section>
+    <Section name="Event10">
+        <Key name="Stage">
+            <Value int="9"/>
+        </Key>
+        <Key name="Type">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Alive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="Command">
+            <Value int="0"/>
+        </Key>
+        <Key name="Ability">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Time">
+            <Value fixed="8.8125"/>
+        </Key>
+        <Key name="Tag">
+            <Value int="12582913"/>
+        </Key>
+        <Key name="Label">
+            <Value string="Ability"/>
+        </Key>
+        <Key name="Case">
+            <Value string="Link181/Default"/>
+        </Key>
+    </Section>
+    <Section name="Event8">
+        <Key name="Stage">
+            <Value int="7"/>
+        </Key>
+        <Key name="Type">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Alive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="Command">
+            <Value int="0"/>
+        </Key>
+        <Key name="Ability">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Time">
+            <Value fixed="8.8125"/>
+        </Key>
+        <Key name="Tag">
+            <Value int="12582913"/>
+        </Key>
+        <Key name="Label">
+            <Value string="Ability"/>
+        </Key>
+        <Key name="Case">
+            <Value string="Link181/Default"/>
+        </Key>
+    </Section>
+    <Section name="Event3">
+        <Key name="Stage">
+            <Value int="14"/>
+        </Key>
+        <Key name="Type">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Alive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="Command">
+            <Value int="0"/>
+        </Key>
+        <Key name="Ability">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Time">
+            <Value fixed="8.8125"/>
+        </Key>
+        <Key name="Tag">
+            <Value int="12582913"/>
+        </Key>
+        <Key name="Label">
+            <Value string="Ability"/>
+        </Key>
+        <Key name="Case">
+            <Value string="Link181/Default"/>
+        </Key>
+    </Section>
+    <Section name="Event17">
+        <Key name="Stage">
+            <Value int="15"/>
+        </Key>
+        <Key name="Type">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Alive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="Command">
+            <Value int="0"/>
+        </Key>
+        <Key name="Ability">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Time">
+            <Value fixed="11.75"/>
+        </Key>
+        <Key name="Tag">
+            <Value int="12582913"/>
+        </Key>
+        <Key name="Label">
+            <Value string="Ability"/>
+        </Key>
+        <Key name="Case">
+            <Value string="Link181/Default"/>
+        </Key>
+    </Section>
+    <Section name="Link181/Card0/Button0">
+        <Key name="Type">
+            <Value string="AbilCmd"/>
+        </Key>
+        <Key name="AbilCmd">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8,Execute"/>
+        </Key>
+    </Section>
+    <Section name="Event12">
+        <Key name="Stage">
+            <Value int="0"/>
+        </Key>
+        <Key name="Type">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Alive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="Command">
+            <Value int="0"/>
+        </Key>
+        <Key name="Ability">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Time">
+            <Value fixed="8.8125"/>
+        </Key>
+        <Key name="Tag">
+            <Value int="12582913"/>
+        </Key>
+        <Key name="Label">
+            <Value string="Order"/>
+        </Key>
+        <Key name="Case">
+            <Value string="Link181/Default"/>
+        </Key>
+    </Section>
+    <Section name="Event0">
+        <Key name="Stage">
+            <Value int="0"/>
+        </Key>
+        <Key name="Type">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8Out"/>
+        </Key>
+        <Key name="Alive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="Command">
+            <Value int="-1"/>
+        </Key>
+        <Key name="Ability">
+            <Value string=""/>
+        </Key>
+        <Key name="Time">
+            <Value fixed="8.75"/>
+        </Key>
+        <Key name="Tag">
+            <Value int="12582913"/>
+        </Key>
+        <Key name="Label">
+            <Value string="Created"/>
+        </Key>
+        <Key name="Case">
+            <Value string="Link181/Default"/>
+        </Key>
+    </Section>
+    <Section name="Link181">
+        <Key name="Automatic">
+            <Value string="0"/>
+        </Key>
+        <Key name="Destructible">
+            <Value string="0"/>
+        </Key>
+        <Key name="Unselectable">
+            <Value string="1"/>
+        </Key>
+        <Key name="SourceCategories">
+            <Value string="ObjectType:Structure,ObjectFamily:Campaign"/>
+        </Key>
+        <Key name="SourceRace">
+            <Value string="Terr"/>
+        </Key>
+        <Key name="ExecuteRequirements">
+            <Value string=""/>
+        </Key>
+        <Key name="Source">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8Out"/>
+        </Key>
+        <Key name="Transient">
+            <Value string="0"/>
+        </Key>
+        <Key name="Class">
+            <Value int="22"/>
+        </Key>
+        <Key name="UnitCatalogIndex">
+            <Value int="812"/>
+        </Key>
+        <Key name="Ability">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Uncommandable">
+            <Value string="0"/>
+        </Key>
+        <Key name="CancelFace">
+            <Value string=""/>
+        </Key>
+        <Key name="MetadataSaved">
+            <Value flag="1"/>
+        </Key>
+        <Key name="Interruptible">
+            <Value string="0"/>
+        </Key>
+        <Key name="DisableAbils">
+            <Value string="0"/>
+        </Key>
+        <Key name="ShowProgress">
+            <Value string="0"/>
+        </Key>
+        <Key name="AbilArrayIndex">
+            <Value int="0"/>
+        </Key>
+        <Key name="Untargetable">
+            <Value string="1"/>
+        </Key>
+        <Key name="ExecutionMode">
+            <Value string="actual-isolated-attempt"/>
+        </Key>
+        <Key name="CardCount">
+            <Value int="1"/>
+        </Key>
+    </Section>
+    <Section name="Event9">
+        <Key name="Stage">
+            <Value int="8"/>
+        </Key>
+        <Key name="Type">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Alive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="Command">
+            <Value int="0"/>
+        </Key>
+        <Key name="Ability">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Time">
+            <Value fixed="8.8125"/>
+        </Key>
+        <Key name="Tag">
+            <Value int="12582913"/>
+        </Key>
+        <Key name="Label">
+            <Value string="Ability"/>
+        </Key>
+        <Key name="Case">
+            <Value string="Link181/Default"/>
+        </Key>
+    </Section>
+    <Section name="Link181/Default">
+        <Key name="AfterUnits">
+            <Value int="0"/>
+        </Key>
+        <Key name="DuringAlive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="BeforeUnits">
+            <Value int="0"/>
+        </Key>
+        <Key name="CreatedType">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8Out"/>
+        </Key>
+        <Key name="DuringPower">
+            <Value int="1"/>
+        </Key>
+        <Key name="BeforeCancelHidden">
+            <Value flag="1"/>
+        </Key>
+        <Key name="BeforeCancelDisabled">
+            <Value flag="0"/>
+        </Key>
+        <Key name="CreatedEnabled">
+            <Value flag="1"/>
+        </Key>
+        <Key name="BeforeHidden">
+            <Value flag="0"/>
+        </Key>
+        <Key name="BeforeX">
+            <Value fixed="65"/>
+        </Key>
+        <Key name="CreatedPresent">
+            <Value flag="1"/>
+        </Key>
+        <Key name="SettledPylonX">
+            <Value fixed="65"/>
+        </Key>
+        <Key name="DuringCantSpend">
+            <Value flag="0"/>
+        </Key>
+        <Key name="DuringExecuting">
+            <Value flag="0"/>
+        </Key>
+        <Key name="StartAccepted">
+            <Value flag="1"/>
+        </Key>
+        <Key name="BeforePylonX">
+            <Value fixed="65"/>
+        </Key>
+        <Key name="AfterCancelTag">
+            <Value int="12582913"/>
+        </Key>
+        <Key name="BeforeExecuting">
+            <Value flag="0"/>
+        </Key>
+        <Key name="CreatedPower">
+            <Value int="1"/>
+        </Key>
+        <Key name="SettledAlive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="BeforeType">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8Out"/>
+        </Key>
+        <Key name="SettledHidden">
+            <Value flag="1"/>
+        </Key>
+        <Key name="SettledHasAbility">
+            <Value flag="1"/>
+        </Key>
+        <Key name="AfterCancelPresent">
+            <Value flag="1"/>
+        </Key>
+        <Key name="CreatedHasAbility">
+            <Value flag="1"/>
+        </Key>
+        <Key name="CancelOrderEvents">
+            <Value int="0"/>
+        </Key>
+        <Key name="SettledDisabled">
+            <Value flag="1"/>
+        </Key>
+        <Key name="AfterCancelHasAbility">
+            <Value flag="1"/>
+        </Key>
+        <Key name="CreatedY">
+            <Value fixed="65"/>
+        </Key>
+        <Key name="CreatedUnits">
+            <Value int="1"/>
+        </Key>
+        <Key name="AfterCancelCantSpend">
+            <Value flag="0"/>
+        </Key>
+        <Key name="DuringY">
+            <Value fixed="65"/>
+        </Key>
+        <Key name="Ability">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="AfterCancelPylonX">
+            <Value fixed="65"/>
+        </Key>
+        <Key name="DuringPylonX">
+            <Value fixed="65"/>
+        </Key>
+        <Key name="BeforeY">
+            <Value fixed="65"/>
+        </Key>
+        <Key name="BeforeTag">
+            <Value int="12582913"/>
+        </Key>
+        <Key name="AfterCancelEnabled">
+            <Value flag="0"/>
+        </Key>
+        <Key name="CreatedExecuting">
+            <Value flag="0"/>
+        </Key>
+        <Key name="AfterCancelDisabled">
+            <Value flag="1"/>
+        </Key>
+        <Key name="BeforeCancelExecute">
+            <Value int="1"/>
+        </Key>
+        <Key name="CreatedPylonX">
+            <Value fixed="65"/>
+        </Key>
+        <Key name="SettledExecuting">
+            <Value flag="0"/>
+        </Key>
+        <Key name="AfterCancelHidden">
+            <Value flag="1"/>
+        </Key>
+        <Key name="TargetPoint">
+            <Value flag="0"/>
+        </Key>
+        <Key name="SettledPylonY">
+            <Value fixed="61"/>
+        </Key>
+        <Key name="AfterCancelAlive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="DuringCancelHidden">
+            <Value flag="1"/>
+        </Key>
+        <Key name="CreatedCantSpend">
+            <Value flag="0"/>
+        </Key>
+        <Key name="AfterCancelPower">
+            <Value int="1"/>
+        </Key>
+        <Key name="CancelIssuedTime">
+            <Value fixed="8.875"/>
+        </Key>
+        <Key name="BeforeCancelComplete">
+            <Value int="0"/>
+        </Key>
+        <Key name="BeforePresent">
+            <Value flag="1"/>
+        </Key>
+        <Key name="CreatedCancelDisabled">
+            <Value flag="0"/>
+        </Key>
+        <Key name="DuringHasAbility">
+            <Value flag="1"/>
+        </Key>
+        <Key name="DuringX">
+            <Value fixed="65"/>
+        </Key>
+        <Key name="SettledCantSpend">
+            <Value flag="0"/>
+        </Key>
+        <Key name="DuringEnabled">
+            <Value flag="0"/>
+        </Key>
+        <Key name="DuringPylonY">
+            <Value fixed="61"/>
+        </Key>
+        <Key name="BeforePylonY">
+            <Value fixed="61"/>
+        </Key>
+        <Key name="BeforeAlive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="CreatedAlive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="ExecuteEvents">
+            <Value int="1"/>
+        </Key>
+        <Key name="SettledCancelHidden">
+            <Value flag="1"/>
+        </Key>
+        <Key name="AfterCancelExecuting">
+            <Value flag="0"/>
+        </Key>
+        <Key name="AfterCancelPylonY">
+            <Value fixed="61"/>
+        </Key>
+        <Key name="SourceRace">
+            <Value string="Terr"/>
+        </Key>
+        <Key name="DuringDisabled">
+            <Value flag="1"/>
+        </Key>
+        <Key name="DuringPresent">
+            <Value flag="1"/>
+        </Key>
+        <Key name="BeforeEnabled">
+            <Value flag="1"/>
+        </Key>
+        <Key name="Source">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8Out"/>
+        </Key>
+        <Key name="CancelEvents">
+            <Value int="0"/>
+        </Key>
+        <Key name="SettleWait">
+            <Value fixed="3"/>
+        </Key>
+        <Key name="AfterCancelX">
+            <Value fixed="65"/>
+        </Key>
+        <Key name="CancelAccepted">
+            <Value flag="1"/>
+        </Key>
+        <Key name="DuringTag">
+            <Value int="12582913"/>
+        </Key>
+        <Key name="SettledX">
+            <Value fixed="65"/>
+        </Key>
+        <Key name="DuringCancelDisabled">
+            <Value flag="1"/>
+        </Key>
+        <Key name="CreatedHidden">
+            <Value flag="0"/>
+        </Key>
+        <Key name="BeforePower">
+            <Value int="1"/>
+        </Key>
+        <Key name="DuringHidden">
+            <Value flag="1"/>
+        </Key>
+        <Key name="BeforeHasAbility">
+            <Value flag="1"/>
+        </Key>
+        <Key name="Time">
+            <Value fixed="8.75"/>
+        </Key>
+        <Key name="CompleteEvents">
+            <Value int="1"/>
+        </Key>
+        <Key name="SavedAttemptComplete">
+            <Value flag="1"/>
+        </Key>
+        <Key name="SettledTag">
+            <Value int="12582913"/>
+        </Key>
+        <Key name="AfterCancelType">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="CreatedCancelHidden">
+            <Value flag="1"/>
+        </Key>
+        <Key name="CreatedPylonY">
+            <Value fixed="61"/>
+        </Key>
+        <Key name="CreatedX">
+            <Value fixed="65"/>
+        </Key>
+        <Key name="SettledEnabled">
+            <Value flag="0"/>
+        </Key>
+        <Key name="SettledPower">
+            <Value int="1"/>
+        </Key>
+        <Key name="AfterCancelCancelHidden">
+            <Value flag="1"/>
+        </Key>
+        <Key name="AfterBuildings">
+            <Value int="0"/>
+        </Key>
+        <Key name="SettledPresent">
+            <Value flag="1"/>
+        </Key>
+        <Key name="AfterCancelCancelDisabled">
+            <Value flag="1"/>
+        </Key>
+        <Key name="AfterCancelY">
+            <Value fixed="65"/>
+        </Key>
+        <Key name="BeforeBuildings">
+            <Value int="0"/>
+        </Key>
+        <Key name="BeforeCantSpend">
+            <Value flag="0"/>
+        </Key>
+        <Key name="SettledY">
+            <Value fixed="65"/>
+        </Key>
+        <Key name="DuringType">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="BeforeDisabled">
+            <Value flag="0"/>
+        </Key>
+        <Key name="SettledCancelDisabled">
+            <Value flag="1"/>
+        </Key>
+        <Key name="SettledType">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="CreatedDisabled">
+            <Value flag="0"/>
+        </Key>
+        <Key name="CreatedTag">
+            <Value int="12582913"/>
+        </Key>
+    </Section>
+    <Section name="Event14">
+        <Key name="Stage">
+            <Value int="13"/>
+        </Key>
+        <Key name="Type">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Alive">
+            <Value flag="1"/>
+        </Key>
+        <Key name="Command">
+            <Value int="0"/>
+        </Key>
+        <Key name="Ability">
+            <Value string="SnowRefinery_Terran_ExtendingBridgeNEShort8"/>
+        </Key>
+        <Key name="Time">
+            <Value fixed="11.6875"/>
+        </Key>
+        <Key name="Tag">
+            <Value int="12582913"/>
+        </Key>
+        <Key name="Label">
+            <Value string="Ability"/>
+        </Key>
+        <Key name="Case">
+            <Value string="Link181/Default"/>
+        </Key>
+    </Section>
+</Bank>

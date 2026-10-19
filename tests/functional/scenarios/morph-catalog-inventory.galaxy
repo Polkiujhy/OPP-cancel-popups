@@ -1,0 +1,109 @@
+// Planning-only snapshot of the effective dependency catalog, not melee reachability.
+// Keep this bank separate from the event probe; the stager versions its name.
+void OPP_Morph_Inventory () {
+    bank output;
+    string ability;
+    string sourceType;
+    string target;
+    string section;
+    string path;
+    string stage;
+    int abilityEntries;
+    int unitEntries;
+    int abilityClass;
+    int entries;
+    int morphs;
+    int placements;
+    int defaults;
+    int links;
+    int stages;
+    int count;
+    int i;
+    int j;
+    int work;
+    output = BankLoad("OPPBuildingCancelTestMorphCatalog", 1);
+    BankValueSetFromString(output, "Meta", "Scope", "Effective catalog; source links do not establish melee reachability or cancellability.");
+    abilityEntries = CatalogEntryCount(c_gameCatalogAbil);
+    unitEntries = CatalogEntryCount(c_gameCatalogUnit);
+    entries = 0;
+    morphs = 0;
+    placements = 0;
+    defaults = 0;
+    links = 0;
+    stages = 0;
+    work = 0;
+    // CatalogEntryGet is one-based (verified GameHeart enumeration and runtime).
+    for (i = 1; i <= abilityEntries; i += 1) {
+        if (i % 128 == 0) { Wait(0.0625, c_timeGame); }
+        ability = CatalogEntryGet(c_gameCatalogAbil, i);
+        if (!CatalogEntryIsValid(c_gameCatalogAbil, ability)) { continue; }
+        abilityClass = AbilityClass(ability);
+        if (abilityClass != c_classIdCAbilMorph && abilityClass != c_classIdCAbilMorphPlacement) { continue; }
+        if (CatalogEntryIsDefault(c_gameCatalogAbil, ability)) { defaults += 1; continue; }
+        section = "Ability" + IntToString(entries);
+        entries += 1;
+        if (abilityClass == c_classIdCAbilMorph) { morphs += 1; }
+        else { placements += 1; }
+        BankValueSetFromString(output, section, "Id", ability);
+        BankValueSetFromInt(output, section, "CatalogIndex", i);
+        BankValueSetFromInt(output, section, "Class", abilityClass);
+        BankValueSetFromString(output, section, "Parent", CatalogEntryParent(c_gameCatalogAbil, ability));
+        BankValueSetFromString(output, section, "Scope", CatalogEntryScope(c_gameCatalogAbil, ability));
+        BankValueSetFromString(output, section, "Interruptible", CatalogFieldValueGet(c_gameCatalogAbil, ability, "Flags[Interruptible]", 1));
+        BankValueSetFromString(output, section, "ShowProgress", CatalogFieldValueGet(c_gameCatalogAbil, ability, "Flags[ShowProgress]", 1));
+        BankValueSetFromString(output, section, "Transient", CatalogFieldValueGet(c_gameCatalogAbil, ability, "Flags[Transient]", 1));
+        BankValueSetFromString(output, section, "AutoCast", CatalogFieldValueGet(c_gameCatalogAbil, ability, "Flags[AutoCast]", 1));
+        BankValueSetFromString(output, section, "AutoCastOn", CatalogFieldValueGet(c_gameCatalogAbil, ability, "Flags[AutoCastOn]", 1));
+        BankValueSetFromString(output, section, "CancelFace", CatalogFieldValueGet(c_gameCatalogAbil, ability, "CmdButtonArray[Cancel].DefaultButtonFace", 1));
+        BankValueSetFromString(output, section, "ProgressButton", CatalogFieldValueGet(c_gameCatalogAbil, ability, "ProgressButton", 1));
+        count = CatalogFieldValueCount(c_gameCatalogAbil, ability, "InfoArray", 1);
+        BankValueSetFromInt(output, section, "StageCount", count);
+        for (j = 0; j < count; j += 1) {
+            stage = section + "/Stage" + IntToString(j);
+            path = "InfoArray[" + IntToString(j) + "]";
+            target = CatalogFieldValueGet(c_gameCatalogAbil, ability, path + ".Unit", 1);
+            BankValueSetFromString(output, stage, "Target", target);
+            BankValueSetFromFlag(output, stage, "TargetValid", target != "" && CatalogEntryIsValid(c_gameCatalogUnit, target));
+            if (target != "" && CatalogEntryIsValid(c_gameCatalogUnit, target)) {
+                BankValueSetFromFlag(output, stage, "Structure", UnitTypeTestAttribute(target, c_unitAttributeStructure));
+            }
+            BankValueSetFromString(output, stage, "AbilsDelay", CatalogFieldValueGet(c_gameCatalogAbil, ability, path + ".SectionArray[Abils].DurationArray[Delay]", 1));
+            BankValueSetFromString(output, stage, "AbilsDuration", CatalogFieldValueGet(c_gameCatalogAbil, ability, path + ".SectionArray[Abils].DurationArray[Duration]", 1));
+            BankValueSetFromString(output, stage, "ActorDelay", CatalogFieldValueGet(c_gameCatalogAbil, ability, path + ".SectionArray[Actor].DurationArray[Delay]", 1));
+            BankValueSetFromString(output, stage, "ActorDuration", CatalogFieldValueGet(c_gameCatalogAbil, ability, path + ".SectionArray[Actor].DurationArray[Duration]", 1));
+            BankValueSetFromString(output, stage, "StatsDelay", CatalogFieldValueGet(c_gameCatalogAbil, ability, path + ".SectionArray[Stats].DurationArray[Delay]", 1));
+            BankValueSetFromString(output, stage, "StatsDuration", CatalogFieldValueGet(c_gameCatalogAbil, ability, path + ".SectionArray[Stats].DurationArray[Duration]", 1));
+            stages += 1;
+        }
+    }
+    for (i = 1; i <= unitEntries; i += 1) {
+        if (i % 128 == 0) { Wait(0.0625, c_timeGame); }
+        sourceType = CatalogEntryGet(c_gameCatalogUnit, i);
+        if (!CatalogEntryIsValid(c_gameCatalogUnit, sourceType) || CatalogEntryIsDefault(c_gameCatalogUnit, sourceType)) { continue; }
+        count = CatalogFieldValueCount(c_gameCatalogUnit, sourceType, "AbilArray", 1);
+        for (j = 0; j < count; j += 1) {
+            work += 1;
+            if (work % 128 == 0) { Wait(0.0625, c_timeGame); }
+            ability = CatalogFieldValueGet(c_gameCatalogUnit, sourceType, "AbilArray[" + IntToString(j) + "].Link", 1);
+            if (ability == "" || !CatalogEntryIsValid(c_gameCatalogAbil, ability)) { continue; }
+            abilityClass = AbilityClass(ability);
+            if (abilityClass != c_classIdCAbilMorph && abilityClass != c_classIdCAbilMorphPlacement) { continue; }
+            section = "SourceLink" + IntToString(links);
+            links += 1;
+            BankValueSetFromString(output, section, "Unit", sourceType);
+            BankValueSetFromString(output, section, "Ability", ability);
+            BankValueSetFromInt(output, section, "UnitCatalogIndex", i);
+            BankValueSetFromInt(output, section, "AbilArrayIndex", j);
+        }
+    }
+    BankValueSetFromInt(output, "Meta", "AbilityCatalogCount", abilityEntries);
+    BankValueSetFromInt(output, "Meta", "UnitCatalogCount", unitEntries);
+    BankValueSetFromInt(output, "Meta", "AbilityCount", entries);
+    BankValueSetFromInt(output, "Meta", "MorphCount", morphs);
+    BankValueSetFromInt(output, "Meta", "MorphPlacementCount", placements);
+    BankValueSetFromInt(output, "Meta", "DefaultsSkipped", defaults);
+    BankValueSetFromInt(output, "Meta", "StageCount", stages);
+    BankValueSetFromInt(output, "Meta", "SourceLinkCount", links);
+    BankValueSetFromFlag(output, "Finished", "Done", true);
+    BankSave(output);
+}

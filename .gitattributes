@@ -1,0 +1,3 @@
+# Frozen baseline inputs are verified by their exact original SHA256.
+tests/functional/baseline/* -text
+tests/functional/baseline/*.SC2Bank whitespace=cr-at-eol
